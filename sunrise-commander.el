@@ -63,7 +63,7 @@
 ;; It doesn't even try to look like MC, so the help window is gone (you're in
 ;; emacs, so you know your bindings, right?).
 
-;; This is version 1 rev. 1 of the Sunrise Commander. Please note that it was
+;; This is version 1 rev. 2 of the Sunrise Commander. Please note that it was
 ;; written and tested only on GNU Emacs version 23 (from CVS). I *am* aware that
 ;; there are several functions (including, alas, file and directory comparison)
 ;; that simply will not work on GNU Emacs 21, but unfortunately I do not have
@@ -750,7 +750,7 @@ indir/d => to-dir/d"
   (if (not (sr-overlapping-paths-p (concat in-dir d "/") to-dir))
       (progn
         (if (string= "" d)
-            (setq to-dir (concat to-dir "/" (sr-directory-name-proper in-dir))))
+            (setq to-dir (concat to-dir (sr-directory-name-proper in-dir))))
         (if (not (file-exists-p (concat to-dir d))) ; directory in-dir/d does not exist
 	    (make-directory (concat to-dir d))) ; makes d in to-dir
 	(let* ((files-in-d (append (sr-list-of-files (concat in-dir d "/"))
@@ -758,36 +758,45 @@ indir/d => to-dir/d"
 	       (file-paths-in-d 
 		(mapcar (lambda (f) (concat in-dir d "/" f)) files-in-d))
 	       )
-	  (sr-copy-files file-paths-in-d (concat to-dir d "/") do-overwrite)))
+	  (sr-copy-files file-paths-in-d (concat to-dir d) do-overwrite)))
     (error "You cannot copy a directory into itself or one of its subdirectories")))
 
-(defun sr-move-files (file-path-list target-dir)
+(defun sr-move-files (file-path-list target-dir &optional do-overwrite)
   "Moves all files in file-path-list (list of full paths) to target dir"
   (mapcar
    (function 
     (lambda (f)
-	(cond ((file-directory-p f)
-               (let* (
-                      (name (sr-file-name-proper (file-name-nondirectory f)))
-                      (initial-path (file-name-directory f))
-                      (target-subdir target-dir)
-                     )
-                 (if (string= "" name)
-                     (setq target-subdir (concat target-dir "/" (sr-directory-name-proper f))))
-                 (rename-file f target-subdir t)))
+      (cond ((file-directory-p f)
+             (let* (
+                    (name (sr-file-name-proper (file-name-nondirectory f)))
+                    (target-subdir target-dir)
+                    (initial-path (file-name-directory f))
+                   )
+               (if (string= "" name)
+                   (setq target-subdir (concat target-dir (sr-directory-name-proper f))))
+               (if (file-exists-p target-subdir)
+                   (if (or (eq do-overwrite 'ALWAYS)
+                           (setq do-overwrite (ask-overwrite target-subdir)))
+                       (progn
+                         (sr-copy-directory initial-path name target-dir do-overwrite)
+                         (dired-delete-file f 'always)))
+                 (rename-file f target-subdir t))))
 
-	      ((file-regular-p f)
-               (let* (
-                      (name (sr-file-name-proper (file-name-nondirectory f)))
-          	      (ext (file-name-extension f))
-	              (name-ext (concat name (if ext (concat "." ext) "")))
-                      (initial-path (file-name-directory f))
-                     )
-	       (rename-file f (concat target-dir name-ext) t)
-	       (message (concat f " => " (concat target-dir name-ext)))))
+            ((file-regular-p f)
+             (let* (
+                    (name (sr-file-name-proper (file-name-nondirectory f)))
+                    (ext (file-name-extension f))
+                    (name-ext (concat name (if ext (concat "." ext) "")))
+                    (target-file (concat target-dir name-ext))
+                   )
+               (message (concat f " => " target-file))
+               (if (file-exists-p target-file)
+                   (if (or (eq do-overwrite 'ALWAYS)
+                           (setq do-overwrite (ask-overwrite target-file)))
+                       (rename-file f target-file t))
+                 (rename-file f target-file t))))
 
-	      (t nil))
-	))
+            (t nil))))
    file-path-list))
 
 (defun ask-overwrite (file-name)
