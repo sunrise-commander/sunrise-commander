@@ -271,7 +271,9 @@ Sunrise, like G for changing group, M for changing mode and so on."
 (define-key sr-mode-map "g"                  'revert-buffer)
 
 (define-key sr-mode-map "C"                  'sr-do-copy)
+(define-key sr-mode-map "c"                  'dired-do-copy)
 (define-key sr-mode-map "R"                  'sr-do-rename)
+(define-key sr-mode-map "r"                  'dired-do-rename)
 (define-key sr-mode-map "\C-xt"              'sr-bash)
 
 (define-key sr-mode-map "="                  'sr-diff)
