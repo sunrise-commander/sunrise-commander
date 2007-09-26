@@ -63,7 +63,7 @@
 ;; It doesn't even try to look like MC, so the help window is gone (you're in
 ;; emacs, so you know your bindings, right?).
 
-;; This is version 1 rev. 2 of the Sunrise Commander. Please note that it was
+;; This is version 1 rev. 4 of the Sunrise Commander. Please note that it was
 ;; written and tested only on GNU Emacs version 23 (from CVS). I *am* aware that
 ;; there are several functions (including, alas, file and directory comparison)
 ;; that simply will not work on GNU Emacs 21, but unfortunately I do not have
@@ -724,7 +724,7 @@ horizontal and vice-versa."
     (lambda (f)
 	(cond ((file-directory-p f) 
                (let* (
-                      (name (sr-file-name-proper (file-name-nondirectory f)))
+                      (name (file-name-nondirectory f))
                       (initial-path (file-name-directory f))
                      )
                  (sr-copy-directory initial-path name target-dir do-overwrite)))
@@ -749,16 +749,17 @@ horizontal and vice-versa."
 (defun sr-copy-directory (in-dir d to-dir do-overwrite)
   "Copies directory d in in-dir to to-dir, and recursively, all files too.
 indir/d => to-dir/d"
-  (if (not (sr-overlapping-paths-p (concat in-dir d "/") to-dir))
+  (if (not (sr-overlapping-paths-p (concat in-dir d) to-dir))
       (progn
         (if (string= "" d)
             (setq to-dir (concat to-dir (sr-directory-name-proper in-dir))))
         (if (not (file-exists-p (concat to-dir d))) ; directory in-dir/d does not exist
 	    (make-directory (concat to-dir d))) ; makes d in to-dir
-	(let* ((files-in-d (append (sr-list-of-files (concat in-dir d "/"))
-                                   (sr-list-of-directories (concat in-dir d "/"))))
+	(let* (
+               (files-in-d (append (sr-list-of-files (concat in-dir d))
+                                   (sr-list-of-directories (concat in-dir d))))
 	       (file-paths-in-d 
-		(mapcar (lambda (f) (concat in-dir d "/" f)) files-in-d))
+		(mapcar (lambda (f) (concat in-dir d f)) files-in-d))
 	       )
 	  (sr-copy-files file-paths-in-d (concat to-dir d) do-overwrite)))
     (error "You cannot copy a directory into itself or one of its subdirectories")))
