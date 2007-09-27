@@ -63,13 +63,13 @@
 ;; It doesn't even try to look like MC, so the help window is gone (you're in
 ;; emacs, so you know your bindings, right?).
 
-;; This is version 1 rev. 5 of the Sunrise Commander. Please note that it was
-;; written and tested only on GNU Emacs version 23 (from CVS). I *am* aware that
-;; there are several functions (including, alas, file and directory comparison)
-;; that simply will not work on GNU Emacs 21, but unfortunately I do not have
-;; the time to port them back. I don't know either if it will work at all on
-;; XEmacs, so try at your own risk. All contributions and/or bug reports will be
-;; very welcome.
+;; This is version 1 $Revision$ of the Sunrise Commander.
+;; Please note that it was written and tested only on GNU Emacs version 23 (from
+;; CVS). I *am* aware that there are several functions (including, alas, file
+;; and directory comparison) that simply will not work on GNU Emacs 21, but
+;; unfortunately I do not have the time to port them back. I don't know either
+;; if it will work at all on XEmacs, so try at your own risk. All contributions
+;; and/or bug reports will be very welcome.
 
 ;;; Installation and Usage:
 
