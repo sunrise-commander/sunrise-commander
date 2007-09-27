@@ -63,7 +63,7 @@
 ;; It doesn't even try to look like MC, so the help window is gone (you're in
 ;; emacs, so you know your bindings, right?).
 
-;; This is version 1 $Rev$ of the Sunrise Commander
+;; This is version 1 $Rev$ of the Sunrise Commander.
 ;; Please note that it was written and tested only on GNU Emacs version 23 (from
 ;; CVS). I *am* aware that there are several functions (including, alas, file
 ;; and directory comparison) that simply will not work on GNU Emacs 21, but
