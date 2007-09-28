@@ -112,11 +112,11 @@
   "Face used to highlight symbolic directory links."
   :group 'sunrise)
 
-(defface sr-window-selected-face '((t (:background "blue")))
+(defface sr-window-selected-face '((t (:background "#ace6ac" :foreground "yellow" :height 140)))
   "Face used to show a selected window"
   :group 'sunrise)
 
-(defface sr-window-not-selected-face '((t (:foreground "white")))
+(defface sr-window-not-selected-face '((t (:background "white" :foreground "lightgray" :height 140)))
   "Face used to show an unselected window"
   :group 'sunrise)
 
@@ -172,7 +172,7 @@
 
 (define-derived-mode sr-mode dired-mode "Sunrise Commander"
   "Two-pane file manager for Emacs based on Dired and inspired by MC. The
-  following keybinding are available:
+  following keybindings are available:
 
         C-x g ......... go to directory
         U ............. go to parent directory
@@ -507,6 +507,7 @@ Specifying nil for any of these values uses the default, ie. home."
                                 (dired-advertised-find-file)
                               (dired-find-alternate-file)))
                 (sr-history-push dired-directory)
+                (sr-highlight)
                 (hl-line-mode 1))
             (progn
               (sr-quit)
@@ -944,8 +945,7 @@ part of file-path can be accessed by the function parent-directory."
   (let ((this (sr-pop-mark))
         (other nil))
     (if (not this)
-        (setq this (car (dired-get-marked-files t)))
-      nil)
+        (setq this (car (dired-get-marked-files t))))
     (if (string= dired-directory sr-other-directory)
         (setq other (sr-pop-mark))
       (progn
