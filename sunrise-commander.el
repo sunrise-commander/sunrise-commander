@@ -100,6 +100,8 @@
       dired-recursive-deletes 'top
       dired-listing-switches "-alp")
 
+(eval-when-compile (require 'term))
+
 (defface sr-directory-face '((t (:bold t)))
   "Face used to highlight directories."
   :group 'sunrise)
@@ -178,12 +180,12 @@
         U ............. go to parent directory
         \\M-y .......... go to previous directory in history
         \\M-u .......... go to next directory in history
-        Tab ........... go to other pane
         \\M-a .......... go to beginning of current directory
         \\M-e .......... go to end of current directory
+        Tab ........... go to other pane
 
         \\C-c \\C-s ..... toggle pane orientation (vertical/horizontal)
-        \\C-t .......... transpose panes
+        \\M-t .......... transpose panes
         \\M-o .......... synchronize panes
         \\C-o .......... show/hide hidden files (requires dired-omit-mode)
         b ............. browse current directory using w3m
@@ -264,7 +266,7 @@ Sunrise, like G for changing group, M for changing mode and so on."
 (define-key sr-mode-map "\M-a"               'sr-beginning-of-buffer)
 (define-key sr-mode-map "\M-e"               'sr-end-of-buffer)
 (define-key sr-mode-map [?\C-c?\C-s]         'sr-split-toggle)
-(define-key sr-mode-map "\C-t"               'sr-transpose-panes)
+(define-key sr-mode-map "\M-t"               'sr-transpose-panes)
 (define-key sr-mode-map "\M-o"               'sr-synchronize-panes)
 (define-key sr-mode-map "\C-o"               'dired-omit-mode)
 (define-key sr-mode-map "b"                  'sr-browse)
