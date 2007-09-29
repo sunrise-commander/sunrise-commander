@@ -178,22 +178,22 @@
 
         C-x g ......... go to directory
         U ............. go to parent directory
-        \\M-y .......... go to previous directory in history
-        \\M-u .......... go to next directory in history
-        \\M-a .......... go to beginning of current directory
-        \\M-e .......... go to end of current directory
+        M-y ........... go to previous directory in history
+        M-u ........... go to next directory in history
+        M-a ........... go to beginning of current directory
+        M-e ........... go to end of current directory
         Tab ........... go to other pane
 
-        \\C-c \\C-s ..... toggle pane orientation (vertical/horizontal)
-        \\M-t .......... transpose panes
-        \\M-o .......... synchronize panes
-        \\C-o .......... show/hide hidden files (requires dired-omit-mode)
+        C-c C-s ....... toggle pane orientation (vertical/horizontal)
+        M-t ........... transpose panes
+        M-o ........... synchronize panes
+        C-o ........... show/hide hidden files (requires dired-omit-mode)
         b ............. browse current directory using w3m
         g ............. refresh pane
 
-        \\C-= .......... smart compare files (ediff)
+        C-= ........... smart compare files (ediff)
         = ............. fast smart compare files (plain diff)
-        \\C-\\M-= ....... compare directories
+        C-M-= ......... compare directories
 
         Return ........ visit selected file
         + ............. create new directory
@@ -201,7 +201,7 @@
         R ............. rename marked (or current) files and directories
         D ............. delete marked (or current) files and directories
 
-        \\C-x t ........ open shell (bash) into current directory
+        C-x t ......... open shell (bash) into current directory
         q ............. quit Sunrise Commander
 
 Additionally, if you activate the mc-compatible keybindings (by invoking the
@@ -215,6 +215,8 @@ sunrise-mc-keys function) you'll get the following ones:
         F7 ............ create new directory
         F8 ............ delete marked (or current) files and directories
         F10 ........... quit Sunrise Commander
+        Insert ........ mark file
+        C-PgUp ........ go to parent directory
 
 Also any dired keybinding (not overridden by any of the above) can be used in
 Sunrise, like G for changing group, M for changing mode and so on."
@@ -287,14 +289,16 @@ Sunrise, like G for changing group, M for changing mode and so on."
 (defun sunrise-mc-keys ()
   "Binds the function keys F2 to F10 the traditional MC way"
   (interactive)
-  (define-key sr-mode-map [(f2)]  'sr-goto-dir)
-  (define-key sr-mode-map [(f3)]  'sr-advertised-find-file)
-  (define-key sr-mode-map [(f4)]  'sr-advertised-find-file)
-  (define-key sr-mode-map [(f5)]  'sr-do-copy)
-  (define-key sr-mode-map [(f6)]  'sr-do-rename)
-  (define-key sr-mode-map [(f7)]  'dired-create-directory)
-  (define-key sr-mode-map [(f8)]  'dired-do-delete)
-  (define-key sr-mode-map [(f10)] 'keyboard-escape-quit))
+  (define-key sr-mode-map [(f2)]            'sr-goto-dir)
+  (define-key sr-mode-map [(f3)]            'sr-advertised-find-file)
+  (define-key sr-mode-map [(f4)]            'sr-advertised-find-file)
+  (define-key sr-mode-map [(f5)]            'sr-do-copy)
+  (define-key sr-mode-map [(f6)]            'sr-do-rename)
+  (define-key sr-mode-map [(f7)]            'dired-create-directory)
+  (define-key sr-mode-map [(f8)]            'dired-do-delete)
+  (define-key sr-mode-map [(f10)]           'keyboard-escape-quit)
+  (define-key sr-mode-map [(insert)]        'dired-mark)
+  (define-key sr-mode-map [(control prior)] 'sr-dired-prev-subdir))
 
 ;;; ============================================================================
 ;;; Initialization and finalization functions:
