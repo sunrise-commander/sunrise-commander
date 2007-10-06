@@ -198,7 +198,9 @@
         Return ........ visit selected file
         + ............. create new directory
         C ............. copy marked (or current) files and directories
+        c ............. copy (using traditional dired-do-copy)
         R ............. rename marked (or current) files and directories
+        r ............. rename (using traditional dired-do-rename)
         D ............. delete marked (or current) files and directories
 
         C-x t ......... open shell (bash) into current directory
