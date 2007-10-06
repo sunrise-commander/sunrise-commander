@@ -910,10 +910,7 @@ part of file-path can be accessed by the function parent-directory."
 (defun sr-compare-dirs()
   "Compares paned directories between themselves"
   (interactive)
-  (let ((other dired-directory))
-    (sr-change-window)
-    (dired-compare-directories other (ask-compare-dirs-predicate))
-    (sr-change-window)))
+  (dired-compare-directories sr-other-directory (ask-compare-dirs-predicate)))
 
 (defun ask-compare-dirs-predicate ()
   (let (
