@@ -58,7 +58,7 @@
 
 ;; * Press C-x t to open a bash terminal into the current pane's directory.
 
-;; * Press C-t to swap the panes.
+;; * Press M-t to swap the panes.
 
 ;; It doesn't even try to look like MC, so the help window is gone (you're in
 ;; emacs, so you know your bindings, right?).
@@ -272,7 +272,7 @@ Sunrise, like G for changing group, M for changing mode and so on."
 (define-key sr-mode-map "\M-o"               'sr-synchronize-panes)
 (define-key sr-mode-map "\C-o"               'dired-omit-mode)
 (define-key sr-mode-map "b"                  'sr-browse)
-(define-key sr-mode-map "g"                  'revert-buffer)
+(define-key sr-mode-map "g"                  'sr-revert-buffer)
 
 (define-key sr-mode-map "C"                  'sr-do-copy)
 (define-key sr-mode-map "c"                  'dired-do-copy)
@@ -657,7 +657,7 @@ horizontal and vice-versa."
     (sr-goto-dir target)
     (sr-change-window)))
 
-(defun sr-browse()
+(defun sr-browse ()
   "Browse the directory/file on the current line."
   (interactive)
   (let(filename)
@@ -667,6 +667,12 @@ horizontal and vice-versa."
           (setq url (concat "file://" filename))
           (message "Browsing %s " url)
           (browse-url url)))))
+
+(defun sr-revert-buffer ()
+  "Refreshes the current pane"
+  (interactive)
+  (revert-buffer)
+  (sr-highlight))
 
 ;;; ============================================================================
 ;;; File manipulation functions:
@@ -689,7 +695,7 @@ horizontal and vice-versa."
                   (dired-unmark-all-marks)
                   (sr-change-window)
                   (sr-copy-files selected-files dired-directory)
-                  (revert-buffer)
+                  (sr-revert-buffer)
                   (sr-change-window)
                   (message (concat "Done: "
                                    (int-to-string (length selected-files))
@@ -715,9 +721,9 @@ horizontal and vice-versa."
                   (dired-unmark-all-marks)
                   (sr-change-window)
                   (sr-move-files selected-files dired-directory)
-                  (revert-buffer)
+                  (sr-revert-buffer)
                   (sr-change-window)
-                  (revert-buffer)
+                  (sr-revert-buffer)
                   (message (concat "Done: "
                                    (int-to-string (length selected-files))
                                    " file(s) dispatched")))))
@@ -787,10 +793,8 @@ indir/d => to-dir/d"
                (if (file-exists-p target-subdir)
                    (if (or (eq do-overwrite 'ALWAYS)
                            (setq do-overwrite (ask-overwrite target-subdir)))
-                       (progn
-                         (sr-copy-directory initial-path name target-dir do-overwrite)
-                         (dired-delete-file f 'always)))
-                 (rename-file f target-subdir t))))
+                       (sr-move-directory initial-path name target-dir do-overwrite))
+                 (sr-move-directory initial-path name target-dir do-overwrite))))
 
             ((file-regular-p f)
              (let* (
@@ -808,6 +812,13 @@ indir/d => to-dir/d"
 
             (t nil))))
    file-path-list))
+
+(defun sr-move-directory (in-dir d to-dir do-overwrite)
+  "Copies recursively the given directory d from in-dir to to-dir, then removes
+the original one"
+  (sr-copy-directory in-dir d to-dir do-overwrite)
+  (let ((delete-dir (concat in-dir d)))
+    (dired-delete-file delete-dir 'always)))
 
 (defun ask-overwrite (file-name)
   "Asks whether to overwrite a given file."
