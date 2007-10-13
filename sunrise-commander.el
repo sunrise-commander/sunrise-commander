@@ -272,7 +272,7 @@ Sunrise, like G for changing group, M for changing mode and so on."
 (define-key sr-mode-map [?\C-c?\C-s]         'sr-split-toggle)
 (define-key sr-mode-map "\M-t"               'sr-transpose-panes)
 (define-key sr-mode-map "\M-o"               'sr-synchronize-panes)
-(define-key sr-mode-map "\C-o"               'dired-omit-mode)
+(define-key sr-mode-map "\C-o"               'sr-omit-mode)
 (define-key sr-mode-map "b"                  'sr-browse)
 (define-key sr-mode-map "g"                  'sr-revert-buffer)
 
@@ -674,6 +674,12 @@ horizontal and vice-versa."
   "Refreshes the current pane"
   (interactive)
   (revert-buffer)
+  (sr-highlight))
+
+(defun sr-omit-mode ()
+  "Toggles dired-omit-mode"
+  (interactive)
+  (dired-omit-mode)
   (sr-highlight))
 
 ;;; ============================================================================
