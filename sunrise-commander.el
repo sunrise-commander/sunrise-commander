@@ -94,6 +94,7 @@
 ;;; Code:
 
 (require 'dired)
+(require 'dired-x)
 (require 'font-lock)
 (require 'browse-url)
 (setq dired-dwim-target t
@@ -856,17 +857,20 @@ the symbol ALWAYS."
 (defun sr-list-of-directories (dir)
  "Return a list of directories in DIR. Each entry in the list is a string. The
 list does not include the current directory and the parent directory."
- (sr-filter (function (lambda (x) (not (or (equal x ".") (equal x "..")))))
-  (sr-filter
-   (function (lambda (x)
-	       (file-directory-p (concat dir x))))
-   (directory-files dir))))
+ (let (result)
+   (setq result
+         (sr-filter (function (lambda (x) (not (or (equal x ".") (equal x "..")))))
+                    (sr-filter
+                     (function (lambda (x)
+                                 (file-directory-p (concat dir "/" x))))
+                     (directory-files dir))))
+   (mapcar (lambda (x) (concat x "/")) result)))
 
 (defun sr-list-of-files (dir)
   "Return a list of regular files in DIR. Each entry in the list is a string."
   (sr-filter
    (function (lambda (x)
-	       (file-regular-p (concat dir x))))
+               (file-regular-p (concat dir "/" x))))
    (directory-files dir)))
 
 (defun sr-filter (p x)
@@ -896,9 +900,9 @@ file-name-nondirectory to access the the proper file name and the extension of a
 file path.  Use the native Emacs Lisp function file-name-directory to access the
 directory path of a file path."
   (let ((point-idx (sr-find-last-point filename)))
-    (if point-idx 
-        (substring filename 0 point-idx)
-        filename)))
+    (cond ((eq point-idx nil) filename)
+          ((eq point-idx   0) filename)
+          (t (substring filename 0 point-idx)))))
 
 (defun sr-directory-name-proper (file-path)
   "Takes as input an absolute or relative, forward slash terminated path to a directory.
