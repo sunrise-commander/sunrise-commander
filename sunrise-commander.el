@@ -1,4 +1,4 @@
-;; sunrise-commander.el --- Two-pane file manager for Emacs based on Dired and
+;; sunrise-commander.el  ---  Two-pane file manager for Emacs based on Dired and
 ;; inspired by MC.
 
 ;; Copyright (C) 2007 José Alfredo Romero L.
@@ -8,51 +8,51 @@
 
 ;; This program is free software: you can redistribute it and/or modify it under
 ;; the terms of the GNU General Public License as published by the Free Software
-;; Foundation, either version 3 of the License, or (at your option) any later
+;; Foundation,  either  version  3 of the License, or (at your option) any later
 ;; version.
 ;; 
-;; This program is distributed in the hope that it will be useful, but WITHOUT
+;; This  program  is distributed in the hope that it will be useful, but WITHOUT
 ;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-;; FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
-;; details.
-;; 
-;; You should have received a copy of the GNU General Public License along with
-;; this program.  If not, see <http://www.gnu.org/licenses/>.
+;; FOR  A  PARTICULAR  PURPOSE.  See the GNU General Public License for more de-
+;; tails.
+
+;; You  should have received a copy of the GNU General Public License along with
+;; this program. If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
-;; Here is another two-pane mc emulation layer for emacs. It's built on top of
-;; Dired and takes advantage of all its features, offering at the same time the
-;; double pane interface I'd been missing so badly since I started using
-;; regularly emacs (for everything!). I tried both Ilya Zakharevich's nc.el and
-;; Kevin Burton's mc.el, but none of them was what I was looking for (though
+;; Here  is  another two-pane mc emulation layer for emacs. It's built on top of
+;; Dired and takes advantage of all its features, offering at the same time  the
+;; double  pane  interface I'd been missing so badly since I started using regu-
+;; larly emacs (for everything!). I tried  both  Ilya  Zakharevich's  nc.el  and
+;; Kevin  Burton's  mc.el,  but  none of them was what I was looking for (though
 ;; mc.el was near the ideal).
 
-;; A lot of this code has been shamelessly copied from Kevin's mc.el and only
-;; slightly modified. Another part of it - the code for recursive file copying
-;; and renaming - was adapted from the dired extensions written by Kurt Nørmarks
+;; A  lot  of  this code has been shamelessly copied from Kevin's mc.el and only
+;; slightly modified. Another part of it - the code for recursive  file  copying
+;; and  renaming - was adapted from the dired extensions written by Kurt Nørmark
 ;; for LAML (http://www.cs.aau.dk/~normark/scheme/distribution/laml/).
 
 ;; I have added to the mix several useful functions:
 
-;; * Sunrise is implemented as a derived major mode confined inside the pane
-;; buffers, so its buffers and dired ones can live together without easymenu or
+;; *  Sunrise  is  implemented  as a derived major mode confined inside the pane
+;; buffers, so its buffers and dired ones can live together without easymenu  or
 ;; viper to avoid key binding collisions.
 
-;; * It automatically closes unused buffers and tries to never keep open more
+;; *  It  automatically  closes unused buffers and tries to never keep open more
 ;; than the one or two used to display the panes.
 
-;; * Each pane has its own history ring: press M-y / M-u for moving backwards /
+;; *  Each pane has its own history ring: press M-y / M-u for moving backwards /
 ;; forwards in the history of directories.
 
 ;; * Press C-= for "smart" file comparison using ediff. It compares together the
-;; first two files marked on each pane or, if no files have been marked, it
-;; assumes that the second pane contains a file with the same name as the
-;; selected one and tries to compare these two. You can also mark whole lists of
-;; files to be compared and then just press C-= for comparing the next pair.
+;; first two files marked on each pane or, if no files have been marked, it  as-
+;; sumes that the second pane contains a file with the same name as the selected
+;; one and tries to compare these two. You can also mark whole lists of files to
+;; be compared and then just press C-= for comparing the next pair.
 
-;; * Press = for fast "smart" file comparison -- like above, but using regular
-;; * diff.
+;; *  Press  = for fast "smart" file comparison -- like above, but using regular
+;; diff.
 
 ;; * Press C-M-= for directory comparison (only by date and/or size, by now).
 
@@ -60,15 +60,16 @@
 
 ;; * Press M-t to swap the panes.
 
-;; It doesn't even try to look like MC, so the help window is gone (you're in
+;; It  doesn't  even  try to look like MC, so the help window is gone (you're in
 ;; emacs, so you know your bindings, right?).
 
 ;; This is version 1 $Rev$ of the Sunrise Commander.
+
 ;; Please note that it was written and tested only on GNU Emacs version 23 (from
-;; CVS). I *am* aware that there are several functions (including, alas, file
-;; and directory comparison) that simply will not work on GNU Emacs 21, but
-;; unfortunately I do not have the time to port them back. I don't know either
-;; if it will work at all on XEmacs, so try at your own risk. All contributions
+;; CVS). I *am* aware that there are several functions  (including,  alas,  file
+;; and  directory comparison) that simply will not work on GNU Emacs 21, but un-
+;; fortunately I do not have the time to port them back. I don't know either  if
+;; it  will  work  at  all on XEmacs, so try at your own risk. All contributions
 ;; and/or bug reports will be very welcome.
 
 ;;; Installation and Usage:
@@ -78,15 +79,15 @@
 ;; 2) Add a (require 'sunrise-commander) to your .emacs file.
 
 ;; 3) If you want the function keys bound to the usual MC commands (F5 for copy,
-;; F6 for rename, and so on) add: (sunrise-mc-keys) after the "require" line
-;; (IMHO these bindings are not optimal for emacs, but I'm including them
-;; because some MC power users may have them too deeply embedded in their spinal
+;; F6 for rename, and so on) add: (sunrise-mc-keys)  after  the  "require"  line
+;; (IMHO  these  bindings  are not optimal for emacs, but I'm including them be-
+;; cause some MC power users may have them too deeply embedded in  their  spinal
 ;; cord)
 
 ;; 4) Evaluate the new lines, or reload your .emacs file, or restart emacs.
 
 ;; 5) Type M-x sunrise to invoke the Sunrise Commander (or much better: bind the
-;; function to your favorite key combination). Type C-h m for information on
+;; function to your favorite key combination). Type C-h m  for   information  on
 ;; available key bindings.
 
 ;; 6) Enjoy :)
@@ -151,6 +152,9 @@
 
 (defvar sr-selected-window 'left
   "The window to select when sr starts up.")
+
+(defvar sr-panes-height nil
+  "The minimum height Sunrise panes will have at any time.")
 
 (defvar sr-ediff-on nil
   "Flag that indicates whether an ediff is being done by SR")
@@ -400,7 +404,8 @@ Specifying nil for any of these values uses the default, ie. home."
   (delete-other-windows)
 
   ;;now create the bottom window
-  (split-window (selected-window) (* 2 (/ (window-height) 3)))
+  (setq sr-panes-height (* 2 (/ (window-height) 3)) )
+  (split-window (selected-window) sr-panes-height)
           
   (if (equal sr-window-split-style 'horizontal)
       (split-window-horizontally)
@@ -418,6 +423,14 @@ Specifying nil for any of these values uses the default, ie. home."
 
   ;;select the correct window
   (sr-select-window sr-selected-window))
+
+(add-hook 'window-size-change-functions
+          (lambda (frame)
+            (if sr-running
+                (save-excursion
+                  (select-window sr-left-window)
+                  (let ((delta (- sr-panes-height (window-height))))
+                    (enlarge-window delta))))))
 
 (defun sr-select-window(window)
   "Select/highlight the given sr window (right or left)."
