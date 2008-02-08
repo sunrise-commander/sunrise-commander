@@ -153,9 +153,6 @@
 (defvar sr-selected-window 'left
   "The window to select when sr starts up.")
 
-(defvar sr-panes-height nil
-  "The minimum height Sunrise panes will have at any time.")
-
 (defvar sr-ediff-on nil
   "Flag that indicates whether an ediff is being done by SR")
 
@@ -404,8 +401,7 @@ Specifying nil for any of these values uses the default, ie. home."
   (delete-other-windows)
 
   ;;now create the bottom window
-  (setq sr-panes-height (* 2 (/ (window-height) 3)) )
-  (split-window (selected-window) sr-panes-height)
+  (split-window (selected-window) (* 2 (/ (window-height) 3)))
           
   (if (equal sr-window-split-style 'horizontal)
       (split-window-horizontally)
@@ -426,11 +422,14 @@ Specifying nil for any of these values uses the default, ie. home."
 
 (add-hook 'window-size-change-functions
           (lambda (frame)
-            (if sr-running
-                (save-excursion
+            (if (and sr-running
+                     (not sr-ediff-on)
+                     (window-live-p sr-left-window))
+                (save-selected-window
                   (select-window sr-left-window)
-                  (let ((delta (- sr-panes-height (window-height))))
-                    (enlarge-window delta))))))
+                  (let* ((my-pane-height (* 2 (/ (frame-height) 3)))
+                         (my-delta (- my-pane-height (window-height))))
+                    (enlarge-window my-delta))))))
 
 (defun sr-select-window(window)
   "Select/highlight the given sr window (right or left)."
