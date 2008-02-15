@@ -60,6 +60,9 @@
 
 ;; * Press M-t to swap the panes.
 
+;; *  When  executed  inside  a Sunrise pane, the results of the functions find-
+;; dired, find-name-dired and find-grep-dired are displayed in Sunrise mode.
+
 ;; It  doesn't  even  try to look like MC, so the help window is gone (you're in
 ;; emacs, so you know your bindings, right?).
 
@@ -228,6 +231,7 @@ Sunrise, like G for changing group, M for changing mode and so on."
   (set-keymap-parent sr-mode-map dired-mode-map))
 
 (defmacro sr-within (dir form)
+  "Puts the given form in Sunrise context"
   (list 'progn
         (list 'setq 'sr-dired-directory
               (list 'file-name-as-directory
@@ -238,16 +242,26 @@ Sunrise, like G for changing group, M for changing mode and so on."
         (list 'setq 'sr-dired-directory "")))
 
 (defun sr-dired-mode ()
+  "Sets Sunrise mode in every Dired buffer opened in Sunrise (called in hook)"
   (if (string= sr-dired-directory dired-directory)
       (sr-mode)
     (message (concat "Sunrise: " sr-dired-directory " != " dired-directory))))
 (add-hook 'dired-before-readin-hook 'sr-dired-mode)
 
+(defun sr-dired-clobber ()
+  "Sets the current (arbitrary) Dired buffer in Sunrise mode."
+  (let ((subdirs dired-subdir-alist))
+    (sr-mode)
+    (setq dired-subdir-alist subdirs)
+    (sr-select-window sr-selected-window)))
+
+;; This is a hack to avoid some dired mode quirks:
 (defadvice dired-find-buffer-nocreate
   (before sr-advice-findbuffer (dirname &optional mode))
   (if (string= sr-dired-directory dirname)
       (setq mode 'sr-mode)))
 
+;; Handles panes opened from bookmarks in Sunrise:
 (defadvice bookmark-jump
   (around sr-advice-bookmark-jump (str))
   (if (equalp major-mode 'sr-mode)
@@ -259,6 +273,27 @@ Sunrise, like G for changing group, M for changing mode and so on."
         (sr-highlight))
     ad-do-it))
 (list 'ad-activate (quote 'bookmark-jump))
+
+;; Clobbers find-dired results with Sunrise:
+(defadvice find-dired
+  (after sr-advice-find-dired ())
+  (if sr-running
+      (sr-dired-clobber)))
+(ad-activate 'find-dired)
+
+;; Clobbers find-name-dired results with Sunrise:
+(defadvice find-name-dired
+  (after sr-advice-find-name-dired ())
+  (if sr-running
+      (sr-dired-clobber)))
+(ad-activate 'find-name-dired)
+
+;; Clobbers find-grep-dired results with Sunrise:
+(defadvice find-grep-dired
+  (after sr-advice-find-grep-dired ())
+  (if sr-running
+      (sr-dired-clobber)))
+(ad-activate 'find-grep-dired)
 
 ;;; ============================================================================
 ;;; Sunrise Commander keybindings:
