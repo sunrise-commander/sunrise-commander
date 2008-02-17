@@ -109,8 +109,7 @@
 (require 'dired-x)
 (require 'font-lock)
 (require 'browse-url)
-(setq dired-dwim-target t
-      dired-recursive-deletes 'top
+(setq dired-recursive-deletes 'top
       dired-listing-switches "-alp")
 
 (eval-when-compile (require 'term))
@@ -306,6 +305,14 @@ Sunrise, like G for changing group, M for changing mode and so on."
   (if sr-running
       (sr-dired-clobber)))
 (ad-activate 'find-grep-dired)
+
+;; Tweaks the target directory guessing mechanism:
+(defadvice dired-dwim-target-directory
+  (around sr-advice-dwim-target ())
+  (if sr-running
+      (setq ad-return-value sr-other-directory)
+    ad-do-it))
+(ad-activate 'dired-dwim-target-directory)
 
 ;;; ============================================================================
 ;;; Sunrise Commander keybindings:
