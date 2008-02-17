@@ -63,6 +63,11 @@
 ;; *  When  executed  inside  a Sunrise pane, the results of the functions find-
 ;; dired, find-name-dired and find-grep-dired are displayed in Sunrise mode.
 
+;; * Supports AVFS (http://www.inf.bme.hu/~mszeredi/avfs/) for transparent navi-
+;; gation inside compressed archives (*.zip, *.tgz, *.tar.bz2, *.deb, etc. etc.)
+;; You  need to have AVFS with coda or fuse installed and running on your system
+;; for this to work, though.
+
 ;; It  doesn't  even  try to look like MC, so the help window is gone (you're in
 ;; emacs, so you know your bindings, right?).
 
@@ -87,13 +92,16 @@
 ;; cause some MC power users may have them too deeply embedded in  their  spinal
 ;; cord)
 
-;; 4) Evaluate the new lines, or reload your .emacs file, or restart emacs.
+;; 4)  If  you have AVFS running on your system and want to use it directly from
+;; Sunrise, add: (sunrise-avfs "[path-to-AVFS-root]") after the "require"  line.
 
-;; 5) Type M-x sunrise to invoke the Sunrise Commander (or much better: bind the
+;; 5) Evaluate the new lines, or reload your .emacs file, or restart emacs.
+
+;; 6) Type M-x sunrise to invoke the Sunrise Commander (or much better: bind the
 ;; function to your favorite key combination). Type C-h m  for   information  on
 ;; available key bindings.
 
-;; 6) Enjoy :)
+;; 7) Enjoy :)
 
 ;;; Code:
 
@@ -162,16 +170,20 @@
 (defvar sr-dired-directory ""
   "Directory inside which sr-mode is currently active")
 
+(defvar sr-start-message
+  "Been coding all night? Enjoy the Sunrise! (or press q to quit)"
+  "Message to display when `sr' is started.")
+
+(defvar sr-avfs-root nil
+  "The root of the AVFS virtual filesystem to use for navigating compressed
+   archives. Set to a non-nil value to activate AVFS support.")
+
 (defcustom sr-window-split-style 'horizontal
   "The current window split configuration.  May be either 'horizontal or 'vertical."
   :group 'sunrise
   :type '(choice
           (const horizontal)
           (const vertical)))
-
-(defvar sr-start-message
-  "Been coding all night? Enjoy the Sunrise! (or press q to quit)"
-  "Message to display when `sr' is started.")
 
 ;;; ============================================================================
 ;;; This is the core of Sunrise: the main idea is to apply sr-mode only inside
@@ -225,7 +237,7 @@ sunrise-mc-keys function) you'll get the following ones:
         Insert ........ mark file
         C-PgUp ........ go to parent directory
 
-Also any dired keybinding (not overridden by any of the above) can be used in
+ylso any dired keybinding (not overridden by any of the above) can be used in
 Sunrise, like G for changing group, M for changing mode and so on."
   :group 'sunrise
   (set-keymap-parent sr-mode-map dired-mode-map))
@@ -338,6 +350,15 @@ Sunrise, like G for changing group, M for changing mode and so on."
   (define-key sr-mode-map [(f10)]           'keyboard-escape-quit)
   (define-key sr-mode-map [(insert)]        'dired-mark)
   (define-key sr-mode-map [(control prior)] 'sr-dired-prev-subdir))
+
+(defun sunrise-avfs (root)
+  "Activates AVFS support and sets the root of the virtual filesystem."
+  (interactive "DAVFS root directory: ")
+  (setq root (expand-file-name root))
+  (let ((tail (string-match "/$" root)))
+    (if tail
+        (setq root (substring root 0 tail))))
+  (setq sr-avfs-root root))
 
 ;;; ============================================================================
 ;;; Initialization and finalization functions:
@@ -455,6 +476,7 @@ Specifying nil for any of these values uses the default, ie. home."
   ;;select the correct window
   (sr-select-window sr-selected-window))
 
+;; Keeps the size of the Sunrise panes constant:
 (add-hook 'window-size-change-functions
           (lambda (frame)
             (if (and sr-running
@@ -489,9 +511,20 @@ Specifying nil for any of these values uses the default, ie. home."
   
   (save-excursion
     (let(begin end)
+      (goto-char (point-min))
+
+      ;;hide avfs virtual filesystem root (if any):
+      (if (not (null sr-avfs-root))
+          (let ((begin (point-min))
+                (end (search-forward sr-avfs-root nil t))
+                (overlay))
+            (if (not (null end))
+                (progn
+                  (setq overlay (make-overlay begin end))
+                  (overlay-put overlay 'invisible t)
+                  (overlay-put overlay 'intangible t)))))
 
       ;;determine begining and end
-      (goto-char (point-min))
       (search-forward "/" nil t)
       (setq begin (1- (point)))
 
@@ -500,9 +533,7 @@ Specifying nil for any of these values uses the default, ie. home."
 
       ;;setup overlay
       (setq sr-current-window-overlay (make-overlay begin end))
-
       (overlay-put sr-current-window-overlay 'face 'sr-window-selected-face)
-
       (overlay-put sr-current-window-overlay 'window (selected-window)))))
 
 (defun sr-quit()
@@ -547,34 +578,44 @@ Specifying nil for any of these values uses the default, ie. home."
 (defun sr-advertised-find-file()
   "Call dired-advertised-find-file but also perform additional actions"
   (interactive)
-
-  ;;if the current line is not a directory ~exit..
   (save-excursion
-
-    (let(filename)
-      (setq filename (expand-file-name (dired-get-filename nil t)))
-
+    (let ((filename (expand-file-name (dired-get-filename nil t))))
       (if filename
           (if (file-directory-p filename)
-              (progn
-                (hl-line-mode 0)
-                (sr-within filename
-                            (if (string= sr-other-directory dired-directory)
-                                (dired-advertised-find-file)
-                              (dired-find-alternate-file)))
-                (sr-history-push dired-directory)
-                (sr-highlight)
-                (hl-line-mode 1))
-            (progn
-              (sr-quit)
-              (find-file filename)
-              (exit-recursive-edit)))))))
+              (sr-goto-dir filename)
+            (sr-find-file filename))))))
 
+(defun sr-find-file (filename)
+  "Determines the proper way of handling a regular file. If the file is a
+   compressed archive and AVFS has been activated, first tries to display
+   it as a catalogue in the VFS, otherwise just visits the file."
+  (if (not (null sr-avfs-root))
+      (let ((mode (assoc-default filename auto-mode-alist 'string-match)))
+        (if (or (eq 'archive-mode mode)
+                (eq 'tar-mode mode)
+                (and (listp mode) (eq 'jka-compr (second mode)))
+                (eq 'avfs-mode mode))
+            (let ((vfile (concat sr-avfs-root filename "#/")))
+              (if (file-directory-p vfile)
+                  (progn
+                    (sr-goto-dir vfile)
+                    (setq filename nil)))))))
+  (if (not (null filename))
+      (progn
+        (sr-quit)
+        (find-file filename)
+        (exit-recursive-edit))))
+  
 (defun sr-goto-dir (dir)
   "Changes the current directory in the active pane to the given one"
   (interactive
    (list 
     (read-file-name "Change directory (file or pattern): " nil nil nil)))
+
+  (if (and (not (null sr-avfs-root))
+           (null (posix-string-match "#" dir)))
+        (setq dir (replace-regexp-in-string sr-avfs-root "" dir)))
+
   (hl-line-mode 0)
   (sr-within dir
               (if (or (not dired-directory)
