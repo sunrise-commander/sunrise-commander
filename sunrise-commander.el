@@ -4,7 +4,7 @@
 ;; Copyright (C) 2007 José Alfredo Romero L.
 
 ;; Author: José Alfredo Romero L. <joseito@poczta.onet.pl>
-;; Keywords: Sunrise Commander Midnight
+;; Keywords: Sunrise Commander File Manager Midnight Norton 
 
 ;; This program is free software: you can redistribute it and/or modify it under
 ;; the terms of the GNU General Public License as published by the Free Software
@@ -237,7 +237,7 @@ sunrise-mc-keys function) you'll get the following ones:
         Insert ........ mark file
         C-PgUp ........ go to parent directory
 
-ylso any dired keybinding (not overridden by any of the above) can be used in
+Also any dired keybinding (not overridden by any of the above) can be used in
 Sunrise, like G for changing group, M for changing mode and so on."
   :group 'sunrise
   (set-keymap-parent sr-mode-map dired-mode-map))
@@ -484,7 +484,8 @@ Specifying nil for any of these values uses the default, ie. home."
                      (window-live-p sr-left-window))
                 (save-selected-window
                   (select-window sr-left-window)
-                  (let* ((my-pane-height (* 2 (/ (frame-height) 3)))
+                  (let* ((my-style-factor (if (equal sr-window-split-style 'horizontal) 2 1))
+                         (my-pane-height (* my-style-factor (/ (frame-height) 3)))
                          (my-delta (- my-pane-height (window-height))))
                     (enlarge-window my-delta))))))
 
