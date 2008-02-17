@@ -388,13 +388,9 @@ Specifying nil for any of these values uses the default, ie. home."
               (setq sr-right-directory right-directory))
           
           (setq sr-running t)
-          
           (setq sr-restore-buffer (current-buffer))
-          
           (setq sr-prior-window-configuration (current-window-configuration))
-          
           (sr-setup-windows)
-
           (message sr-start-message)
           (recursive-edit))
         (sr-quit))
@@ -436,9 +432,7 @@ Specifying nil for any of these values uses the default, ie. home."
         ;;update the mode with the current directory
 
         (let(basic-line-format)
-
           (setq basic-line-format (concat " " (expand-file-name dired-directory)))
-        
           (setq mode-line-format basic-line-format))
 
         ;;if the point is below the .. directory... this is OK.  else set it to
