@@ -283,13 +283,6 @@ Sunrise, like G for changing group, M for changing mode and so on."
     (message (concat "Sunrise: " sr-dired-directory " != " dired-directory))))
 (add-hook 'dired-before-readin-hook 'sr-dired-mode)
 
-(defun sr-dired-clobber ()
-  "Sets the current (arbitrary) Dired buffer in Sunrise mode."
-  (let ((subdirs dired-subdir-alist))
-    (sr-mode)
-    (setq dired-subdir-alist subdirs)
-    (sr-select-window sr-selected-window)))
-
 ;; This is a hack to avoid some dired mode quirks:
 (defadvice dired-find-buffer-nocreate
   (before sr-advice-findbuffer (dirname &optional mode))
@@ -309,7 +302,7 @@ Sunrise, like G for changing group, M for changing mode and so on."
     ad-do-it))
 (list 'ad-activate (quote 'bookmark-jump))
 
-;; Clobbers find-dired results with Sunrise:
+;; Clobbers find-dired results with virtual Sunrise:
 (defadvice find-dired
   (after sr-advice-find-dired ())
   (if sr-running
