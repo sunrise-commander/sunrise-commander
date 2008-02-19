@@ -68,6 +68,11 @@
 ;; You  need to have AVFS with coda or fuse installed and running on your system
 ;; for this to work, though.
 
+;; *  Sunrise VIRTUAL mode integrates dired-virtual mode to Sunrise, allowing to
+;; capture find and locate results in regular files and to use them later as  if
+;; they  were  directories  with  all  Dired  and  Sunrise  operations  at  your
+;; fingertips.
+
 ;; It  doesn't  even  try to look like MC, so the help window is gone (you're in
 ;; emacs, so you know your bindings, right?).
 
@@ -95,13 +100,19 @@
 ;; 4)  If  you have AVFS running on your system and want to use it directly from
 ;; Sunrise, add: (sunrise-avfs "[path-to-AVFS-root]") after the "require"  line.
 
-;; 5) Evaluate the new lines, or reload your .emacs file, or restart emacs.
+;; 5)  Choose  some  unused  extension for files to be opened in Sunrise VIRTUAL
+;; mode and add it to auto-mode-alist, e.g. if you want  to  name  your  virtual
+;; folders like *.svrm just add to your .emacs file a line like the following:
+;;
+;;     (add-to-list 'auto-mode-alist '("\\.srvm\\'" . sr-virtual-mode))
 
-;; 6) Type M-x sunrise to invoke the Sunrise Commander (or much better: bind the
+;; 6) Evaluate all the new lines, or reload your .emacs file, or restart emacs.
+
+;; 7) Type M-x sunrise to invoke the Sunrise Commander (or much better: bind the
 ;; function to your favorite key combination). Type C-h m  for   information  on
 ;; available key bindings.
 
-;; 7) Enjoy :)
+;; 8) Enjoy :)
 
 ;;; Code:
 
@@ -111,6 +122,7 @@
 (require 'browse-url)
 (setq dired-recursive-deletes 'top
       dired-listing-switches "-alp")
+      ;; dired-listing-switches "--time-style=locale --group-directories-first -alphgG")
 
 (eval-when-compile (require 'term))
 
@@ -211,6 +223,10 @@
         = ............. fast smart compare files (plain diff)
         C-M-= ......... compare directories
 
+        C-c C-f ....... execute find-name-dired in Sunrise VIRTUAL mode
+        C-c C-g ....... execute find-grep-dired in Sunrise VIRTUAL mode
+        C-c C-l ....... execute locate in Sunrise VIRTUAL mode
+
         Return ........ visit selected file
         + ............. create new directory
         C ............. copy marked (or current) files and directories
@@ -240,6 +256,14 @@ Also any dired keybinding (not overridden by any of the above) can be used in
 Sunrise, like G for changing group, M for changing mode and so on."
   :group 'sunrise
   (set-keymap-parent sr-mode-map dired-mode-map))
+
+(define-derived-mode sr-virtual-mode dired-virtual-mode "Sunrise VIRTUAL"
+  "Sunrise Commander Virtual Mode. Useful for reusing find and locate results."
+  :group 'sunrise
+  (set-keymap-parent sr-virtual-mode-map sr-mode-map)
+  (sr-highlight)
+  (hl-line-mode 1)
+  (define-key sr-virtual-mode-map "g" nil))
 
 (defmacro sr-within (dir form)
   "Puts the given form in Sunrise context"
@@ -289,22 +313,8 @@ Sunrise, like G for changing group, M for changing mode and so on."
 (defadvice find-dired
   (after sr-advice-find-dired ())
   (if sr-running
-      (sr-dired-clobber)))
+      (sr-virtual-mode)))
 (ad-activate 'find-dired)
-
-;; Clobbers find-name-dired results with Sunrise:
-(defadvice find-name-dired
-  (after sr-advice-find-name-dired ())
-  (if sr-running
-      (sr-dired-clobber)))
-(ad-activate 'find-name-dired)
-
-;; Clobbers find-grep-dired results with Sunrise:
-(defadvice find-grep-dired
-  (after sr-advice-find-grep-dired ())
-  (if sr-running
-      (sr-dired-clobber)))
-(ad-activate 'find-grep-dired)
 
 ;; Tweaks the target directory guessing mechanism:
 (defadvice dired-dwim-target-directory
@@ -341,6 +351,10 @@ Sunrise, like G for changing group, M for changing mode and so on."
 (define-key sr-mode-map "="                  'sr-diff)
 (define-key sr-mode-map [(control ?\=)]      'sr-ediff)
 (define-key sr-mode-map [(control meta ?\=)] 'sr-compare-dirs)
+
+(define-key sr-mode-map [?\C-c?\C-f]         'sr-find-name)
+(define-key sr-mode-map [?\C-c?\C-g]         'sr-find-grep)
+(define-key sr-mode-map [?\C-c?\C-l]         'sr-locate)
 
 (define-key sr-mode-map "q"                  'keyboard-escape-quit)
 
@@ -601,7 +615,11 @@ Specifying nil for any of these values uses the default, ie. home."
               (if (file-directory-p vfile)
                   (progn
                     (sr-goto-dir vfile)
-                    (setq filename nil)))))))
+                    (setq filename nil)))))
+        (if (eq 'sr-virtual-mode mode)
+            (progn
+              (find-file filename)
+              (setq filename nil)))))
   (if (not (null filename))
       (progn
         (sr-quit)
@@ -1088,6 +1106,33 @@ part of file-path can be accessed by the function parent-directory."
                 (car marks))
             (second marks)))
       nil)))
+
+;;; ============================================================================
+;;; File search functions:
+
+(defun sr-find-name (pattern)
+  "Run find-name-dired passing the current directory as first parameter"
+  (interactive "sFind name pattern: ")
+  (let ((find-ls-option (cons (concat "-exec ls -d " dired-listing-switches " \\{\\} \\;") "ls -ld")))
+    (find-name-dired dired-directory pattern))
+  (sr-virtual-mode))
+
+(defun sr-find-grep (pattern)
+  "Run find-grep-dired passing the current directory as first parameter"
+  (interactive "sFind files containing pattern: ")
+  (let ((find-ls-option (cons (concat "-exec ls -d " dired-listing-switches " \\{\\} \\;") "ls -ld")))
+    (find-grep-dired dired-directory pattern))
+  (sr-virtual-mode))
+
+(defun sr-locate ()
+  "Runs locate with the necessary options to produce a buffer that can
+be put in sunrise virtual mode"
+  (interactive)
+  (switch-to-buffer "*Locate*")
+  (let ((locate-prompt-for-command t)
+        (locate-make-command-line (lambda (arg) (list "locate" arg "| xargs ls -d" dired-listing-switches))))
+    (call-interactively 'locate))
+  (sr-virtual-mode))
 
 ;;; ============================================================================
 ;;; Miscellaneous functions:
