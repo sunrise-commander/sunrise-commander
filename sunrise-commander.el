@@ -60,8 +60,7 @@
 
 ;; * Press M-t to swap the panes.
 
-;; *  When  executed  inside  a Sunrise pane, the results of the functions find-
-;; dired, find-name-dired and find-grep-dired are displayed in Sunrise mode.
+;; * Press C-c C-s to change the layout of the panes (horizontal/vertical/ontop)
 
 ;; * Supports AVFS (http://www.inf.bme.hu/~mszeredi/avfs/) for transparent navi-
 ;; gation inside compressed archives (*.zip, *.tgz, *.tar.bz2, *.deb, etc. etc.)
@@ -72,6 +71,10 @@
 ;; capture find and locate results in regular files and to use them later as  if
 ;; they  were  directories  with  all  Dired  and  Sunrise  operations  at  your
 ;; fingertips.
+
+;; *  When  executed  inside  a  Sunrise  pane,  the  results  of  the functions
+;; find-dired, find-name-dired  and find-grep-dired  are  displayed  in  Sunrise
+;; VIRTUAL mode.
 
 ;; It  doesn't  even  try to look like MC, so the help window is gone (you're in
 ;; emacs, so you know your bindings, right?).
@@ -122,7 +125,7 @@
 (require 'browse-url)
 (setq dired-recursive-deletes 'top
       dired-listing-switches "-alp")
-      ;; dired-listing-switches "--time-style=locale --group-directories-first -alphgG")
+      ;; dired-listing-switches "--time-style=locale --group-directories-first -alph")
 
 (eval-when-compile (require 'term))
 
@@ -160,8 +163,14 @@
 (defvar sr-left-directory "~/"
   "Dired directory for the left window.  See variable `dired-directory'.")
 
+(defvar sr-left-buffer nil
+  "Dired buffer for the left window.")
+
 (defvar sr-right-directory "~/"
   "Dired directory for the right window.  See variable `dired-directory'.")
+
+(defvar sr-right-buffer nil
+  "Dired buffer for the right window.")
 
 (defvar sr-other-directory "~/"
   "Dired directory in the window that is currently *not* selected")
@@ -194,7 +203,8 @@
   :group 'sunrise
   :type '(choice
           (const horizontal)
-          (const vertical)))
+          (const vertical)
+          (const top)))
 
 ;;; ============================================================================
 ;;; This is the core of Sunrise: the main idea is to apply sr-mode only inside
@@ -212,7 +222,7 @@
         M-e ........... go to end of current directory
         Tab ........... go to other pane
 
-        C-c C-s ....... toggle pane orientation (vertical/horizontal)
+        C-c C-s ....... change pane layout (vertical/horizontal/top-only)
         M-t ........... transpose panes
         M-o ........... synchronize panes
         C-o ........... show/hide hidden files (requires dired-omit-mode)
@@ -410,6 +420,8 @@ Specifying nil for any of these values uses the default, ie. home."
   "Run SR but give it the current directory to use."
   (interactive)
   (let((left-directory default-directory))
+    (if (buffer-live-p sr-left-buffer)
+        (kill-buffer sr-left-buffer))
     (sunrise left-directory)))
 
 (defun sr-dired(directory)
@@ -461,28 +473,45 @@ Specifying nil for any of these values uses the default, ie. home."
 (defun sr-setup-windows()
   "Setup the SR window configuration (two windows in sr-mode.)"
   
-    ;;get rid of other windows if they exist.
+  ;;try to select a window that is neither the left of the right pane:
+  (if (memq (selected-window) (list sr-left-window sr-right-window))
+      (other-window 1))
+  (if (memq (selected-window) (list sr-left-window sr-right-window))
+      (other-window 1))
+
+  ;;get rid of other windows if they exist.
   (delete-other-windows)
 
   ;;now create the bottom window
   (split-window (selected-window) (* 2 (/ (window-height) 3)))
           
-  (if (equal sr-window-split-style 'horizontal)
-      (split-window-horizontally)
-    (if (equal sr-window-split-style 'vertical)
-        (split-window-vertically)
-      (error "Don't know how to split this window: %s" sr-window-split-style)))
+  (cond 
+   ((equal sr-window-split-style 'horizontal) (split-window-horizontally))
+   ((equal sr-window-split-style 'vertical)   (split-window-vertically))
+   (t (error "Don't know how to split this window: %s" sr-window-split-style)))
   
   ;;setup dired in both windows
-  (sr-dired sr-left-directory)
   (setq sr-left-window (selected-window))
-          
+  
+  (if (buffer-live-p sr-left-buffer)
+      (progn
+        (switch-to-buffer sr-left-buffer)
+        (setq sr-left-directory dired-directory))
+    (sr-dired sr-left-directory))
+  
   (other-window 1)
-  (sr-dired sr-right-directory)
-  (setq sr-right-window (selected-window))
-
+  
+  (let ((sr-selected-window 'right))
+    (setq sr-right-window (selected-window))
+    (if (buffer-live-p sr-right-buffer)
+        (progn
+          (switch-to-buffer sr-right-buffer)
+          (setq sr-right-directory dired-directory))
+      (sr-dired sr-right-directory)))
+  
   ;;select the correct window
-  (sr-select-window sr-selected-window))
+  (sr-select-window sr-selected-window)
+  (sr-force-passive-highlight))
 
 ;; Keeps the size of the Sunrise panes constant:
 (add-hook 'window-size-change-functions
@@ -545,6 +574,10 @@ Specifying nil for any of these values uses the default, ie. home."
       (overlay-put sr-current-window-overlay 'face 'sr-window-selected-face)
       (overlay-put sr-current-window-overlay 'window (selected-window)))))
 
+(defun sr-force-passive-highlight ()
+  (sr-change-window)
+  (sr-change-window))
+
 (defun sr-quit()
   "Quit SR and restore emacs to previous operation."
   (interactive)
@@ -571,14 +604,18 @@ Specifying nil for any of these values uses the default, ie. home."
       (progn
         (set-buffer (window-buffer sr-left-window))
         (if (equal major-mode 'sr-mode)
-            (setq sr-left-directory dired-directory))
+            (progn
+              (setq sr-left-directory dired-directory)
+              (setq sr-left-buffer (window-buffer sr-left-window))))
         (bury-buffer)))
 
   (if (window-live-p sr-right-window)
       (progn
         (set-buffer (window-buffer sr-right-window))
         (if (equal major-mode 'sr-mode)
-            (setq sr-right-directory dired-directory))
+            (progn
+              (setq sr-right-directory dired-directory)
+              (setq sr-right-buffer (window-buffer sr-right-window))))
         (bury-buffer))))
 
 ;;; ============================================================================
@@ -595,9 +632,9 @@ Specifying nil for any of these values uses the default, ie. home."
             (sr-find-file filename))))))
 
 (defun sr-find-file (filename)
-  "Determines the proper way of handling a regular file. If the file is a
-   compressed archive and AVFS has been activated, first tries to display
-   it as a catalogue in the VFS, otherwise just visits the file."
+  "Determines the proper way of handling a file. If the file is a compressed
+   archive and AVFS has been activated, first tries to display it as a catalogue
+   in the VFS, otherwise just visits the file."
   (if (not (null sr-avfs-root))
       (let ((mode (assoc-default filename auto-mode-alist 'string-match)))
         (if (or (eq 'archive-mode mode)
@@ -612,13 +649,19 @@ Specifying nil for any of these values uses the default, ie. home."
         (if (eq 'sr-virtual-mode mode)
             (progn
               (find-file filename)
+              (sr-history-push filename)
               (setq filename nil)))))
-  (if (not (null filename))
-      (progn
-        (sr-quit)
-        (find-file filename)
-        (exit-recursive-edit))))
-  
+
+  (if (null filename) ;;the file is a virtual directory:
+      (if (eq sr-selected-window 'left)
+          (setq sr-left-buffer (window-buffer))
+        (setq sr-right-buffer (window-buffer)))
+
+    (progn ;;the file is a regular file:
+      (sr-quit)
+      (find-file filename)
+      (exit-recursive-edit))))
+ 
 (defun sr-goto-dir (dir)
   "Changes the current directory in the active pane to the given one"
   (interactive
@@ -635,6 +678,9 @@ Specifying nil for any of these values uses the default, ie. home."
                       (string= sr-other-directory dired-directory))
                   (dired dir)
                 (find-alternate-file dir)))
+  (if (eq sr-selected-window 'left)
+      (setq sr-left-buffer (window-buffer))
+    (setq sr-right-buffer (window-buffer)))
   (sr-history-push dired-directory)
   (sr-highlight)
   (sr-beginning-of-buffer)
@@ -668,16 +714,16 @@ the current pane"
         (hist (get sr-selected-window 'history))
         (item nil)
        )
-    (while (and (> (length hist) 0)
-                (or (not item)
-                    (not (file-directory-p item))))
+    (while (and (> (length hist) 0) (not item))
       (setq item (car (last hist)))
       (nbutlast hist))
     (if item
         (progn
           (push item hist)
           (put sr-selected-window 'history hist)
-          (sr-goto-dir item)))))
+          (if (file-directory-p item)
+              (sr-goto-dir item)
+            (sr-find-file item))))))
 
 (defun sr-history-prev ()
   "Changes the current directory to the previous one (if any) in the history
@@ -687,15 +733,16 @@ list of the current pane"
         (hist (get sr-selected-window 'history))
         (item nil)
        )
-    (while (and (> (length hist) 0)
-                (or (not item)
-                    (not (file-directory-p (car hist)))))
+    (while (and (> (length hist) 0) (not item))
       (setq item (pop hist)))
     (if item
         (progn
           (nconc hist (list item))
           (put sr-selected-window 'history hist)
-          (sr-goto-dir (car hist))))))
+          (setq item (car hist))
+          (if (file-directory-p item)
+              (sr-goto-dir item)
+            (sr-find-file item))))))
 
 ;;; ============================================================================
 ;;; SR interface interaction functions:
@@ -729,18 +776,19 @@ list of the current pane"
   "If sr is currently configured for vertical splitting... change it to
 horizontal and vice-versa."
   (interactive)
-  (if (equal sr-window-split-style 'horizontal)
-      (sr-split-setup 'vertical)
-    (sr-split-setup 'horizontal)))
+  (cond
+   ((equal sr-window-split-style 'horizontal) (sr-split-setup 'vertical))
+   ((equal sr-window-split-style 'vertical)   (sr-split-setup 'top))
+   ((equal sr-window-split-style 'top)        (sr-split-setup 'horizontal))
+   (t                                         (sr-split-setup 'horizontal))))
 
 (defun sr-split-setup(split-type)
   (setq sr-window-split-style split-type)
   (if sr-running
-      (progn
-        (delete-other-windows)
-        (sr-setup-windows)))
-  (redraw-display)
-  (message "Split is now %s." (symbol-name split-type)))
+      (if (equal sr-window-split-style 'top)
+          (delete-window sr-right-window)
+        (sr-setup-windows))
+    (message "Split is now %s." (symbol-name split-type))))
 
 (defun sr-transpose-panes ()
   "Changes the order of the panes"
@@ -776,7 +824,7 @@ horizontal and vice-versa."
   "Refreshes the current pane"
   (interactive)
   (revert-buffer)
-  (sr-highlight))
+  (sr-force-passive-highlight))
 
 (defun sr-omit-mode ()
   "Toggles dired-omit-mode"
