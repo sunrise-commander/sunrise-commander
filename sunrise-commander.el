@@ -60,7 +60,7 @@
 
 ;; * Press M-t to swap the panes.
 
-;; * Press C-c C-s to change the layout of the panes (horizontal/vertical/ontop)
+;; * Press C-c C-s to change the layout of the panes (horizontal/vertical/top)
 
 ;; * Supports AVFS (http://www.inf.bme.hu/~mszeredi/avfs/) for transparent navi-
 ;; gation inside compressed archives (*.zip, *.tgz, *.tar.bz2, *.deb, etc. etc.)
