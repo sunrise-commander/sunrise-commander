@@ -124,8 +124,8 @@
 (require 'font-lock)
 (require 'browse-url)
 (setq dired-recursive-deletes 'top
-      dired-listing-switches "-alp")
-      ;; dired-listing-switches "--time-style=locale --group-directories-first -alphgG")
+      ;; dired-listing-switches "-alp")
+      dired-listing-switches "--time-style=locale --group-directories-first -alphgG")
 
 (eval-when-compile (require 'term))
 
@@ -238,6 +238,7 @@
         C-c C-l ....... execute locate in Sunrise VIRTUAL mode
 
         Return ........ visit selected file
+        o ............. quick view selected file (scroll with C-M-v, C-M-S-v)
         + ............. create new directory
         C ............. copy marked (or current) files and directories
         c ............. copy (using traditional dired-do-copy)
@@ -331,6 +332,7 @@ Sunrise, like G for changing group, M for changing mode and so on."
 ;;; Sunrise Commander keybindings:
 
 (define-key sr-mode-map [return]             'sr-advertised-find-file)
+(define-key sr-mode-map "o"                  'sr-quick-view)
 (define-key sr-mode-map "\C-xg"              'sr-goto-dir)
 (define-key sr-mode-map "U"                  'sr-dired-prev-subdir)
 (define-key sr-mode-map "\M-y"               'sr-history-prev)
@@ -470,49 +472,50 @@ Specifying nil for any of these values uses the default, ie. home."
 ;;; ============================================================================
 ;;; Window management functions:
 
+(defun sr-symbol (name context)
+  "Helper function for macro sr-setup-pane."
+  (intern (concat "sr-" name "-" (symbol-name context))))
+
+(defmacro sr-setup-pane (name)
+  "Helper macro for function sr-setup-windows."
+  (list 'progn
+        (list 'setq (sr-symbol name 'window) (list 'selected-window))
+        (list 'if (list 'buffer-live-p (sr-symbol name 'buffer))
+              (list 'progn
+                    (list 'switch-to-buffer (sr-symbol name 'buffer))
+                    (list 'setq (sr-symbol name 'directory) 'dired-directory))
+              (list 'sr-dired (sr-symbol name 'directory)))))
+
 (defun sr-setup-windows()
   "Setup the SR window configuration (two windows in sr-mode.)"
-  
-  ;;try to select a window that is neither the left of the right pane:
-  (if (memq (selected-window) (list sr-left-window sr-right-window))
-      (other-window 1))
-  (if (memq (selected-window) (list sr-left-window sr-right-window))
-      (other-window 1))
 
-  ;;get rid of other windows if they exist.
+  ;;get rid of all windows except one (not any of the panes!)
+  (dotimes (times 2)
+    (if (memq (selected-window) (list sr-left-window sr-right-window))
+        (other-window 1)))
   (delete-other-windows)
 
   ;;now create the bottom window
   (split-window (selected-window) (* 2 (/ (window-height) 3)))
-          
+
   (cond 
    ((equal sr-window-split-style 'horizontal) (split-window-horizontally))
    ((equal sr-window-split-style 'vertical)   (split-window-vertically))
    ((equal sr-window-split-style 'top)        (split-window-vertically))
    (t (error "Don't know how to split this window: %s" sr-window-split-style)))
-  
-  ;;setup dired in both windows
-  (setq sr-left-window (selected-window))
-  
-  (if (buffer-live-p sr-left-buffer)
-      (progn
-        (switch-to-buffer sr-left-buffer)
-        (setq sr-left-directory dired-directory))
-    (sr-dired sr-left-directory))
-  
+
+  ;;setup sunrise on both panes
+  (sr-setup-pane "left")
   (other-window 1)
-  
   (let ((sr-selected-window 'right))
-    (setq sr-right-window (selected-window))
-    (if (buffer-live-p sr-right-buffer)
-        (progn
-          (switch-to-buffer sr-right-buffer)
-          (setq sr-right-directory dired-directory))
-      (sr-dired sr-right-directory)))
-  
+    (sr-setup-pane "right"))
+
   ;;select the correct window
   (sr-select-window sr-selected-window)
-  (sr-force-passive-highlight))
+
+  (if (equal sr-window-split-style 'top)
+      (delete-window sr-right-window)
+    (sr-force-passive-highlight)))
 
 ;; Keeps the size of the Sunrise panes constant:
 (add-hook 'window-size-change-functions
@@ -832,6 +835,17 @@ horizontal and vice-versa."
   (interactive)
   (dired-omit-mode)
   (sr-highlight))
+
+(defun sr-quick-view ()
+  "Opens the selected file on the other window without selecting it. Kills
+   any other buffer opened previously the same way."
+  (interactive)
+  (let ((home (selected-window)))
+    (if (buffer-live-p other-window-scroll-buffer)
+        (kill-buffer other-window-scroll-buffer))
+    (dired-find-file-other-window)
+    (setq other-window-scroll-buffer (current-buffer))
+    (select-window home)))
 
 ;;; ============================================================================
 ;;; File manipulation functions:
