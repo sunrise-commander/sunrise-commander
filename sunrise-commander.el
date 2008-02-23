@@ -125,7 +125,7 @@
 (require 'browse-url)
 (setq dired-recursive-deletes 'top
       dired-listing-switches "-alp")
-      ;; dired-listing-switches "--time-style=locale --group-directories-first -alph")
+      ;; dired-listing-switches "--time-style=locale --group-directories-first -alphgG")
 
 (eval-when-compile (require 'term))
 
@@ -488,6 +488,7 @@ Specifying nil for any of these values uses the default, ie. home."
   (cond 
    ((equal sr-window-split-style 'horizontal) (split-window-horizontally))
    ((equal sr-window-split-style 'vertical)   (split-window-vertically))
+   ((equal sr-window-split-style 'top)        (split-window-vertically))
    (t (error "Don't know how to split this window: %s" sr-window-split-style)))
   
   ;;setup dired in both windows
