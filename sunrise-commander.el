@@ -62,6 +62,10 @@
 
 ;; * Press C-c C-s to change the layout of the panes (horizontal/vertical/top)
 
+;; *  Press  C-x  C-q  to put the current pane in Editable Dired mode (allows to
+;; edit the pane as if it were a regular file - press  C-c C-c  to  commit  your
+;; changes to the filesystem).
+
 ;; * Supports AVFS (http://www.inf.bme.hu/~mszeredi/avfs/) for transparent navi-
 ;; gation inside compressed archives (*.zip, *.tgz, *.tar.bz2, *.deb, etc. etc.)
 ;; You  need to have AVFS with coda or fuse installed and running on your system
@@ -351,6 +355,7 @@ Sunrise, like G for changing group, M for changing mode and so on."
 (define-key sr-mode-map "c"                  'dired-do-copy)
 (define-key sr-mode-map "R"                  'sr-do-rename)
 (define-key sr-mode-map "r"                  'dired-do-rename)
+(define-key sr-mode-map "\C-x\C-q"           'sr-editable-pane)
 (define-key sr-mode-map "\C-xt"              'sr-bash)
 
 (define-key sr-mode-map "="                  'sr-diff)
@@ -849,6 +854,23 @@ horizontal and vice-versa."
 
 ;;; ============================================================================
 ;;; File manipulation functions:
+
+(defun sr-editable-pane ()
+  "Puts the current pane in Editable Dired mode (wdired)"
+  (interactive)
+  (let ((subdir-alist dired-subdir-alist))
+    (dired-mode)
+    (setq dired-subdir-alist subdir-alist)
+    (wdired-change-to-wdired-mode)))
+
+;; Puts the pane back in Sunrise mode after being edited with wdired:
+(defadvice wdired-finish-edit
+  (after sr-advice-wdired-finish-edit ())
+  (if sr-running
+      (progn
+        (sr-mode)
+        (sr-force-passive-highlight))))
+(ad-activate 'wdired-finish-edit)
 
 (defun sr-do-copy ()
   "Copies recursively selected files and directories from one pane to the other"
