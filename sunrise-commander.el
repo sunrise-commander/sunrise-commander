@@ -322,7 +322,9 @@ Sunrise, like G for changing group, M for changing mode and so on."
 (defadvice find-dired
   (after sr-advice-find-dired ())
   (if sr-running
-      (sr-virtual-mode)))
+      (progn
+        (sr-virtual-mode)
+        (sr-keep-buffer))))
 (ad-activate 'find-dired)
 
 ;; Tweaks the target directory guessing mechanism:
@@ -564,8 +566,12 @@ Specifying nil for any of these values uses the default, ie. home."
       ;;hide avfs virtual filesystem root (if any):
       (if (not (null sr-avfs-root))
           (let ((begin (point-min))
-                (end (search-forward sr-avfs-root nil t))
+                (end)
+                (next-end (search-forward sr-avfs-root nil t))
                 (overlay))
+            (while (not (null next-end))
+              (setq end next-end)
+              (setq next-end (search-forward sr-avfs-root nil t)))
             (if (not (null end))
                 (progn
                   (setq overlay (make-overlay begin end))
@@ -1194,14 +1200,16 @@ part of file-path can be accessed by the function parent-directory."
   (interactive "sFind name pattern: ")
   (let ((find-ls-option (cons (concat "-exec ls -d " dired-listing-switches " \\{\\} \\;") "ls -ld")))
     (find-name-dired dired-directory pattern))
-  (sr-virtual-mode))
+  (sr-virtual-mode)
+  (sr-keep-buffer))
 
 (defun sr-find-grep (pattern)
   "Run find-grep-dired passing the current directory as first parameter"
   (interactive "sFind files containing pattern: ")
   (let ((find-ls-option (cons (concat "-exec ls -d " dired-listing-switches " \\{\\} \\;") "ls -ld")))
     (find-grep-dired dired-directory pattern))
-  (sr-virtual-mode))
+  (sr-virtual-mode)
+  (sr-keep-buffer))
 
 (defun sr-locate ()
   "Runs locate with the necessary options to produce a buffer that can
@@ -1211,7 +1219,8 @@ be put in sunrise virtual mode"
   (let ((locate-prompt-for-command t)
         (locate-make-command-line (lambda (arg) (list "locate" arg "| xargs ls -d" dired-listing-switches))))
     (call-interactively 'locate))
-  (sr-virtual-mode))
+  (sr-virtual-mode)
+  (sr-keep-buffer))
 
 ;;; ============================================================================
 ;;; Miscellaneous functions:
@@ -1225,6 +1234,14 @@ current one in the selected pane"
     (term "bash")
     (term-send-raw-string (concat "cd " dir "")))
     (exit-recursive-edit))
+
+(defun sr-keep-buffer ()
+  "Keeps the currently selected buffer as one of the panes, even if it does not
+   belong to the pane's history ring. Useful for maintaining the contents of a
+   pane during layout switching."
+  (if (equal sr-selected-window 'left)
+      (setq sr-left-buffer (current-buffer))
+    (setq sr-right-buffer (current-buffer))))
 
 ;;directories which are symlinked.
 (font-lock-add-keywords 'sr-mode '(("\\(^..l.*/$\\)" 1 'sr-symlink-directory-face keep)))
