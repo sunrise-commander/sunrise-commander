@@ -63,7 +63,7 @@
 ;; * Press C-c C-s to change the layout of the panes (horizontal/vertical/top)
 
 ;; *  Press  C-x  C-q  to put the current pane in Editable Dired mode (allows to
-;; edit the pane as if it were a regular file - press  C-c C-c  to  commit  your
+;; edit the pane as if it were a regular file -- press C-c C-c  to  commit  your
 ;; changes to the filesystem).
 
 ;; * Supports AVFS (http://www.inf.bme.hu/~mszeredi/avfs/) for transparent navi-
@@ -249,6 +249,7 @@
         R ............. rename marked (or current) files and directories
         r ............. rename (using traditional dired-do-rename)
         D ............. delete marked (or current) files and directories
+        C-x C-q ....... put current pane in Editable Dired mode
 
         C-x t ......... open shell (bash) into current directory
         q ............. quit Sunrise Commander
