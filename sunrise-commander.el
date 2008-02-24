@@ -240,7 +240,8 @@
         = ............. fast smart compare files (plain diff)
         C-M-= ......... compare directories
 
-        C-c C-f ....... execute find-name-dired in Sunrise VIRTUAL mode
+        C-c C-f ....... execute find-dired in Sunrise VIRTUAL mode
+        C-c C-n ....... execute find-name-dired in Sunrise VIRTUAL mode
         C-c C-g ....... execute find-grep-dired in Sunrise VIRTUAL mode
         C-c C-l ....... execute locate in Sunrise VIRTUAL mode
         C-c C-r ....... browse list of recently visited files (requires recentf)
@@ -322,15 +323,6 @@ Sunrise, like G for changing group, M for changing mode and so on."
     ad-do-it))
 (list 'ad-activate (quote 'bookmark-jump))
 
-;; Clobbers find-dired results with virtual Sunrise:
-(defadvice find-dired
-  (after sr-advice-find-dired ())
-  (if sr-running
-      (progn
-        (sr-virtual-mode)
-        (sr-keep-buffer))))
-(ad-activate 'find-dired)
-
 ;; Tweaks the target directory guessing mechanism:
 (defadvice dired-dwim-target-directory
   (around sr-advice-dwim-target ())
@@ -369,7 +361,8 @@ Sunrise, like G for changing group, M for changing mode and so on."
 (define-key sr-mode-map [(control ?\=)]      'sr-ediff)
 (define-key sr-mode-map [(control meta ?\=)] 'sr-compare-dirs)
 
-(define-key sr-mode-map [?\C-c?\C-f]         'sr-find-name)
+(define-key sr-mode-map [?\C-c?\C-f]         'sr-find)
+(define-key sr-mode-map [?\C-c?\C-n]         'sr-find-name)
 (define-key sr-mode-map [?\C-c?\C-g]         'sr-find-grep)
 (define-key sr-mode-map [?\C-c?\C-l]         'sr-locate)
 (define-key sr-mode-map "\C-c\C-r"           'sr-recent-files)
@@ -1202,28 +1195,27 @@ part of file-path can be accessed by the function parent-directory."
 ;;; ============================================================================
 ;;; File search functions:
 
-(defun sr-find (pattern)
-  (interactive "sRun find (with args):")
+(defun sr-find-apply (fun pattern)
+  "Helper function for functions sr-find, sr-find-name and sr-find-grep."
   (let ((find-ls-option (cons (concat "-exec ls -d " dired-listing-switches " \\{\\} \\;") "ls -ld")))
-    (find-dired dired-directory pattern))
+    (apply fun (list dired-directory pattern)))
   (sr-virtual-mode)
   (sr-keep-buffer))
+
+(defun sr-find (pattern)
+  "Runs find-dired passing the current directory as first parameter."
+  (interactive "sRun find (with args): ")
+  (sr-find-apply 'find-dired pattern))
 
 (defun sr-find-name (pattern)
-  "Run find-name-dired passing the current directory as first parameter"
+  "Runs find-name-dired passing the current directory as first parameter."
   (interactive "sFind name pattern: ")
-  (let ((find-ls-option (cons (concat "-exec ls -d " dired-listing-switches " \\{\\} \\;") "ls -ld")))
-    (find-name-dired dired-directory pattern))
-  (sr-virtual-mode)
-  (sr-keep-buffer))
+  (sr-find-apply 'find-name-dired pattern))
 
 (defun sr-find-grep (pattern)
-  "Run find-grep-dired passing the current directory as first parameter"
+  "Runs find-grep-dired passing the current directory as first parameter."
   (interactive "sFind files containing pattern: ")
-  (let ((find-ls-option (cons (concat "-exec ls -d " dired-listing-switches " \\{\\} \\;") "ls -ld")))
-    (find-grep-dired dired-directory pattern))
-  (sr-virtual-mode)
-  (sr-keep-buffer))
+  (sr-find-apply 'find-grep-dired pattern))
 
 (defun sr-locate ()
   "Runs locate with the necessary options to produce a buffer that can be put in
