@@ -1238,6 +1238,7 @@ part of file-path can be accessed by the function parent-directory."
       (error
          (recentf-cleanup)
          (sr-switch-to-clean-buffer "*Recent Files*")
+         (insert "Recent Files: \n")
          (dired-insert-directory "/" dired-listing-switches recentf-list)))
     (sr-virtual-mode)
     (sr-keep-buffer)))
@@ -1256,7 +1257,8 @@ part of file-path can be accessed by the function parent-directory."
 ;; files:
 (defadvice dired-do-flagged-delete
   (after sr-advice-dired-do-flagged-delete (&optional nomessage))
-  (sr-recent-files))
+  (if (string= (buffer-name) "*Recent Files*")
+      (sr-recent-files)))
 (ad-activate 'dired-do-flagged-delete)
 
 ;;; ============================================================================
