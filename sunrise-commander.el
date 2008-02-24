@@ -563,8 +563,7 @@ Specifying nil for any of these values uses the default, ie. home."
 
       ;;hide avfs virtual filesystem root (if any):
       (if (not (null sr-avfs-root))
-          (let ((begin (point-min))
-                (next (search-forward sr-avfs-root nil t))
+          (let ((next (search-forward sr-avfs-root nil t))
                 (len (length sr-avfs-root))
                 (overlay))
             (while (not (null next))
