@@ -1230,29 +1230,33 @@ part of file-path can be accessed by the function parent-directory."
   "Displays the history of recent files maintained by recentf in sunrise virtual
    mode."
   (interactive)
-  (switch-to-buffer "*Recent Files*")
-  (if (equalp major-mode 'sr-virtual-mode)
-      (progn
-        (kill-buffer nil)
-        (switch-to-buffer "*Recent Files*")))
+  (sr-switch-to-clean-buffer "*Recent Files*")
   (insert "Recent Files: \n")
   (let ((dired-actual-switches dired-listing-switches))
-    (dired-insert-directory "/" dired-listing-switches recentf-list)
+    (condition-case nil
+        (dired-insert-directory "/" dired-listing-switches recentf-list)
+      (error
+         (recentf-cleanup)
+         (sr-switch-to-clean-buffer "*Recent Files*")
+         (dired-insert-directory "/" dired-listing-switches recentf-list)))
     (sr-virtual-mode)
     (sr-keep-buffer)))
 
-(defun sr-recent-files-cleanup ()
-  "Cleans up the recents file history and forces redisplaying it."
+(defun sr-switch-to-clean-buffer (name)
+  (switch-to-buffer name)
   (if (equalp major-mode 'sr-virtual-mode)
       (progn
-        (recentf-cleanup)
-        (sr-recent-files))))
+        (kill-buffer nil)
+        (switch-to-buffer name))
+    (progn
+      (goto-char (point-min))
+      (flush-lines "."))))
 
 ;; This cleans up the current pane after deletion from the history of recent
 ;; files:
 (defadvice dired-do-flagged-delete
   (after sr-advice-dired-do-flagged-delete (&optional nomessage))
-  (sr-recent-files-cleanup))
+  (sr-recent-files))
 (ad-activate 'dired-do-flagged-delete)
 
 ;;; ============================================================================
