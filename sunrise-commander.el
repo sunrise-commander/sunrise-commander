@@ -126,12 +126,15 @@
 (require 'dired)
 (require 'dired-x)
 (require 'font-lock)
-(require 'browse-url)
-(setq dired-recursive-deletes 'top
-      ;; dired-listing-switches "-alp")
-      dired-listing-switches "--time-style=locale --group-directories-first -alphgG")
-
 (eval-when-compile (require 'term))
+(require 'recentf)
+(recentf-mode 1)
+
+(setq dired-recursive-deletes 'top
+      ;; dired-listing-switches "-alp"
+      dired-listing-switches "--time-style=locale --group-directories-first -alphgG"
+      recentf-max-saved-items 100
+      recentf-max-menu-items 20)
 
 (defface sr-directory-face '((t (:bold t)))
   "Face used to highlight directories."
@@ -240,6 +243,7 @@
         C-c C-f ....... execute find-name-dired in Sunrise VIRTUAL mode
         C-c C-g ....... execute find-grep-dired in Sunrise VIRTUAL mode
         C-c C-l ....... execute locate in Sunrise VIRTUAL mode
+        C-c C-r ....... browse list of recently visited files (requires recentf)
 
         Return ........ visit selected file
         o ............. quick view selected file (scroll with C-M-v, C-M-S-v)
@@ -368,6 +372,7 @@ Sunrise, like G for changing group, M for changing mode and so on."
 (define-key sr-mode-map [?\C-c?\C-f]         'sr-find-name)
 (define-key sr-mode-map [?\C-c?\C-g]         'sr-find-grep)
 (define-key sr-mode-map [?\C-c?\C-l]         'sr-locate)
+(define-key sr-mode-map "\C-c\C-r"           'sr-recent-files)
 
 (define-key sr-mode-map "q"                  'keyboard-escape-quit)
 
@@ -510,7 +515,7 @@ Specifying nil for any of these values uses the default, ie. home."
    ((equal sr-window-split-style 'horizontal) (split-window-horizontally))
    ((equal sr-window-split-style 'vertical)   (split-window-vertically))
    ((equal sr-window-split-style 'top)        (split-window-vertically))
-   (t (error "Don't know how to split this window: %s" sr-window-split-style)))
+   (t (error "ERROR: Don't know how to split this window: %s" sr-window-split-style)))
 
   ;;setup sunrise on both panes
   (sr-setup-pane "left")
@@ -707,7 +712,7 @@ Specifying nil for any of these values uses the default, ie. home."
   (interactive)
   (if (not (string= dired-directory "/"))
       (sr-goto-dir (expand-file-name ".."))
-    (error "Already at root")))
+    (error "ERROR: Already at root")))
 
 (defun sr-history-push (element)
   "Pushes a new path into the history ring of the current pane"
@@ -828,13 +833,15 @@ horizontal and vice-versa."
 (defun sr-browse ()
   "Browse the directory/file on the current line."
   (interactive)
-  (let(filename)
-    (setq filename (dired-get-filename))
-    (if filename
-        (let(url)
-          (setq url (concat "file://" filename))
-          (message "Browsing %s " url)
-          (browse-url url)))))
+  (if (featurep 'browse-url)
+      (let(filename)
+        (setq filename (dired-get-filename))
+        (if filename
+            (let(url)
+              (setq url (concat "file://" filename))
+              (message "Browsing %s " url)
+              (browse-url url))))
+    (error "ERROR: Feature browse-url not available!")))
 
 (defun sr-revert-buffer ()
   "Refreshes the current pane"
@@ -977,7 +984,7 @@ indir/d => to-dir/d"
 		(mapcar (lambda (f) (concat in-dir d f)) files-in-d))
 	       )
 	  (sr-copy-files file-paths-in-d (concat to-dir d) do-overwrite)))
-    (error "You cannot copy a directory into itself or one of its subdirectories")))
+    (error "ERROR: You cannot copy a directory into itself or one of its subdirectories")))
 
 (defun sr-move-files (file-path-list target-dir &optional do-overwrite)
   "Moves all files in file-path-list (list of full paths) to target dir"
@@ -1221,6 +1228,22 @@ be put in sunrise virtual mode"
     (call-interactively 'locate))
   (sr-virtual-mode)
   (sr-keep-buffer))
+
+(defun sr-recent-files ()
+  (interactive)
+  (if (featurep 'recentf)
+      (progn
+        (switch-to-buffer "*Recent Files*")
+        (if (equalp major-mode 'sr-virtual-mode)
+            (progn
+              (kill-buffer nil)
+              (switch-to-buffer "*Recent Files*")))
+        (insert "Recent Files: \n")
+        (let ((dired-actual-switches dired-listing-switches))
+          (dired-insert-directory "/" dired-listing-switches recentf-list)
+          (sr-virtual-mode)
+          (sr-keep-buffer)))
+    (error "ERROR: Feature recentf not available!")))
 
 ;;; ============================================================================
 ;;; Miscellaneous functions:
