@@ -1202,6 +1202,13 @@ part of file-path can be accessed by the function parent-directory."
 ;;; ============================================================================
 ;;; File search functions:
 
+(defun sr-find (pattern)
+  (interactive "sRun find (with args):")
+  (let ((find-ls-option (cons (concat "-exec ls -d " dired-listing-switches " \\{\\} \\;") "ls -ld")))
+    (find-dired dired-directory pattern))
+  (sr-virtual-mode)
+  (sr-keep-buffer))
+
 (defun sr-find-name (pattern)
   "Run find-name-dired passing the current directory as first parameter"
   (interactive "sFind name pattern: ")
@@ -1219,8 +1226,8 @@ part of file-path can be accessed by the function parent-directory."
   (sr-keep-buffer))
 
 (defun sr-locate ()
-  "Runs locate with the necessary options to produce a buffer that can
-be put in sunrise virtual mode"
+  "Runs locate with the necessary options to produce a buffer that can be put in
+   sunrise virtual mode"
   (interactive)
   (switch-to-buffer "*Locate*")
   (let ((locate-prompt-for-command t)
@@ -1230,20 +1237,33 @@ be put in sunrise virtual mode"
   (sr-keep-buffer))
 
 (defun sr-recent-files ()
+  "Displays the history of recent files maintained by recentf in sunrise virtual
+   mode."
   (interactive)
-  (if (featurep 'recentf)
+  (switch-to-buffer "*Recent Files*")
+  (if (equalp major-mode 'sr-virtual-mode)
       (progn
-        (switch-to-buffer "*Recent Files*")
-        (if (equalp major-mode 'sr-virtual-mode)
-            (progn
-              (kill-buffer nil)
-              (switch-to-buffer "*Recent Files*")))
-        (insert "Recent Files: \n")
-        (let ((dired-actual-switches dired-listing-switches))
-          (dired-insert-directory "/" dired-listing-switches recentf-list)
-          (sr-virtual-mode)
-          (sr-keep-buffer)))
-    (error "ERROR: Feature recentf not available!")))
+        (kill-buffer nil)
+        (switch-to-buffer "*Recent Files*")))
+  (insert "Recent Files: \n")
+  (let ((dired-actual-switches dired-listing-switches))
+    (dired-insert-directory "/" dired-listing-switches recentf-list)
+    (sr-virtual-mode)
+    (sr-keep-buffer)))
+
+(defun sr-recent-files-cleanup ()
+  "Cleans up the recents file history and forces redisplaying it."
+  (if (equalp major-mode 'sr-virtual-mode)
+      (progn
+        (recentf-cleanup)
+        (sr-recent-files))))
+
+;; This cleans up the current pane after deletion from the history of recent
+;; files:
+(defadvice dired-do-flagged-delete
+  (after sr-advice-dired-do-flagged-delete (&optional nomessage))
+  (sr-recent-files-cleanup))
+(ad-activate 'dired-do-flagged-delete)
 
 ;;; ============================================================================
 ;;; Miscellaneous functions:
