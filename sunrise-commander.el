@@ -564,17 +564,16 @@ Specifying nil for any of these values uses the default, ie. home."
       ;;hide avfs virtual filesystem root (if any):
       (if (not (null sr-avfs-root))
           (let ((begin (point-min))
-                (end)
-                (next-end (search-forward sr-avfs-root nil t))
+                (next (search-forward sr-avfs-root nil t))
+                (len (length sr-avfs-root))
                 (overlay))
-            (while (not (null next-end))
-              (setq end next-end)
-              (setq next-end (search-forward sr-avfs-root nil t)))
-            (if (not (null end))
-                (progn
-                  (setq overlay (make-overlay begin end))
-                  (overlay-put overlay 'invisible t)
-                  (overlay-put overlay 'intangible t)))))
+            (while (not (null next))
+              (progn
+                (setq overlay (make-overlay (- next len) next))
+                (overlay-put overlay 'invisible t)
+                (overlay-put overlay 'intangible t)
+                (setq next (search-forward sr-avfs-root nil t))))
+            (goto-char (point-min))))
 
       ;;determine begining and end
       (search-forward "/" nil t)
