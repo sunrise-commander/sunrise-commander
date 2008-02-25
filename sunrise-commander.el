@@ -334,16 +334,16 @@ Sunrise, like G for changing group, M for changing mode and so on."
 ;;; ============================================================================
 ;;; Sunrise Commander keybindings:
 
-(define-key sr-mode-map [return]             'sr-advertised-find-file)
+(define-key sr-mode-map "\C-m"               'sr-advertised-find-file)
 (define-key sr-mode-map "o"                  'sr-quick-view)
 (define-key sr-mode-map "\C-xg"              'sr-goto-dir)
 (define-key sr-mode-map "U"                  'sr-dired-prev-subdir)
 (define-key sr-mode-map "\M-y"               'sr-history-prev)
 (define-key sr-mode-map "\M-u"               'sr-history-next)
-(define-key sr-mode-map [tab]                'sr-change-window)
+(define-key sr-mode-map "\t"                 'sr-change-window)
 (define-key sr-mode-map "\M-a"               'sr-beginning-of-buffer)
 (define-key sr-mode-map "\M-e"               'sr-end-of-buffer)
-(define-key sr-mode-map [?\C-c?\C-s]         'sr-split-toggle)
+(define-key sr-mode-map "\C-c\C-s"           'sr-split-toggle)
 (define-key sr-mode-map "\M-t"               'sr-transpose-panes)
 (define-key sr-mode-map "\M-o"               'sr-synchronize-panes)
 (define-key sr-mode-map "\C-o"               'sr-omit-mode)
@@ -361,10 +361,10 @@ Sunrise, like G for changing group, M for changing mode and so on."
 (define-key sr-mode-map [(control ?\=)]      'sr-ediff)
 (define-key sr-mode-map [(control meta ?\=)] 'sr-compare-dirs)
 
-(define-key sr-mode-map [?\C-c?\C-f]         'sr-find)
-(define-key sr-mode-map [?\C-c?\C-n]         'sr-find-name)
-(define-key sr-mode-map [?\C-c?\C-g]         'sr-find-grep)
-(define-key sr-mode-map [?\C-c?\C-l]         'sr-locate)
+(define-key sr-mode-map "\C-c\C-f"           'sr-find)
+(define-key sr-mode-map "\C-c\C-n"           'sr-find-name)
+(define-key sr-mode-map "\C-c\C-g"           'sr-find-grep)
+(define-key sr-mode-map "\C-c\C-l"           'sr-locate)
 (define-key sr-mode-map "\C-c\C-r"           'sr-recent-files)
 
 (define-key sr-mode-map "q"                  'keyboard-escape-quit)
