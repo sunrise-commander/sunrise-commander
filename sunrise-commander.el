@@ -66,19 +66,28 @@
 ;; edit the pane as if it were a regular file -- press C-c C-c  to  commit  your
 ;; changes to the filesystem).
 
-;; * Supports AVFS (http://www.inf.bme.hu/~mszeredi/avfs/) for transparent navi-
-;; gation inside compressed archives (*.zip, *.tgz, *.tar.bz2, *.deb, etc. etc.)
-;; You  need to have AVFS with coda or fuse installed and running on your system
-;; for this to work, though.
-
 ;; *  Sunrise VIRTUAL mode integrates dired-virtual mode to Sunrise, allowing to
 ;; capture find and locate results in regular files and to use them later as  if
 ;; they  were  directories  with  all  Dired  and  Sunrise  operations  at  your
 ;; fingertips.
 
-;; *  When  executed  inside  a  Sunrise  pane,  the  results  of  the functions
-;; find-dired, find-name-dired  and find-grep-dired  are  displayed  in  Sunrise
-;; VIRTUAL mode.
+;; * Press C-c C-n to run find-dired-name, C-c C-g to  run  find-dired-grep  and
+;; C-c  C-f  to run find-dired and have the results displayed in Sunrise VIRTUAL
+;; mode.
+
+;; * Supports AVFS (http://www.inf.bme.hu/~mszeredi/avfs/) for transparent navi-
+;; gation inside compressed archives (*.zip, *.tgz, *.tar.bz2, *.deb, etc. etc.)
+;; You  need to have AVFS with coda or fuse installed and running on your system
+;; for this to work, though.
+
+;; *  Command-line  file name expansion (NEW!) Integrates tightly with term-mode
+;; to allow easy insertion of file and directory names in  terminals:  while  in
+;; terminal  LINE  mode (C-c C-j), the following substitutions are automagically
+;; performed:
+;; %f - expands to the list of all marked files in the left pane
+;; %F - expands to the list of all marked files in the right pane
+;; %d - expands to the current directory in the left pane
+;; %D - expands to the current directory in the right pane
 
 ;; It  doesn't  even  try to look like MC, so the help window is gone (you're in
 ;; emacs, so you know your bindings, right?).
@@ -136,25 +145,17 @@
       recentf-max-saved-items 100
       recentf-max-menu-items 20)
 
-(defface sr-directory-face '((t (:bold t)))
-  "Face used to highlight directories."
+(defcustom sr-terminal-program "bash"
+  "The program to use for terminal emulation."
   :group 'sunrise)
 
-(defface sr-symlink-face '((t (:italic t)))
-  "Face used to highlight symbolic links."
-  :group 'sunrise)
-
-(defface sr-symlink-directory-face '((t (:italic t)))
-  "Face used to highlight symbolic directory links."
-  :group 'sunrise)
-
-(defface sr-window-selected-face '((t (:background "#ace6ac" :foreground "yellow" :height 140)))
-  "Face used to show a selected window"
-  :group 'sunrise)
-
-(defface sr-window-not-selected-face '((t (:background "white" :foreground "lightgray" :height 140)))
-  "Face used to show an unselected window"
-  :group 'sunrise)
+(defcustom sr-window-split-style 'horizontal
+  "The current window split configuration.  May be 'horizontal, 'vertical or 'top"
+  :group 'sunrise
+  :type '(choice
+          (const horizontal)
+          (const vertical)
+          (const top)))
 
 (defvar sr-restore-buffer nil
   "Buffer to restore when sr is quit.")
@@ -205,13 +206,25 @@
   "The root of the AVFS virtual filesystem to use for navigating compressed
    archives. Set to a non-nil value to activate AVFS support.")
 
-(defcustom sr-window-split-style 'horizontal
-  "The current window split configuration.  May be either 'horizontal or 'vertical."
-  :group 'sunrise
-  :type '(choice
-          (const horizontal)
-          (const vertical)
-          (const top)))
+(defface sr-directory-face '((t (:bold t)))
+  "Face used to highlight directories."
+  :group 'sunrise)
+
+(defface sr-symlink-face '((t (:italic t)))
+  "Face used to highlight symbolic links."
+  :group 'sunrise)
+
+(defface sr-symlink-directory-face '((t (:italic t)))
+  "Face used to highlight symbolic directory links."
+  :group 'sunrise)
+
+(defface sr-window-selected-face '((t (:background "#ace6ac" :foreground "yellow" :height 140)))
+  "Face used to show a selected window"
+  :group 'sunrise)
+
+(defface sr-window-not-selected-face '((t (:background "white" :foreground "lightgray" :height 140)))
+  "Face used to show an unselected window"
+  :group 'sunrise)
 
 ;;; ============================================================================
 ;;; This is the core of Sunrise: the main idea is to apply sr-mode only inside
@@ -221,7 +234,7 @@
   "Two-pane file manager for Emacs based on Dired and inspired by MC. The
   following keybindings are available:
 
-        C-x g ......... go to directory
+        C-c g ......... go to directory
         U ............. go to parent directory
         M-y ........... go to previous directory in history
         M-u ........... go to next directory in history
@@ -256,7 +269,7 @@
         D ............. delete marked (or current) files and directories
         C-x C-q ....... put current pane in Editable Dired mode
 
-        C-x t ......... open shell (bash) into current directory
+        C-c t ......... open shell (bash) into current directory
         q ............. quit Sunrise Commander
 
 Additionally, if you activate the mc-compatible keybindings (by invoking the
@@ -336,11 +349,13 @@ Sunrise, like G for changing group, M for changing mode and so on."
 
 (define-key sr-mode-map "\C-m"               'sr-advertised-find-file)
 (define-key sr-mode-map "o"                  'sr-quick-view)
-(define-key sr-mode-map "\C-xg"              'sr-goto-dir)
+(define-key sr-mode-map "\C-cg"              'sr-goto-dir)
 (define-key sr-mode-map "U"                  'sr-dired-prev-subdir)
 (define-key sr-mode-map "\M-y"               'sr-history-prev)
 (define-key sr-mode-map "\M-u"               'sr-history-next)
 (define-key sr-mode-map "\t"                 'sr-change-window)
+(define-key sr-mode-map [(control tab)]      'sr-select-viewer-window)
+(define-key sr-mode-map "\C-c\t"             'sr-select-viewer-window)
 (define-key sr-mode-map "\M-a"               'sr-beginning-of-buffer)
 (define-key sr-mode-map "\M-e"               'sr-end-of-buffer)
 (define-key sr-mode-map "\C-c\C-s"           'sr-split-toggle)
@@ -355,7 +370,7 @@ Sunrise, like G for changing group, M for changing mode and so on."
 (define-key sr-mode-map "R"                  'sr-do-rename)
 (define-key sr-mode-map "r"                  'dired-do-rename)
 (define-key sr-mode-map "\C-x\C-q"           'sr-editable-pane)
-(define-key sr-mode-map "\C-xt"              'sr-bash)
+(define-key sr-mode-map "\C-ct"              'sr-term)
 
 (define-key sr-mode-map "="                  'sr-diff)
 (define-key sr-mode-map [(control ?\=)]      'sr-ediff)
@@ -496,9 +511,7 @@ Specifying nil for any of these values uses the default, ie. home."
   "Setup the SR window configuration (two windows in sr-mode.)"
 
   ;;get rid of all windows except one (not any of the panes!)
-  (dotimes (times 2)
-    (if (memq (selected-window) (list sr-left-window sr-right-window))
-        (other-window 1)))
+  (sr-select-viewer-window)
   (delete-other-windows)
 
   ;;now create the bottom window
@@ -548,6 +561,13 @@ Specifying nil for any of these values uses the default, ie. home."
       (setq sr-selected-window 'right)))
   (hl-line-mode 1)
   (sr-highlight))
+
+(defun sr-select-viewer-window ()
+  "Tries to select a window that is not a sr pane"
+  (interactive)
+  (dotimes (times 2)
+    (if (memq (selected-window) (list sr-left-window sr-right-window))
+        (other-window 1))))
 
 (defun sr-highlight()
   "Highlight the current buffer, destroying the previous buffer highlight if
@@ -1262,17 +1282,61 @@ part of file-path can be accessed by the function parent-directory."
 (ad-activate 'dired-do-flagged-delete)
 
 ;;; ============================================================================
-;;; Miscellaneous functions:
+;;; Terminal integration and CLEX (Command Line EXpansion) functions:
 
-(defun sr-bash ()
-  "Runs bash in a new buffer (or switches to an existing one) and cd's to the
-current one in the selected pane"
+(defun sr-term ()
+  "Runs terminal in a new buffer (or switches to an existing one) and cd's to the
+current directory in the active pane"
   (interactive)
   (let ((dir dired-directory))
-    (sr-quit)
-    (term "bash")
-    (term-send-raw-string (concat "cd " dir "")))
-    (exit-recursive-edit))
+    (sr-select-viewer-window)
+    (term sr-terminal-program)
+    (term-send-raw-string (concat "cd " dir ""))))
+
+(defun sr-clex-files (pane)
+  "Returns a string containing the list of marked files in the given pane."
+  (save-window-excursion
+    (if (equalp pane 'right)
+        (switch-to-buffer sr-right-buffer)
+      (switch-to-buffer sr-left-buffer))
+    (condition-case nil
+        (mapconcat 'identity (dired-get-marked-files) " ")
+      (error ""))))
+
+(defun sr-clex-dir (pane)
+  "Returns the current directory in the given pane."
+  (if (equalp pane 'right)
+      sr-right-directory
+    sr-left-directory))
+
+;; This performs the command line substitution while in CLEX mode:
+(defadvice term-send-raw-string
+  (around sr-advice-term-send-raw-string (chars))
+  (if (string= chars "f")
+      (setq chars (sr-clex-files 'left))
+    (if (string= chars "F")
+        (setq chars (sr-clex-files 'right))
+      (if (string= chars "d")
+          (setq chars (sr-clex-dir 'left))
+        (if (string= chars "D")
+            (setq chars (sr-clex-dir 'right))))))
+  (ad-deactivate 'term-send-raw-string)
+  ad-do-it)
+
+(defun sr-clex-activate ()
+  "Activates the Command Line EXpansion feature in all active terminals."
+  (ad-activate 'term-send-raw-string)
+  (message "Sunrise: CLEX Mode is ON"))
+
+;; This binds the % key (in term-line mode) to CLEX:
+(add-hook 'term-mode-hook
+          '(lambda () (define-key term-mode-map "%" '(lambda ()
+                                                       (interactive)
+                                                       (sr-clex-activate)
+                                                       (term-char-mode)))))
+
+;;; ============================================================================
+;;; Miscellaneous functions:
 
 (defun sr-keep-buffer ()
   "Keeps the currently selected buffer as one of the panes, even if it does not
