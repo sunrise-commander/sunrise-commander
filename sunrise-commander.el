@@ -257,6 +257,7 @@
         C-o ........... show/hide hidden files (requires dired-omit-mode)
         b ............. browse current directory using w3m
         g ............. refresh pane
+        C-Backspace ... hide/show file attributes in pane
 
         C-= ........... smart compare files (ediff)
         = ............. fast smart compare files (plain diff)
@@ -373,6 +374,7 @@ Sunrise, like G for changing group, M for changing mode and so on."
 (define-key sr-mode-map "\C-o"               'sr-omit-mode)
 (define-key sr-mode-map "b"                  'sr-browse)
 (define-key sr-mode-map "g"                  'sr-revert-buffer)
+(define-key sr-mode-map [(control backspace)] 'sr-toggle-attributes)
 
 (define-key sr-mode-map "C"                  'sr-do-copy)
 (define-key sr-mode-map "c"                  'dired-do-copy)
@@ -419,7 +421,7 @@ Sunrise, like G for changing group, M for changing mode and so on."
 ;;; ============================================================================
 ;;; Initialization and finalization functions:
 
-(defun sunrise(&optional left-directory right-directory) 
+(defun sunrise (&optional left-directory right-directory) 
   "Starts the Sunrise Commander.  If the param `left-directory' is given the
 left window will display this directory (the same for `right-directory').
 Specifying nil for any of these values uses the default, ie. home."
@@ -448,7 +450,7 @@ Specifying nil for any of these values uses the default, ie. home."
       (message "All life leaps out to greet the light...")
       (exit-recursive-edit))))
 
-(defun sunrise-cd()
+(defun sunrise-cd ()
   "Run SR but give it the current directory to use."
   (interactive)
   (let((left-directory default-directory))
@@ -456,7 +458,7 @@ Specifying nil for any of these values uses the default, ie. home."
         (kill-buffer sr-left-buffer))
     (sunrise left-directory)))
 
-(defun sr-dired(directory)
+(defun sr-dired (directory)
   "Visits the given directory (or file) in sr-mode"
   (interactive
    (list 
@@ -472,7 +474,7 @@ Specifying nil for any of these values uses the default, ie. home."
           (sr-quit)
           (exit-recursive-edit)))))
 
-(defun sr-setup-interface()
+(defun sr-setup-interface ()
   "Sets up the logical SR interface"
   (interactive)
   (if (equal major-mode 'sr-mode)
@@ -618,6 +620,40 @@ Specifying nil for any of these values uses the default, ie. home."
 (defun sr-force-passive-highlight ()
   (sr-change-window)
   (sr-change-window))
+
+(defun sr-hide-attributes ()
+  "Hides the attributes of all files in the active pane."
+  (save-excursion
+    (sr-unhide-attributes)
+    (goto-char (point-min))
+    (let ((next (re-search-forward directory-listing-before-filename-regexp nil t))
+          (attr-list nil)
+          (overlay nil))
+      (while (not (null next))
+        (beginning-of-line)
+        (setq overlay (make-overlay (point) (- next 1)))
+        (setq attr-list (cons overlay attr-list))
+        (overlay-put overlay 'invisible t)
+        (overlay-put overlay 'intangible t)
+        (next-line)
+        (setq next (re-search-forward directory-listing-before-filename-regexp nil t)))
+      (put sr-selected-window 'hidden-attrs attr-list))))
+
+(defun sr-unhide-attributes ()
+  "Shows the (hidden) attributes of all files in the active pane."
+  (let ((attr-list (get sr-selected-window 'hidden-attrs)))
+    (if (not (null attr-list))
+        (progn
+          (mapcar 'delete-overlay attr-list)
+          (put sr-selected-window 'hidden-attrs nil)))))
+(add-hook 'dired-after-readin-hook 'sr-unhide-attributes)
+
+(defun sr-toggle-attributes ()
+  "Hides/Shows the attributes of all files in the active pane."
+  (interactive)
+  (if (null (get sr-selected-window 'hidden-attrs))
+      (sr-hide-attributes)
+    (sr-unhide-attributes)))
 
 (defun sr-quit()
   "Quit SR and restore emacs to previous operation."
