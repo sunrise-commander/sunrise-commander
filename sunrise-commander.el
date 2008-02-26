@@ -74,7 +74,7 @@
 ;; * The results of the following operations are displayed in VIRTUAL mode:
 ;;     find-dired-name (by pressing C-c C-n),
 ;;     find-grep-name  (by pressing C-c C-g),
-;;     find-dired      (by pressing C-c C-g),
+;;     find-dired      (by pressing C-c C-d),
 ;;     locate          (by pressing C-c C-l).
 
 ;; * Supports AVFS (http://www.inf.bme.hu/~mszeredi/avfs/) for transparent navi-
