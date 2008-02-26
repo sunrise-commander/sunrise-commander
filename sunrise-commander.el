@@ -84,8 +84,10 @@
 ;; to allow easy insertion of file and directory names in  terminals:  while  in
 ;; terminal  LINE  mode (C-c C-j), the following substitutions are automagically
 ;; performed:
-;; %f - expands to the list of all marked files in the left pane
-;; %F - expands to the list of all marked files in the right pane
+;; %f - expands to the currently selected file in the left pane
+;; %F - expands to the currently selected file in the right pane
+;; %m - expands to the list of all marked files in the left pane
+;; %M - expands to the list of all marked files in the right pane
 ;; %d - expands to the current directory in the left pane
 ;; %D - expands to the current directory in the right pane
 
@@ -1293,7 +1295,17 @@ current directory in the active pane"
     (term sr-terminal-program)
     (term-send-raw-string (concat "cd " dir ""))))
 
-(defun sr-clex-files (pane)
+(defun sr-clex-file (pane)
+  "Returns the currently selected file in the given pane"
+  (save-window-excursion
+    (if (equalp pane 'right)
+        (switch-to-buffer sr-right-buffer)
+      (switch-to-buffer sr-left-buffer))
+    (condition-case nil
+        (dired-get-filename)
+      (error ""))))
+
+(defun sr-clex-marked (pane)
   "Returns a string containing the list of marked files in the given pane."
   (save-window-excursion
     (if (equalp pane 'right)
@@ -1312,14 +1324,18 @@ current directory in the active pane"
 ;; This performs the command line substitution while in CLEX mode:
 (defadvice term-send-raw-string
   (around sr-advice-term-send-raw-string (chars))
-  (if (string= chars "f")
-      (setq chars (sr-clex-files 'left))
-    (if (string= chars "F")
-        (setq chars (sr-clex-files 'right))
+  (if (string= chars "m")
+      (setq chars (sr-clex-marked 'left))
+    (if (string= chars "f")
+        (setq chars (sr-clex-file 'left))
       (if (string= chars "d")
           (setq chars (sr-clex-dir 'left))
-        (if (string= chars "D")
-            (setq chars (sr-clex-dir 'right))))))
+        (if (string= chars "M")
+            (setq chars (sr-clex-marked 'right))
+          (if (string= chars "F")
+              (setq chars (sr-clex-file 'right))
+            (if (string= chars "D")
+                (setq chars (sr-clex-dir 'right))))))))
   (ad-deactivate 'term-send-raw-string)
   ad-do-it)
 
