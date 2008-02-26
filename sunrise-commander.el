@@ -258,6 +258,7 @@
         b ............. browse current directory using w3m
         g ............. refresh pane
         C-Backspace ... hide/show file attributes in pane
+        s ............. change sorting order or files (name/size/time/extension)
 
         C-= ........... smart compare files (ediff)
         = ............. fast smart compare files (plain diff)
@@ -375,6 +376,7 @@ Sunrise, like G for changing group, M for changing mode and so on."
 (define-key sr-mode-map "b"                  'sr-browse)
 (define-key sr-mode-map "g"                  'sr-revert-buffer)
 (define-key sr-mode-map [(control backspace)] 'sr-toggle-attributes)
+(define-key sr-mode-map "s"                  'sr-interactive-sort)
 
 (define-key sr-mode-map "C"                  'sr-do-copy)
 (define-key sr-mode-map "c"                  'dired-do-copy)
@@ -621,40 +623,6 @@ Specifying nil for any of these values uses the default, ie. home."
   (sr-change-window)
   (sr-change-window))
 
-(defun sr-hide-attributes ()
-  "Hides the attributes of all files in the active pane."
-  (save-excursion
-    (sr-unhide-attributes)
-    (goto-char (point-min))
-    (let ((next (re-search-forward directory-listing-before-filename-regexp nil t))
-          (attr-list nil)
-          (overlay nil))
-      (while (not (null next))
-        (beginning-of-line)
-        (setq overlay (make-overlay (point) (- next 1)))
-        (setq attr-list (cons overlay attr-list))
-        (overlay-put overlay 'invisible t)
-        (overlay-put overlay 'intangible t)
-        (next-line)
-        (setq next (re-search-forward directory-listing-before-filename-regexp nil t)))
-      (put sr-selected-window 'hidden-attrs attr-list))))
-
-(defun sr-unhide-attributes ()
-  "Shows the (hidden) attributes of all files in the active pane."
-  (let ((attr-list (get sr-selected-window 'hidden-attrs)))
-    (if (not (null attr-list))
-        (progn
-          (mapcar 'delete-overlay attr-list)
-          (put sr-selected-window 'hidden-attrs nil)))))
-(add-hook 'dired-after-readin-hook 'sr-unhide-attributes)
-
-(defun sr-toggle-attributes ()
-  "Hides/Shows the attributes of all files in the active pane."
-  (interactive)
-  (if (null (get sr-selected-window 'hidden-attrs))
-      (sr-hide-attributes)
-    (sr-unhide-attributes)))
-
 (defun sr-quit()
   "Quit SR and restore emacs to previous operation."
   (interactive)
@@ -822,7 +790,7 @@ list of the current pane"
             (sr-find-file item))))))
 
 ;;; ============================================================================
-;;; SR interface interaction functions:
+;;; Graphical interface interaction functions:
 
 (defun sr-change-window()
   "Change to the other sr buffer"
@@ -921,6 +889,58 @@ horizontal and vice-versa."
     (dired-find-file-other-window)
     (setq other-window-scroll-buffer (current-buffer))
     (select-window home)))
+
+(defun sr-hide-attributes ()
+  "Hides the attributes of all files in the active pane."
+  (save-excursion
+    (sr-unhide-attributes)
+    (goto-char (point-min))
+    (let ((next (re-search-forward directory-listing-before-filename-regexp nil t))
+          (attr-list nil)
+          (overlay nil))
+      (while (not (null next))
+        (beginning-of-line)
+        (setq overlay (make-overlay (point) (- next 1)))
+        (setq attr-list (cons overlay attr-list))
+        (overlay-put overlay 'invisible t)
+        (overlay-put overlay 'intangible t)
+        (next-line)
+        (setq next (re-search-forward directory-listing-before-filename-regexp nil t)))
+      (put sr-selected-window 'hidden-attrs attr-list))))
+
+(defun sr-unhide-attributes ()
+  "Shows the (hidden) attributes of all files in the active pane."
+  (let ((attr-list (get sr-selected-window 'hidden-attrs)))
+    (if (not (null attr-list))
+        (progn
+          (mapcar 'delete-overlay attr-list)
+          (put sr-selected-window 'hidden-attrs nil)))))
+(add-hook 'dired-after-readin-hook 'sr-unhide-attributes)
+
+(defun sr-toggle-attributes ()
+  "Hides/Shows the attributes of all files in the active pane."
+  (interactive)
+  (if (null (get sr-selected-window 'hidden-attrs))
+      (sr-hide-attributes)
+    (sr-unhide-attributes)))
+
+(defun sr-sort-order (label option)
+  "Changes the sorting order of the active pane by appending additional options
+   to dired-listing-switches"
+  (put sr-selected-window 'sorting-order label)
+  (dired-sort-other (concat dired-listing-switches option))
+  (sr-force-passive-highlight)
+  (message (concat "Sunrise: sorting entries by " label)))
+
+(defun sr-interactive-sort (order)
+  "Prompts for a new sorting order for the active pane and applies it."
+  (interactive "cSort by (n)ame, (s)ize, (t)ime or e(x)tension? ")
+  (if (>= order 97)
+      (setq order (- order 32)))
+  (cond ((eq order ?T) (sr-sort-order "TIME"      "t"))
+        ((eq order ?S) (sr-sort-order "SIZE"      "S"))
+        ((eq order ?X) (sr-sort-order "EXTENSION" "X"))
+        (t             (sr-sort-order "NAME"      "" ))))
 
 ;;; ============================================================================
 ;;; File manipulation functions:
@@ -1179,6 +1199,7 @@ part of file-path can be accessed by the function parent-directory."
   (dired-compare-directories sr-other-directory (ask-compare-dirs-predicate)))
 
 (defun ask-compare-dirs-predicate ()
+  "Prompts for the criterion to use for comparing two directories."
   (let (
         (resp -1)
         (prompt "Compare by (d)ate, (s)ize or (a)ll? ")
