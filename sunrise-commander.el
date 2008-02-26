@@ -62,7 +62,7 @@
 
 ;; * Press C-c C-s to change the layout of the panes (horizontal/vertical/top)
 
-;; *  Press  C-x  C-q  to put the current pane in Editable Dired mode (allows to
+;; *  Press  C-x C-q   to put the current pane in Editable Dired mode (allows to
 ;; edit the pane as if it were a regular file -- press C-c C-c  to  commit  your
 ;; changes to the filesystem).
 
@@ -74,8 +74,11 @@
 ;; * The results of the following operations are displayed in VIRTUAL mode:
 ;;     find-dired-name (by pressing C-c C-n),
 ;;     find-grep-name  (by pressing C-c C-g),
-;;     find-dired      (by pressing C-c C-d),
+;;     find-dired      (by pressing C-c C-f),
 ;;     locate          (by pressing C-c C-l).
+
+;; * Press C-c C-r to display the listing of all recently visited files (also in
+;; VIRTUAL mode).
 
 ;; * Supports AVFS (http://www.inf.bme.hu/~mszeredi/avfs/) for transparent navi-
 ;; gation inside compressed archives (*.zip, *.tgz, *.tar.bz2, *.deb, etc. etc.)
