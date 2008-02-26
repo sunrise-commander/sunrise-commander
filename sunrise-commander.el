@@ -71,9 +71,11 @@
 ;; they  were  directories  with  all  Dired  and  Sunrise  operations  at  your
 ;; fingertips.
 
-;; * Press C-c C-n to run find-dired-name, C-c C-g to  run  find-dired-grep  and
-;; C-c  C-f  to run find-dired and have the results displayed in Sunrise VIRTUAL
-;; mode.
+;; * The results of the following operations are displayed in VIRTUAL mode:
+;;     find-dired-name (by pressing C-c C-n),
+;;     find-grep-name  (by pressing C-c C-g),
+;;     find-dired      (by pressing C-c C-g),
+;;     locate          (by pressing C-c C-l).
 
 ;; * Supports AVFS (http://www.inf.bme.hu/~mszeredi/avfs/) for transparent navi-
 ;; gation inside compressed archives (*.zip, *.tgz, *.tar.bz2, *.deb, etc. etc.)
@@ -84,12 +86,12 @@
 ;; to allow easy insertion of file and directory names in  terminals:  while  in
 ;; terminal  LINE  mode (C-c C-j), the following substitutions are automagically
 ;; performed:
-;; %f - expands to the currently selected file in the left pane
-;; %F - expands to the currently selected file in the right pane
-;; %m - expands to the list of all marked files in the left pane
-;; %M - expands to the list of all marked files in the right pane
-;; %d - expands to the current directory in the left pane
-;; %D - expands to the current directory in the right pane
+;;     %f - expands to the currently selected file in the left pane
+;;     %F - expands to the currently selected file in the right pane
+;;     %m - expands to the list of all marked files in the left pane
+;;     %M - expands to the list of all marked files in the right pane
+;;     %d - expands to the current directory in the left pane
+;;     %D - expands to the current directory in the right pane
 
 ;; It  doesn't  even  try to look like MC, so the help window is gone (you're in
 ;; emacs, so you know your bindings, right?).
