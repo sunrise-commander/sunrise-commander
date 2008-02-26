@@ -56,7 +56,7 @@
 
 ;; * Press C-M-= for directory comparison (only by date and/or size, by now).
 
-;; * Press C-x t to open a bash terminal into the current pane's directory.
+;; * Press C-c t to open a bash terminal into the current pane's directory.
 
 ;; * Press M-t to swap the panes.
 
