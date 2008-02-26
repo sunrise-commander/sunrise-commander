@@ -243,6 +243,8 @@
         M-a ........... go to beginning of current directory
         M-e ........... go to end of current directory
         Tab ........... go to other pane
+        C-Tab.......... go to viewer window
+        C-c Tab ....... go to viewer window (console portable) 
 
         C-c C-s ....... change pane layout (vertical/horizontal/top-only)
         M-t ........... transpose panes
