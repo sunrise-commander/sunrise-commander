@@ -707,9 +707,11 @@ Specifying nil for any of these values uses the default, ie. home."
 
     (progn ;;the file is a regular file:
       (sr-quit)
-      (find-file filename)
+      (condition-case description
+          (find-file filename)
+        (error (message (second description))))
       (exit-recursive-edit))))
- 
+
 (defun sr-goto-dir (dir)
   "Changes the current directory in the active pane to the given one"
   (interactive
