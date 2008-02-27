@@ -610,12 +610,10 @@ Specifying nil for any of these values uses the default, ie. home."
             (goto-char (point-min))))
 
       ;;determine begining and end
-      (search-forward "/" nil t)
+      (search-forward-regexp "\\S " nil t)
       (setq begin (1- (point)))
-
       (end-of-line)
-      (search-backward ":" nil t)
-      (setq end (point))
+      (setq end (1- (point)))
 
       ;;setup overlay
       (setq sr-current-window-overlay (make-overlay begin end))
