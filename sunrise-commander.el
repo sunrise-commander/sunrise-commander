@@ -613,8 +613,9 @@ Specifying nil for any of these values uses the default, ie. home."
       (search-forward "/" nil t)
       (setq begin (1- (point)))
 
-      (search-forward ":" nil t)
-      (setq end (1- (point)))
+      (end-of-line)
+      (search-backward ":" nil t)
+      (setq end (point))
 
       ;;setup overlay
       (setq sr-current-window-overlay (make-overlay begin end))
@@ -931,7 +932,7 @@ horizontal and vice-versa."
    to dired-listing-switches"
   (put sr-selected-window 'sorting-order label)
   (dired-sort-other (concat dired-listing-switches option))
-  (sr-force-passive-highlight)
+  (sr-revert-buffer)
   (message (concat "Sunrise: sorting entries by " label)))
 
 (defun sr-interactive-sort (order)
