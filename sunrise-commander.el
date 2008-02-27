@@ -4,7 +4,7 @@
 ;; Copyright (C) 2007 2008 José Alfredo Romero L.
 
 ;; Author: José Alfredo Romero L. <joseito@poczta.onet.pl>
-;; Keywords: Sunrise Commander File Manager Midnight Norton 
+;; Keywords: Sunrise Commander Emacs File Manager Midnight Norton Orthodox
 
 ;; This program is free software: you can redistribute it and/or modify it under
 ;; the terms of the GNU General Public License as published by the Free Software
@@ -95,6 +95,8 @@
 ;;     %M - expands to the list of all marked files in the right pane
 ;;     %d - expands to the current directory in the left pane
 ;;     %D - expands to the current directory in the right pane
+
+;; * etc. ;-)
 
 ;; It  doesn't  even  try to look like MC, so the help window is gone (you're in
 ;; emacs, so you know your bindings, right?).
@@ -200,7 +202,7 @@
   "The window to select when sr starts up.")
 
 (defvar sr-ediff-on nil
-  "Flag that indicates whether an ediff is being done by SR")
+  "Flag that indicates whether an ediff is being done by Sunrise")
 
 (defvar sr-dired-directory ""
   "Directory inside which sr-mode is currently active")
@@ -241,7 +243,7 @@
   "Two-pane file manager for Emacs based on Dired and inspired by MC. The
   following keybindings are available:
 
-        C-c g ......... go to directory
+        / ............. go to directory
         U ............. go to parent directory
         M-y ........... go to previous directory in history
         M-u ........... go to next directory in history
@@ -358,50 +360,50 @@ Sunrise, like G for changing group, M for changing mode and so on."
 ;;; ============================================================================
 ;;; Sunrise Commander keybindings:
 
-(define-key sr-mode-map "\C-m"               'sr-advertised-find-file)
-(define-key sr-mode-map "o"                  'sr-quick-view)
-(define-key sr-mode-map "\C-cg"              'sr-goto-dir)
-(define-key sr-mode-map "U"                  'sr-dired-prev-subdir)
-(define-key sr-mode-map "\M-y"               'sr-history-prev)
-(define-key sr-mode-map "\M-u"               'sr-history-next)
-(define-key sr-mode-map "\t"                 'sr-change-window)
-(define-key sr-mode-map [(control tab)]      'sr-select-viewer-window)
-(define-key sr-mode-map "\C-c\t"             'sr-select-viewer-window)
-(define-key sr-mode-map "\M-a"               'sr-beginning-of-buffer)
-(define-key sr-mode-map "\M-e"               'sr-end-of-buffer)
-(define-key sr-mode-map "\C-c\C-s"           'sr-split-toggle)
-(define-key sr-mode-map "\M-t"               'sr-transpose-panes)
-(define-key sr-mode-map "\M-o"               'sr-synchronize-panes)
-(define-key sr-mode-map "\C-o"               'sr-omit-mode)
-(define-key sr-mode-map "b"                  'sr-browse)
-(define-key sr-mode-map "g"                  'sr-revert-buffer)
+(define-key sr-mode-map "\C-m"                'sr-advertised-find-file)
+(define-key sr-mode-map "o"                   'sr-quick-view)
+(define-key sr-mode-map "/"                   'sr-goto-dir)
+(define-key sr-mode-map "U"                   'sr-dired-prev-subdir)
+(define-key sr-mode-map "\M-y"                'sr-history-prev)
+(define-key sr-mode-map "\M-u"                'sr-history-next)
+(define-key sr-mode-map "\t"                  'sr-change-window)
+(define-key sr-mode-map [(control tab)]       'sr-select-viewer-window)
+(define-key sr-mode-map "\C-c\t"              'sr-select-viewer-window)
+(define-key sr-mode-map "\M-a"                'sr-beginning-of-buffer)
+(define-key sr-mode-map "\M-e"                'sr-end-of-buffer)
+(define-key sr-mode-map "\C-c\C-s"            'sr-split-toggle)
+(define-key sr-mode-map "\M-t"                'sr-transpose-panes)
+(define-key sr-mode-map "\M-o"                'sr-synchronize-panes)
+(define-key sr-mode-map "\C-o"                'sr-omit-mode)
+(define-key sr-mode-map "b"                   'sr-browse)
+(define-key sr-mode-map "g"                   'sr-revert-buffer)
 (define-key sr-mode-map [(control backspace)] 'sr-toggle-attributes)
-(define-key sr-mode-map "s"                  'sr-interactive-sort)
+(define-key sr-mode-map "s"                   'sr-interactive-sort)
 
-(define-key sr-mode-map "C"                  'sr-do-copy)
-(define-key sr-mode-map "c"                  'dired-do-copy)
-(define-key sr-mode-map "R"                  'sr-do-rename)
-(define-key sr-mode-map "r"                  'dired-do-rename)
-(define-key sr-mode-map "\C-x\C-q"           'sr-editable-pane)
-(define-key sr-mode-map "\C-ct"              'sr-term)
+(define-key sr-mode-map "C"                   'sr-do-copy)
+(define-key sr-mode-map "c"                   'dired-do-copy)
+(define-key sr-mode-map "R"                   'sr-do-rename)
+(define-key sr-mode-map "r"                   'dired-do-rename)
+(define-key sr-mode-map "\C-x\C-q"            'sr-editable-pane)
+(define-key sr-mode-map "\C-ct"               'sr-term)
 
-(define-key sr-mode-map "="                  'sr-diff)
-(define-key sr-mode-map [(control ?\=)]      'sr-ediff)
-(define-key sr-mode-map [(control meta ?\=)] 'sr-compare-dirs)
+(define-key sr-mode-map "="                   'sr-diff)
+(define-key sr-mode-map [(control ?\=)]       'sr-ediff)
+(define-key sr-mode-map [(control meta ?\=)]  'sr-compare-dirs)
 
-(define-key sr-mode-map "\C-c\C-f"           'sr-find)
-(define-key sr-mode-map "\C-c\C-n"           'sr-find-name)
-(define-key sr-mode-map "\C-c\C-g"           'sr-find-grep)
-(define-key sr-mode-map "\C-c\C-l"           'sr-locate)
-(define-key sr-mode-map "\C-c\C-r"           'sr-recent-files)
+(define-key sr-mode-map "\C-c\C-f"            'sr-find)
+(define-key sr-mode-map "\C-c\C-n"            'sr-find-name)
+(define-key sr-mode-map "\C-c\C-g"            'sr-find-grep)
+(define-key sr-mode-map "\C-c\C-l"            'sr-locate)
+(define-key sr-mode-map "\C-c\C-r"            'sr-recent-files)
 
-(define-key sr-mode-map "q"                  'keyboard-escape-quit)
+(define-key sr-mode-map "q"                   'keyboard-escape-quit)
 
 (defun sunrise-mc-keys ()
   "Binds the function keys F2 to F10 the traditional MC way"
   (interactive)
   (define-key sr-mode-map [(f2)]            'sr-goto-dir)
-  (define-key sr-mode-map [(f3)]            'sr-advertised-find-file)
+  (define-key sr-mode-map [(f3)]            'sr-quick-view)
   (define-key sr-mode-map [(f4)]            'sr-advertised-find-file)
   (define-key sr-mode-map [(f5)]            'sr-do-copy)
   (define-key sr-mode-map [(f6)]            'sr-do-rename)
@@ -453,7 +455,7 @@ Specifying nil for any of these values uses the default, ie. home."
       (exit-recursive-edit))))
 
 (defun sunrise-cd ()
-  "Run SR but give it the current directory to use."
+  "Run Sunrise but give it the current directory to use."
   (interactive)
   (let((left-directory default-directory))
     (if (buffer-live-p sr-left-buffer)
@@ -477,7 +479,7 @@ Specifying nil for any of these values uses the default, ie. home."
           (exit-recursive-edit)))))
 
 (defun sr-setup-interface ()
-  "Sets up the logical SR interface"
+  "Sets up the logical Sunrise interface"
   (interactive)
   (if (equal major-mode 'sr-mode)
       (progn
@@ -521,7 +523,7 @@ Specifying nil for any of these values uses the default, ie. home."
               (list 'sr-dired (sr-symbol name 'directory)))))
 
 (defun sr-setup-windows()
-  "Setup the SR window configuration (two windows in sr-mode.)"
+  "Setup the Sunrise window configuration (two windows in sr-mode.)"
 
   ;;get rid of all windows except one (not any of the panes!)
   (sr-select-viewer-window)
@@ -624,7 +626,7 @@ Specifying nil for any of these values uses the default, ie. home."
   (sr-change-window))
 
 (defun sr-quit()
-  "Quit SR and restore emacs to previous operation."
+  "Quit Sunrise and restore emacs to previous operation."
   (interactive)
   (if sr-running
       (progn
