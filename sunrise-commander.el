@@ -260,6 +260,7 @@
         b ............. browse current directory using w3m
         g ............. refresh pane
         C-Backspace ... hide/show file attributes in pane
+        C-c Backspace . hide/show file attributes in pane (console portable)
         s ............. change sorting order or files (name/size/time/extension)
 
         C-= ........... smart compare files (ediff)
@@ -378,6 +379,7 @@ Sunrise, like G for changing group, M for changing mode and so on."
 (define-key sr-mode-map "b"                   'sr-browse)
 (define-key sr-mode-map "g"                   'sr-revert-buffer)
 (define-key sr-mode-map [(control backspace)] 'sr-toggle-attributes)
+(define-key sr-mode-map "\C-c\d"              'sr-toggle-attributes)
 (define-key sr-mode-map "s"                   'sr-interactive-sort)
 
 (define-key sr-mode-map "C"                   'sr-do-copy)
