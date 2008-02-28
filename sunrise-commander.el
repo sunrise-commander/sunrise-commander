@@ -283,7 +283,7 @@
         D ............. delete marked (or current) files and directories
         C-x C-q ....... put current pane in Editable Dired mode
 
-        C-c t ......... open shell (bash) into current directory
+        C-c t ......... open terminal in current directory
         q ............. quit Sunrise Commander
 
 Additionally, if you activate the mc-compatible keybindings (by invoking the
