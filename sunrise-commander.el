@@ -192,6 +192,9 @@
 (defvar sr-other-directory "~/"
   "Dired directory in the window that is currently *not* selected")
 
+(defvar sr-checkpoint-registry (acons "~" (list sr-left-directory sr-right-directory) nil)
+  "Registry of currently defined checkpoints")
+
 (defvar sr-left-window nil
   "The left window of dired.")
 
@@ -247,6 +250,10 @@
         U ............. go to parent directory
         M-y ........... go to previous directory in history
         M-u ........... go to next directory in history
+        C-> ........... save named checkpoint (bookmark panes)
+        C-c > ......... save named checkpoint (bookmark panes - console portable)
+        C-.    ........ restore named checkpoint
+        C-c .  ........ restore named checkpoint (console portable)
         M-a ........... go to beginning of current directory
         M-e ........... go to end of current directory
         Tab ........... go to other pane
@@ -367,6 +374,10 @@ Sunrise, like G for changing group, M for changing mode and so on."
 (define-key sr-mode-map "U"                   'sr-dired-prev-subdir)
 (define-key sr-mode-map "\M-y"                'sr-history-prev)
 (define-key sr-mode-map "\M-u"                'sr-history-next)
+(define-key sr-mode-map [(control >)]         'sr-checkpoint-save)
+(define-key sr-mode-map "\C-c>"               'sr-checkpoint-save)
+(define-key sr-mode-map [(control .)]         'sr-checkpoint-restore)
+(define-key sr-mode-map "\C-c."               'sr-checkpoint-restore)
 (define-key sr-mode-map "\t"                  'sr-change-window)
 (define-key sr-mode-map [(control tab)]       'sr-select-viewer-window)
 (define-key sr-mode-map "\C-c\t"              'sr-select-viewer-window)
@@ -793,6 +804,41 @@ list of the current pane"
           (if (file-directory-p item)
               (sr-goto-dir item)
             (sr-find-file item))))))
+
+(defun sr-checkpoint-save (name)
+  "Allows to give a name to the current directories in the Sunrise panes, so
+they can be restored later."
+  (interactive "sCheckpoint name to save? ")
+  (let ((my-window (selected-window))
+        (my-cell))
+    (setq my-cell (assoc-string name sr-checkpoint-registry))
+    (select-window sr-left-window)
+    (setq sr-left-directory dired-directory)
+    (select-window sr-right-window)
+    (setq sr-right-directory dired-directory)
+    (select-window my-window)
+    (if (null my-cell)
+        (setq sr-checkpoint-registry
+              (acons name
+                     (list sr-left-directory sr-right-directory)
+                     sr-checkpoint-registry))
+      (setcdr my-cell (list sr-left-directory sr-right-directory)))
+  (message (concat "Checkpoint \"" name "\" saved"))))
+
+(defun sr-checkpoint-restore (name)
+  "Allows to restore a previously saved checkpoint."
+  (interactive "sCheckpoint name to restore? " )
+  (let ((cp-list (assoc-string name sr-checkpoint-registry))
+        (my-window))
+    (if (null cp-list)
+        (error (concat "No such checkpoint: " name)))
+    (setq my-window (selected-window))
+    (select-window sr-left-window)
+    (sr-goto-dir (second cp-list))
+    (select-window sr-right-window)
+    (sr-goto-dir (third cp-list))
+    (select-window my-window)
+    (sr-force-passive-highlight)))
 
 ;;; ============================================================================
 ;;; Graphical interface interaction functions:
