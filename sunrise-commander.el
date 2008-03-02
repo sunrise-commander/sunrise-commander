@@ -1,7 +1,7 @@
 ;; sunrise-commander.el  ---  Two-pane file manager for Emacs based on Dired and
 ;; inspired by MC.
 
-;; Copyright (C) 2007 2008 José Alfredo Romero L.
+;; Copyright (C) 2007 2008 José Alfredo Romero L. (j0s3l0)
 
 ;; Author: José Alfredo Romero L. <joseito@poczta.onet.pl>
 ;; Keywords: Sunrise Commander Emacs File Manager Midnight Norton Orthodox
@@ -152,8 +152,8 @@
 (recentf-mode 1)
 
 (setq dired-recursive-deletes 'top
-      ;; dired-listing-switches "-alp"
-      dired-listing-switches "--time-style=locale --group-directories-first -alphgG"
+      dired-listing-switches "-alp"
+      ;; dired-listing-switches "--time-style=locale --group-directories-first -alphgG"
       recentf-max-saved-items 100
       recentf-max-menu-items 20)
 
@@ -253,10 +253,10 @@
         U ............. go to parent directory
         M-y ........... go to previous directory in history
         M-u ........... go to next directory in history
-        C-> ........... save named checkpoint (bookmark panes)
-        C-c > ......... save named checkpoint (bookmark panes - console portable)
+        C-> ........... save named checkpoint (a.k.a. \"bookmark panes\")
+        C-c > ......... save named checkpoint (a.k.a. \"bookmark panes\")
         C-.    ........ restore named checkpoint
-        C-c .  ........ restore named checkpoint (console portable)
+        C-c .  ........ restore named checkpoint
         M-a ........... go to beginning of current directory
         M-e ........... go to end of current directory
         Tab ........... go to other pane
@@ -1506,10 +1506,14 @@ current directory in the active pane"
 (add-hook 'term-mode-hook
           '(lambda () (progn
                         (define-key term-mode-map [M-up] 'sr-ti-previous-line)
+                        (define-key term-mode-map [A-up] 'sr-ti-previous-line)
                         (define-key term-mode-map [M-down] 'sr-ti-next-line)
+                        (define-key term-mode-map [A-down] 'sr-ti-next-line)
                         (define-key term-mode-map "\M-\C-m" 'sr-ti-select)
+                        (define-key term-mode-map "\C-\M-j" 'sr-ti-select)
                         (define-key term-mode-map "\M-m" 'sr-ti-mark)
                         (define-key term-mode-map [M-backspace] 'sr-ti-unmark)
+                        (define-key term-mode-map "\M-\d" 'sr-ti-unmark)
                         (define-key term-mode-map "\M-U" 'sr-ti-prev-subdir)
                         (define-key term-mode-map "%" 'sr-clex-activate)
 )))
