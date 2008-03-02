@@ -85,10 +85,13 @@
 ;; You  need to have AVFS with coda or fuse installed and running on your system
 ;; for this to work, though.
 
-;; *  Command-line  file name expansion (NEW!) Integrates tightly with term-mode
-;; to allow easy insertion of file and directory names in  terminals:  while  in
-;; terminal  LINE  mode (C-c C-j), the following substitutions are automagically
-;; performed:
+;; *  Terminal  integration and Command line expansion (NEW!) integrates tightly
+;; with term-mode to allow interaction between terminal emulators in  line  mode
+;; (C-c  C-j)  and  the panes: the most important navigation commands (up, down,
+;; mark, unmark, go to parent dir) can be executed on the active  pane  directly
+;; from  the  terminal  by  pressing the usual keys with Meta: <M-up>, <M-down>,
+;; etc. Additionally, the following substitutions are automagically performed in
+;; term-line-mode:
 ;;     %f - expands to the currently selected file in the left pane
 ;;     %F - expands to the currently selected file in the right pane
 ;;     %m - expands to the list of all marked files in the left pane
@@ -101,7 +104,7 @@
 ;; It  doesn't  even  try to look like MC, so the help window is gone (you're in
 ;; emacs, so you know your bindings, right?).
 
-;; This is version 1 $Rev$ of the Sunrise Commander.
+;; This is version 2 $Rev$ of the Sunrise Commander.
 
 ;; Please note that it was written and tested only on GNU Emacs version 23 (from
 ;; CVS). I *am* aware that there are several functions  (including,  alas,  file
@@ -1399,7 +1402,7 @@ part of file-path can be accessed by the function parent-directory."
 (ad-activate 'dired-do-flagged-delete)
 
 ;;; ============================================================================
-;;; Terminal integration and CLEX (Command Line EXpansion) functions:
+;;; TI (Terminal Integration) and CLEX (Command Line EXpansion) functions:
 
 (defun sr-term ()
   "Runs terminal in a new buffer (or switches to an existing one) and cd's to the
@@ -1410,61 +1413,106 @@ current directory in the active pane"
     (term sr-terminal-program)
     (term-send-raw-string (concat "cd " dir ""))))
 
+(defmacro sr-ti (form)
+  "Puts the given form in the context of the selected pane"
+  (list 'if 'sr-running
+        (list 'progn
+              (list 'sr-select-window 'sr-selected-window)
+              (list 'hl-line-mode 0)
+              form
+              (list 'hl-line-mode 1)
+              (list 'sr-select-viewer-window))))
+
+(defun sr-ti-previous-line ()
+  "Runs previous-line on active pane from the terminal window."
+  (interactive)
+  (sr-ti (forward-line -1)))
+
+(defun sr-ti-next-line ()
+  "Runs next-line on active pane from the terminal window."
+  (interactive)
+  (sr-ti (forward-line 1)))
+
+(defun sr-ti-select ()
+  "Runs dired-advertised-find-file on active pane from the terminal window."
+  (interactive)
+  (sr-ti (sr-advertised-find-file)))
+
+(defun sr-ti-mark ()
+  "Runs dired-mark on active pane from the terminal window."
+  (interactive)
+  (sr-ti (dired-mark 1)))
+
+(defun sr-ti-unmark ()
+  "Runs dired-unmark-backward on active pane from the terminal window."
+  (interactive)
+  (sr-ti (dired-unmark-backward 1)))
+
+(defun sr-ti-prev-subdir ()
+  "Runs dired-prev-subdir on active pane from the terminal window."
+  (interactive)
+  (sr-ti (sr-dired-prev-subdir)))
+
 (defun sr-clex-file (pane)
   "Returns the currently selected file in the given pane"
   (save-window-excursion
-    (if (equalp pane 'right)
-        (switch-to-buffer sr-right-buffer)
-      (switch-to-buffer sr-left-buffer))
+    (if (equal pane 'right)
+        (select-window sr-right-window)
+      (select-window sr-left-window))
     (condition-case nil
-        (dired-get-filename)
+        (concat (dired-get-filename) " ")
       (error ""))))
 
 (defun sr-clex-marked (pane)
   "Returns a string containing the list of marked files in the given pane."
   (save-window-excursion
-    (if (equalp pane 'right)
-        (switch-to-buffer sr-right-buffer)
-      (switch-to-buffer sr-left-buffer))
+    (if (equal pane 'right)
+        (select-window sr-right-window)
+      (select-window sr-left-window))
     (condition-case nil
         (mapconcat 'identity (dired-get-marked-files) " ")
       (error ""))))
 
 (defun sr-clex-dir (pane)
   "Returns the current directory in the given pane."
-  (if (equalp pane 'right)
-      sr-right-directory
-    sr-left-directory))
+  (if (equal pane 'right)
+      (concat sr-right-directory " ")
+    (concat sr-left-directory " ")))
 
 ;; This performs the command line substitution while in CLEX mode:
 (defadvice term-send-raw-string
   (around sr-advice-term-send-raw-string (chars))
-  (if (string= chars "m")
-      (setq chars (sr-clex-marked 'left))
-    (if (string= chars "f")
-        (setq chars (sr-clex-file 'left))
-      (if (string= chars "d")
-          (setq chars (sr-clex-dir 'left))
-        (if (string= chars "M")
-            (setq chars (sr-clex-marked 'right))
-          (if (string= chars "F")
-              (setq chars (sr-clex-file 'right))
-            (if (string= chars "D")
-                (setq chars (sr-clex-dir 'right))))))))
   (ad-deactivate 'term-send-raw-string)
-  ad-do-it)
+  (let ((my-char (string-to-char chars)))
+    (setq chars
+          (cond ((eq my-char ?m) (sr-clex-marked 'left ))
+                ((eq my-char ?f) (sr-clex-file   'left ))
+                ((eq my-char ?d) (sr-clex-dir    'left ))
+                ((eq my-char ?M) (sr-clex-marked 'right))
+                ((eq my-char ?F) (sr-clex-file   'right))
+                ((eq my-char ?D) (sr-clex-dir    'right))
+                (t chars)))
+    ad-do-it)
+  (term-line-mode))
 
 (defun sr-clex-activate ()
   "Activates the Command Line EXpansion feature in all active terminals."
+  (interactive)
   (ad-activate 'term-send-raw-string)
+  (term-char-mode)
   (message "Sunrise: CLEX Mode is ON"))
 
-;; This binds the % key (in term-line mode) to CLEX:
+;; Sunrise TI & CLEX key bindings in term-line mode:
 (add-hook 'term-mode-hook
-          '(lambda () (define-key term-mode-map "%" '(lambda ()
-                                                       (interactive)
-                                                       (sr-clex-activate)
-                                                       (term-char-mode)))))
+          '(lambda () (progn
+                        (define-key term-mode-map [M-up] 'sr-ti-previous-line)
+                        (define-key term-mode-map [M-down] 'sr-ti-next-line)
+                        (define-key term-mode-map "\M-\C-m" 'sr-ti-select)
+                        (define-key term-mode-map "\M-m" 'sr-ti-mark)
+                        (define-key term-mode-map [M-backspace] 'sr-ti-unmark)
+                        (define-key term-mode-map "\M-U" 'sr-ti-prev-subdir)
+                        (define-key term-mode-map "%" 'sr-clex-activate)
+)))
 
 ;;; ============================================================================
 ;;; Miscellaneous functions:
