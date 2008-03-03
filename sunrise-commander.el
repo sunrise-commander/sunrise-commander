@@ -239,27 +239,38 @@
 
         / ............. go to directory
         U ............. go to parent directory
+        M-U ........... go to parent directory in passive pane
+        Tab ........... switch to other pane
+        C-Tab.......... switch to viewer window
+        C-c Tab ....... switch to viewer window (console portable) 
+
+        Return ........ visit selected file/directory
+        M-Return ...... visit selected file/directory in passive pane
+        o ............. quick visit selected file (scroll with C-M-v, C-M-S-v)
+        + ............. create new directory
+        C ............. copy marked (or current) files and directories
+        c ............. copy (using traditional dired-do-copy)
+        R ............. rename marked (or current) files and directories
+        r ............. rename (using traditional dired-do-rename)
+        D ............. delete marked (or current) files and directories
+        S ............. soft-link current file/directory to passive pane
+        H ............. hard-link current file/directory to passive pane
+
+        M-a ........... move to beginning of current directory
+        M-e ........... move to end of current directory
         M-y ........... go to previous directory in history
         M-u ........... go to next directory in history
-        C-> ........... save named checkpoint (a.k.a. \"bookmark panes\")
-        C-c > ......... save named checkpoint (a.k.a. \"bookmark panes\")
-        C-.    ........ restore named checkpoint
-        C-c .  ........ restore named checkpoint
-        M-a ........... go to beginning of current directory
-        M-e ........... go to end of current directory
-        Tab ........... go to other pane
-        C-Tab.......... go to viewer window
-        C-c Tab ....... go to viewer window (console portable) 
 
-        C-c C-s ....... change pane layout (vertical/horizontal/top-only)
-        M-t ........... transpose panes
-        M-o ........... synchronize panes
-        C-o ........... show/hide hidden files (requires dired-omit-mode)
-        b ............. browse current directory using w3m
         g ............. refresh pane
+        s ............. change sorting order or files (name/size/time/extension)
+        C-o ........... show/hide hidden files (requires dired-omit-mode)
         C-Backspace ... hide/show file attributes in pane
         C-c Backspace . hide/show file attributes in pane (console portable)
-        s ............. change sorting order or files (name/size/time/extension)
+        b ............. browse directory tree using w3m
+
+        M-t ........... transpose panes
+        M-o ........... synchronize panes
+        C-c C-s ....... change panes layout (vertical/horizontal/top-only)
 
         C-= ........... smart compare files (ediff)
         = ............. fast smart compare files (plain diff)
@@ -271,15 +282,12 @@
         C-c C-l ....... execute locate in Sunrise VIRTUAL mode
         C-c C-r ....... browse list of recently visited files (requires recentf)
 
-        Return ........ visit selected file
-        o ............. quick view selected file (scroll with C-M-v, C-M-S-v)
-        + ............. create new directory
-        C ............. copy marked (or current) files and directories
-        c ............. copy (using traditional dired-do-copy)
-        R ............. rename marked (or current) files and directories
-        r ............. rename (using traditional dired-do-rename)
-        D ............. delete marked (or current) files and directories
-        C-x C-q ....... put current pane in Editable Dired mode
+        C-> ........... save named checkpoint (a.k.a. \"bookmark panes\")
+        C-c > ......... save named checkpoint (a.k.a. \"bookmark panes\")
+        C-.    ........ restore named checkpoint
+        C-c .  ........ restore named checkpoint
+
+        C-x C-q ....... put pane in Editable Dired mode (commit with C-c C-c)
 
         C-c t ......... open terminal in current directory
         q ............. quit Sunrise Commander
@@ -298,8 +306,34 @@ sunrise-mc-keys function) you'll get the following ones:
         Insert ........ mark file
         C-PgUp ........ go to parent directory
 
-Also any dired keybinding (not overridden by any of the above) can be used in
-Sunrise, like G for changing group, M for changing mode and so on."
+Any other dired keybinding (not overridden by any of the above) can be used in
+Sunrise, like G for changing group, M for changing mode and so on.
+
+Some more bindings are provided for terminals in line mode, most useful after
+opening a terminal in the viewer window (with C-c t):
+
+        C-c C-j ....... put terminal in line mode
+        C-c C-k ....... put terminal back in char mode
+
+        M-<up> ........ move cursor up in active pane
+        M-<down> ...... move cursor down in active pane
+        M-Return ...... visit selected file/directory in active pane
+        M-U ........... go to parent directory in active pane
+        M-m ........... mark selected file/directory in active pane
+        M-Backspace ... unmark previous file/directory in active pane
+        C-Tab ......... switch focus to active pane
+
+In a terminal in line mode the following substitutions are also performed
+automatically (but only if at least one of the panes is visible):
+
+       %f - expands to the currently selected file in the left pane
+       %F - expands to the currently selected file in the right pane
+       %m - expands to the list of all marked files in the left pane
+       %M - expands to the list of all marked files in the right pane
+       %d - expands to the current directory in the left pane
+       %D - expands to the current directory in the right pane
+       %% - inserts a single % sign.
+"
   :group 'sunrise
   (set-keymap-parent sr-mode-map dired-mode-map))
 
@@ -1511,9 +1545,12 @@ current directory in the active pane"
 (defun sr-clex-activate ()
   "Activates the Command Line EXpansion feature in all active terminals."
   (interactive)
-  (ad-activate 'term-send-raw-string)
-  (term-char-mode)
-  (message "Sunrise: CLEX Mode is ON"))
+  (if sr-running
+      (progn
+        (ad-activate 'term-send-raw-string)
+        (term-char-mode)
+        (message "Sunrise: CLEX Mode is ON"))
+    (self-insert-command 1)))
 
 ;; Sunrise TI & CLEX key bindings in term-line mode:
 (add-hook 'term-mode-hook
