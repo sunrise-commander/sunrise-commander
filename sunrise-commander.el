@@ -152,8 +152,8 @@
 (recentf-mode 1)
 
 (setq dired-recursive-deletes 'top
-      dired-listing-switches "-alp"
-      ;; dired-listing-switches "--time-style=locale --group-directories-first -alphgG"
+      ;; dired-listing-switches "-alp"
+      dired-listing-switches "--time-style=locale --group-directories-first -alphgG"
       recentf-max-saved-items 100
       recentf-max-menu-items 20)
 
@@ -220,18 +220,6 @@
 (defvar sr-avfs-root nil
   "The root of the AVFS virtual filesystem to use for navigating compressed
    archives. Set to a non-nil value to activate AVFS support.")
-
-(defface sr-directory-face '((t (:bold t)))
-  "Face used to highlight directories."
-  :group 'sunrise)
-
-(defface sr-symlink-face '((t (:italic t)))
-  "Face used to highlight symbolic links."
-  :group 'sunrise)
-
-(defface sr-symlink-directory-face '((t (:italic t)))
-  "Face used to highlight symbolic directory links."
-  :group 'sunrise)
 
 (defface sr-window-selected-face '((t (:background "#ace6ac" :foreground "yellow" :height 140)))
   "Face used to show a selected window"
@@ -1529,11 +1517,22 @@ current directory in the active pane"
       (setq sr-left-buffer (current-buffer))
     (setq sr-right-buffer (current-buffer))))
 
-;;directories which are symlinked.
-(font-lock-add-keywords 'sr-mode '(("\\(^..l.*/$\\)" 1 'sr-symlink-directory-face keep)))
+;;; ============================================================================
+;;; Font-Lock colors & styles:
 
-;;symbolic links (which do not end with a trailing slash
-(font-lock-add-keywords 'sr-mode '(("\\(^..l.*[^/]$\\)" 1 'sr-symlink-face keep)))
+(defmacro rainbow (symbol spec regexp)
+  (list 'progn
+        (list 'defface symbol (list 'quote (list (list t spec))) "rainbow face" :group ''sunrise)
+        (list 'font-lock-add-keywords (list 'quote 'sr-mode) (list 'quote (list (list regexp 1 (list 'quote symbol) ))))))
+
+(rainbow sr-directory-face         (:foreground "blue1" :bold t)         "\\(^..d.*/$\\)")
+(rainbow sr-marked-dir-face        (:foreground "red" :bold t)           "\\(^\\*.d.*$\\)")
+(rainbow sr-marked-file-face       (:foreground "red")                   "\\(^\\*.[^d].*$\\)")
+(rainbow sr-symlink-face           (:foreground "DeepSkyBlue" :italic t) "\\(^..l.*[^/]$\\)")
+(rainbow sr-symlink-directory-face (:foreground "DodgerBlue" :italic t)  "\\(^..l.*[^/]$\\)")
+(rainbow sr-html-face              (:foreground "DarkOliveGreen4")       "\\(^..[^d].*\\.html?$\\)")
+(rainbow sr-xml-face               (:foreground "DarkGreen")             "\\(^..[^d].*\\.xml$\\)")
+(rainbow sr-compressed-face        (:foreground "magenta")               "\\(^..[^d].*\\.\\(zip\\|bz2\\|tgz\\)$\\)")
 
 (provide 'sunrise-commander)
 
