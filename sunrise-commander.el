@@ -1526,16 +1526,16 @@ current directory in the active pane"
         (list 'font-lock-add-keywords (list 'quote 'sr-mode) (list 'quote (list (list regexp 1 (list 'quote symbol) ))))))
 
 (rainbow sr-directory-face         (:foreground "blue1" :bold t)         "\\(^..d.*/$\\)")
-(rainbow sr-marked-dir-face        (:foreground "red" :bold t)           "\\(^\\*.d.*$\\)")
-(rainbow sr-marked-file-face       (:foreground "red")                   "\\(^\\*.[^d].*$\\)")
 (rainbow sr-symlink-face           (:foreground "DeepSkyBlue" :italic t) "\\(^..l.*[^/]$\\)")
 (rainbow sr-symlink-directory-face (:foreground "DodgerBlue" :italic t)  "\\(^..l.*[^/]$\\)")
 (rainbow sr-html-face              (:foreground "DarkOliveGreen4")       "\\(^..[^d].*\\.html?$\\)")
 (rainbow sr-xml-face               (:foreground "DarkGreen")             "\\(^..[^d].*\\.xml$\\)")
-(rainbow sr-compressed-face        (:foreground "magenta")               "\\(^..[^d].*\\.\\(zip\\|bz2\\|tgz\\)$\\)")
+(rainbow sr-compressed-face        (:foreground "magenta")               "\\(^..[^d].*\\.\\(zip\\|bz2\\|t?gz\\|z\\|Z\\)$\\)")
+(rainbow sr-marked-dir-face        (:foreground "red" :bold t)           "\\(^[*D].d.*$\\)")
+(rainbow sr-marked-file-face       (:foreground "red")                   "\\(^[*D].-.*$\\)")
+
+
 
 (provide 'sunrise-commander)
 
 ;;; sunrise-commander.el ends here
-
-; LocalWords:  laml dired MC IMHO easymenu keymap IMO Dired's
