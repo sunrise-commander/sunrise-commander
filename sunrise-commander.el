@@ -360,9 +360,11 @@ Sunrise, like G for changing group, M for changing mode and so on."
 ;;; Sunrise Commander keybindings:
 
 (define-key sr-mode-map "\C-m"                'sr-advertised-find-file)
+(define-key sr-mode-map "\M-\C-m"             'sr-advertised-find-file-other)
 (define-key sr-mode-map "o"                   'sr-quick-view)
 (define-key sr-mode-map "/"                   'sr-goto-dir)
 (define-key sr-mode-map "U"                   'sr-dired-prev-subdir)
+(define-key sr-mode-map "\M-U"                'sr-dired-prev-subdir-other)
 (define-key sr-mode-map "\M-y"                'sr-history-prev)
 (define-key sr-mode-map "\M-u"                'sr-history-next)
 (define-key sr-mode-map [(control >)]         'sr-checkpoint-save)
@@ -416,15 +418,6 @@ Sunrise, like G for changing group, M for changing mode and so on."
   (define-key sr-mode-map [(f10)]           'keyboard-escape-quit)
   (define-key sr-mode-map [(insert)]        'dired-mark)
   (define-key sr-mode-map [(control prior)] 'sr-dired-prev-subdir))
-
-(defun sunrise-avfs (root)
-  "Activates AVFS support and sets the root of the virtual filesystem."
-  (interactive "DAVFS root directory: ")
-  (setq root (expand-file-name root))
-  (let ((tail (string-match "/$" root)))
-    (if tail
-        (setq root (substring root 0 tail))))
-  (setq sr-avfs-root root))
 
 ;;; ============================================================================
 ;;; Initialization and finalization functions:
@@ -508,6 +501,15 @@ Specifying nil for any of these values uses the default, ie. home."
           (if (and first-logic-point
                    (< (point) first-logic-point))
               (goto-char first-logic-point))))))
+
+(defun sunrise-avfs (root)
+  "Activates AVFS support and sets the root of the virtual filesystem."
+  (interactive "DAVFS root directory: ")
+  (setq root (expand-file-name root))
+  (let ((tail (string-match "/$" root)))
+    (if tail
+        (setq root (substring root 0 tail))))
+  (setq sr-avfs-root root))
 
 ;;; ============================================================================
 ;;; Window management functions:
@@ -671,15 +673,24 @@ Specifying nil for any of these values uses the default, ie. home."
 ;;; ============================================================================
 ;;; File system navigation functions:
 
-(defun sr-advertised-find-file()
-  "Call dired-advertised-find-file but also perform additional actions"
+(defun sr-advertised-find-file (&optional filename)
+  "Calls dired-advertised-find-file but also perform additional actions"
   (interactive)
   (save-excursion
-    (let ((filename (expand-file-name (dired-get-filename nil t))))
-      (if filename
-          (if (file-directory-p filename)
-              (sr-goto-dir filename)
-            (sr-find-file filename))))))
+    (if (null filename)
+        (setq filename (expand-file-name (dired-get-filename nil t))))
+    (if filename
+        (if (file-directory-p filename)
+            (sr-goto-dir filename)
+          (sr-find-file filename)))))
+
+(defun sr-advertised-find-file-other ()
+  "Calls sr-advertise-find-file on the other pane."
+  (interactive)
+  (let ((filename (expand-file-name (dired-get-filename nil t))))
+    (sr-change-window)
+    (sr-advertised-find-file filename)
+    (sr-change-window)))
 
 (defun sr-find-file (filename)
   "Determines the proper way of handling a file. If the file is a compressed
@@ -738,12 +749,21 @@ Specifying nil for any of these values uses the default, ie. home."
   (sr-beginning-of-buffer)
   (hl-line-mode 1))
 
-(defun sr-dired-prev-subdir()
+(defun sr-dired-prev-subdir ()
   "Go to the previous subdirectory."
   (interactive)
   (if (not (string= dired-directory "/"))
       (sr-goto-dir (expand-file-name ".."))
     (error "ERROR: Already at root")))
+
+(defun sr-dired-prev-subdir-other ()
+  "Go to the previous subdirectory in the other pane."
+  (interactive)
+  (sr-change-window)
+  (condition-case description
+      (sr-dired-prev-subdir)
+    (error (message (second description))))
+  (sr-change-window))
 
 (defun sr-history-push (element)
   "Pushes a new path into the history ring of the current pane"
@@ -922,8 +942,8 @@ horizontal and vice-versa."
   (sr-highlight))
 
 (defun sr-quick-view ()
-  "Opens the selected file on the other window without selecting it. Kills
-   any other buffer opened previously the same way."
+  "Opens the selected file on the viewer window without selecting it. Kills any
+   other buffer opened previously the same way."
   (interactive)
   (let ((home (selected-window)))
     (if (buffer-live-p other-window-scroll-buffer)
@@ -942,7 +962,7 @@ horizontal and vice-versa."
           (overlay nil))
       (while (not (null next))
         (beginning-of-line)
-        (setq overlay (make-overlay (point) (- next 1)))
+        (setq overlay (make-overlay (+ 2 (point)) (- next 1)))
         (setq attr-list (cons overlay attr-list))
         (overlay-put overlay 'invisible t)
         (overlay-put overlay 'intangible t)
@@ -1441,6 +1461,11 @@ current directory in the active pane"
   (interactive)
   (sr-ti (sr-dired-prev-subdir)))
 
+(defun sr-ti-change-window ()
+  "Switches focus to the currently active pane."
+  (interactive)
+  (sr-select-window sr-selected-window))
+
 (defun sr-clex-file (pane)
   "Returns the currently selected file in the given pane"
   (save-window-excursion
@@ -1493,17 +1518,19 @@ current directory in the active pane"
 ;; Sunrise TI & CLEX key bindings in term-line mode:
 (add-hook 'term-mode-hook
           '(lambda () (progn
-                        (define-key term-mode-map [M-up] 'sr-ti-previous-line)
-                        (define-key term-mode-map [A-up] 'sr-ti-previous-line)
-                        (define-key term-mode-map [M-down] 'sr-ti-next-line)
-                        (define-key term-mode-map [A-down] 'sr-ti-next-line)
-                        (define-key term-mode-map "\M-\C-m" 'sr-ti-select)
-                        (define-key term-mode-map "\C-\M-j" 'sr-ti-select)
-                        (define-key term-mode-map "\M-m" 'sr-ti-mark)
-                        (define-key term-mode-map [M-backspace] 'sr-ti-unmark)
-                        (define-key term-mode-map "\M-\d" 'sr-ti-unmark)
-                        (define-key term-mode-map "\M-U" 'sr-ti-prev-subdir)
-                        (define-key term-mode-map "%" 'sr-clex-activate)
+                        (define-key term-mode-map [M-up]          'sr-ti-previous-line)
+                        (define-key term-mode-map [A-up]          'sr-ti-previous-line)
+                        (define-key term-mode-map [M-down]        'sr-ti-next-line)
+                        (define-key term-mode-map [A-down]        'sr-ti-next-line)
+                        (define-key term-mode-map "\M-\C-m"       'sr-ti-select)
+                        (define-key term-mode-map "\C-\M-j"       'sr-ti-select)
+                        (define-key term-mode-map "\M-m"          'sr-ti-mark)
+                        (define-key term-mode-map [M-backspace]   'sr-ti-unmark)
+                        (define-key term-mode-map "\M-\d"         'sr-ti-unmark)
+                        (define-key term-mode-map "\M-U"          'sr-ti-prev-subdir)
+                        (define-key term-mode-map [(control tab)] 'sr-ti-change-window)
+                        (define-key term-mode-map "\C-c\t"        'sr-ti-change-window)
+                        (define-key term-mode-map "%"             'sr-clex-activate)
 )))
 
 ;;; ============================================================================
@@ -1527,10 +1554,12 @@ current directory in the active pane"
 
 (rainbow sr-directory-face         (:foreground "blue1" :bold t)         "\\(^..d.*/$\\)")
 (rainbow sr-symlink-face           (:foreground "DeepSkyBlue" :italic t) "\\(^..l.*[^/]$\\)")
-(rainbow sr-symlink-directory-face (:foreground "DodgerBlue" :italic t)  "\\(^..l.*[^/]$\\)")
-(rainbow sr-html-face              (:foreground "DarkOliveGreen4")       "\\(^..[^d].*\\.html?$\\)")
-(rainbow sr-xml-face               (:foreground "DarkGreen")             "\\(^..[^d].*\\.xml$\\)")
-(rainbow sr-compressed-face        (:foreground "magenta")               "\\(^..[^d].*\\.\\(zip\\|bz2\\|t?gz\\|z\\|Z\\)$\\)")
+(rainbow sr-symlink-directory-face (:foreground "blue1" :italic t)       "\\(^..l.*/$\\)")
+(rainbow sr-html-face              (:foreground "DarkOliveGreen")        "\\(^..[^d].*\\.x?html?$\\)")
+(rainbow sr-xml-face               (:foreground "DarkGreen")             "\\(^..[^d].*\\.\\(xml\\|xsd\\|xslt?\\|wsdl\\)$\\)")
+(rainbow sr-log-face               (:foreground "brown")                 "\\(^..[^d].*\\.log$\\)")
+(rainbow sr-compressed-face        (:foreground "magenta")               "\\(^..[^d].*\\.\\(zip\\|bz2\\|t?gz\\|[zZ]\\|[jwer]?ar\\)$\\)")
+(rainbow sr-encrypted-face         (:foreground "DarkOrange1")           "\\(^..[^d].*\\.\\(gpg\\|pgp\\)$\\)")
 (rainbow sr-marked-dir-face        (:foreground "red" :bold t)           "\\(^[*D].d.*$\\)")
 (rainbow sr-marked-file-face       (:foreground "red")                   "\\(^[*D].-.*$\\)")
 
