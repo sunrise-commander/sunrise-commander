@@ -1598,7 +1598,7 @@ current directory in the active pane"
 (rainbow sr-compressed-face        (:foreground "magenta")               "\\(^..[^d].*\\.\\(zip\\|bz2\\|t?gz\\|[zZ]\\|[jwer]?ar\\)$\\)")
 (rainbow sr-encrypted-face         (:foreground "DarkOrange1")           "\\(^..[^d].*\\.\\(gpg\\|pgp\\)$\\)")
 (rainbow sr-marked-dir-face        (:foreground "red" :bold t)           "\\(^[*D].d.*$\\)")
-(rainbow sr-marked-file-face       (:foreground "red")                   "\\(^[*D].-.*$\\)")
+(rainbow sr-marked-file-face       (:foreground "red")                   "\\(^[*D].[^d].*$\\)")
 
 
 
