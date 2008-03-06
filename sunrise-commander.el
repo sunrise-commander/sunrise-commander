@@ -350,6 +350,7 @@ automatically (but only if at least one of the panes is visible):
   (sr-highlight)
   (hl-line-mode 1)
   (define-key sr-virtual-mode-map "g" nil)
+  (define-key sr-virtual-mode-map "\C-x\C-q" 'toggle-read-only)
   (define-key sr-virtual-mode-map "\C-c\C-c"
     (lambda()
       (interactive)
@@ -1061,6 +1062,12 @@ horizontal and vice-versa."
   (message (concat "Sunrise: sorting entries by " label)))
 
 (defun sr-sort-virtual (option)
+  "Manages sorting of buffers in Sunrise VIRTUAL mode. Since we cannot rely any
+   more on all files in the buffer existing somewhere in the filesystem, we use
+   the contents of the buffer itself for sorting its records, which must not
+   only contain all the necessary data, but also must be in a format that can be
+   easily sorted. See the variable sr-virtual-listing-switches for the exact
+   switches for ls that should be used."
   (save-excursion
     (goto-char (point-min))
     (re-search-forward directory-listing-before-filename-regexp nil t)
@@ -1074,6 +1081,7 @@ horizontal and vice-versa."
       (toggle-read-only))))
 
 (defun sr-sort-virtual-by-time ()
+  "Uses sort-columns to sort by date the records in the current VIRTUAL buffer."
   (let ((space (re-search-forward "[0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}" nil t))
         col)
     (if space
@@ -1103,9 +1111,19 @@ horizontal and vice-versa."
         (sr-force-passive-highlight))))
 (ad-activate 'wdired-finish-edit)
 
+(defun sr-target-virtualp ()
+  "Returns t if the passive pane is in VIRTUAL mode, otherwise returns nil"
+  (let (mode)
+    (sr-change-window)
+    (setq mode major-mode)
+    (sr-change-window)
+    (equalp mode 'sr-virtual-mode)))
+
 (defun sr-do-copy ()
   "Copies recursively selected files and directories from one pane to the other"
   (interactive)
+  (if (sr-target-virtualp)
+      (error "Copying files in VIRTUAL mode is not yet implemented. Sorry"))
   (save-excursion
     (let* (
            (selected-files (dired-get-marked-files nil))
@@ -1132,6 +1150,8 @@ horizontal and vice-versa."
 (defun sr-do-rename ()
   "Moves recursively selected files and directories from one pane to the other"
   (interactive)
+  (if (sr-target-virtualp)
+      (error "Renaming files in VIRTUAL mode is not yet implemented. Sorry"))
   (save-excursion
     (let* (
            (selected-files (dired-get-marked-files nil))
