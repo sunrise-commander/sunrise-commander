@@ -1461,12 +1461,12 @@ part of file-path can be accessed by the function parent-directory."
   (insert "Recent Files: \n")
   (let ((dired-actual-switches dired-listing-switches))
     (condition-case nil
-        (dired-insert-directory "/" dired-listing-switches recentf-list)
+        (dired-insert-directory "/" sr-virtual-listing-switches recentf-list)
       (error
          (recentf-cleanup)
          (sr-switch-to-clean-buffer "*Recent Files*")
          (insert "Recent Files: \n")
-         (dired-insert-directory "/" dired-listing-switches recentf-list)))
+         (dired-insert-directory "/" sr-virtual-listing-switches recentf-list)))
     (sr-virtual-mode)
     (sr-keep-buffer)))
 
