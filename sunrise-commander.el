@@ -152,8 +152,8 @@
 (recentf-mode 1)
 
 (setq dired-recursive-deletes 'top
-      dired-listing-switches "-alp"
-      ;; dired-listing-switches "--time-style=locale --group-directories-first -alDphgG"
+      ;; dired-listing-switches "-alp"
+      dired-listing-switches "--time-style=locale --group-directories-first -alDphgG"
       recentf-max-saved-items 100
       recentf-max-menu-items 20)
 
@@ -168,6 +168,12 @@
           (const horizontal)
           (const vertical)
           (const top)))
+
+(defcustom sr-virtual-listing-switches  "--time-style=long-iso --group-directories-first -alpgG"
+  "Listing switches for building buffers in Sunrise VIRTUAL mode based on find
+   and locate results. Sorting support in sr-virtual buffers depend on the
+   correct format of their entries."
+  :group 'sunrise)
 
 (defvar sr-restore-buffer nil
   "Buffer to restore when sr is quit.")
@@ -1033,16 +1039,6 @@ horizontal and vice-versa."
       (sr-hide-attributes)
     (sr-unhide-attributes)))
 
-(defun sr-sort-order (label option)
-  "Changes the sorting order of the active pane by appending additional options
-   to dired-listing-switches"
-  (if (equalp major-mode 'sr-virtual-mode)
-      (error "Sorting in Sunrise VIRTUAL mode is not yet implemented. Sorry"))
-  (put sr-selected-window 'sorting-order label)
-  (dired-sort-other (concat dired-listing-switches option) t)
-  (sr-revert-buffer)
-  (message (concat "Sunrise: sorting entries by " label)))
-
 (defun sr-interactive-sort (order)
   "Prompts for a new sorting order for the active pane and applies it."
   (interactive "cSort by (n)ame, (s)ize, (t)ime or e(x)tension? ")
@@ -1052,6 +1048,40 @@ horizontal and vice-versa."
         ((eq order ?S) (sr-sort-order "SIZE"      "S"))
         ((eq order ?X) (sr-sort-order "EXTENSION" "X"))
         (t             (sr-sort-order "NAME"      "" ))))
+
+(defun sr-sort-order (label option)
+  "Changes the sorting order of the active pane by appending additional options
+   to dired-listing-switches"
+  (if (equalp major-mode 'sr-virtual-mode)
+      (sr-sort-virtual option)
+    (progn
+      (put sr-selected-window 'sorting-order label)
+      (dired-sort-other (concat dired-listing-switches option) t)
+      (sr-revert-buffer)))
+  (message (concat "Sunrise: sorting entries by " label)))
+
+(defun sr-sort-virtual (option)
+  (save-excursion
+    (goto-char (point-min))
+    (re-search-forward directory-listing-before-filename-regexp nil t)
+    (beginning-of-line)
+    (let ((opt (string-to-char option)))
+      (toggle-read-only)
+      (cond ((eq opt ?X) (sort-regexp-fields nil "^.*$" "[/.][^/.]+$" (point) (point-max)))
+            ((eq opt ?t) (sr-sort-virtual-by-time))
+            ((eq opt ?S) (sort-numeric-fields 3 (point) (point-max)))
+            (t  (sort-regexp-fields nil "^.*$" "/[^/]*$" (point) (point-max))))
+      (toggle-read-only))))
+
+(defun sr-sort-virtual-by-time ()
+  (let ((space (re-search-forward "[0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}" nil t))
+        col)
+    (if space
+        (progn
+          (setq col (current-column))
+          (sr-end-of-buffer)
+          (move-to-column col)
+          (sort-columns nil (- space 11) (+ 6 (point)))))))
 
 ;;; ============================================================================
 ;;; File manipulation functions:
@@ -1392,7 +1422,7 @@ part of file-path can be accessed by the function parent-directory."
 
 (defun sr-find-apply (fun pattern)
   "Helper function for functions sr-find, sr-find-name and sr-find-grep."
-  (let ((find-ls-option (cons (concat "-exec ls -d " dired-listing-switches " \\{\\} \\;") "ls -ld")))
+  (let ((find-ls-option (cons (concat "-exec ls -d " sr-virtual-listing-switches " \\{\\} \\;") "ls -ld")))
     (apply fun (list dired-directory pattern)))
   (sr-virtual-mode)
   (sr-keep-buffer))
@@ -1418,7 +1448,7 @@ part of file-path can be accessed by the function parent-directory."
   (interactive)
   (switch-to-buffer "*Locate*")
   (let ((locate-prompt-for-command t)
-        (locate-make-command-line (lambda (arg) (list "locate" arg "| xargs ls -d" dired-listing-switches))))
+        (locate-make-command-line (lambda (arg) (list "locate" arg "| xargs ls -d" sr-virtual-listing-switches))))
     (call-interactively 'locate))
   (sr-virtual-mode)
   (sr-keep-buffer))
