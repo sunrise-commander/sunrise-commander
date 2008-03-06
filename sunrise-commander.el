@@ -152,8 +152,8 @@
 (recentf-mode 1)
 
 (setq dired-recursive-deletes 'top
-      ;; dired-listing-switches "-alp"
-      dired-listing-switches "--time-style=locale --group-directories-first -alphgG"
+      dired-listing-switches "-alp"
+      ;; dired-listing-switches "--time-style=locale --group-directories-first -alDphgG"
       recentf-max-saved-items 100
       recentf-max-menu-items 20)
 
@@ -343,7 +343,11 @@ automatically (but only if at least one of the panes is visible):
   (set-keymap-parent sr-virtual-mode-map sr-mode-map)
   (sr-highlight)
   (hl-line-mode 1)
-  (define-key sr-virtual-mode-map "g" nil))
+  (define-key sr-virtual-mode-map "g" nil)
+  (define-key sr-virtual-mode-map "\C-c\C-c"
+    (lambda()
+      (interactive)
+      (sr-goto-dir dired-directory))) )
 
 (defmacro sr-within (dir form)
   "Puts the given form in Sunrise context"
@@ -358,7 +362,8 @@ automatically (but only if at least one of the panes is visible):
 
 (defun sr-dired-mode ()
   "Sets Sunrise mode in every Dired buffer opened in Sunrise (called in hook)"
-  (if (string= sr-dired-directory dired-directory)
+  (if (string= (expand-file-name sr-dired-directory)
+               (expand-file-name dired-directory))
       (sr-mode)
     (message (concat "Sunrise: " sr-dired-directory " != " dired-directory))))
 (add-hook 'dired-before-readin-hook 'sr-dired-mode)
@@ -714,9 +719,11 @@ Specifying nil for any of these values uses the default, ie. home."
     (if (null filename)
         (setq filename (expand-file-name (dired-get-filename nil t))))
     (if filename
-        (if (file-directory-p filename)
-            (sr-goto-dir filename)
-          (sr-find-file filename)))))
+        (if (string= filename (expand-file-name "../"))
+            (sr-dired-prev-subdir)
+          (if (file-directory-p filename)
+              (sr-goto-dir filename)
+            (sr-find-file filename))))))
 
 (defun sr-advertised-find-file-other ()
   "Calls sr-advertise-find-file on the other pane."
@@ -745,6 +752,7 @@ Specifying nil for any of these values uses the default, ie. home."
             (progn
               (find-file filename)
               (sr-history-push filename)
+              (sr-keep-buffer)
               (setq filename nil)))))
 
   (if (null filename) ;;the file is a virtual directory:
@@ -771,10 +779,10 @@ Specifying nil for any of these values uses the default, ie. home."
 
   (hl-line-mode 0)
   (sr-within dir
-              (if (or (not dired-directory)
-                      (string= sr-other-directory dired-directory))
-                  (dired dir)
-                (find-alternate-file dir)))
+             (if (or (not dired-directory)
+                     (string= sr-other-directory dired-directory))
+                 (dired dir)
+               (find-alternate-file dir)))
   (if (eq sr-selected-window 'left)
       (setq sr-left-buffer (window-buffer))
     (setq sr-right-buffer (window-buffer)))
@@ -787,7 +795,12 @@ Specifying nil for any of these values uses the default, ie. home."
   "Go to the previous subdirectory."
   (interactive)
   (if (not (string= dired-directory "/"))
-      (sr-goto-dir (expand-file-name ".."))
+      (let ((here (sr-directory-name-proper dired-directory)))
+        (setq here (replace-regexp-in-string "#/$" "" here))
+        (sr-goto-dir (expand-file-name "../"))
+        (search-forward (concat " " here) nil t)
+        (beginning-of-line)
+        (re-search-forward directory-listing-before-filename-regexp nil t))
     (error "ERROR: Already at root")))
 
 (defun sr-dired-prev-subdir-other ()
@@ -1023,8 +1036,10 @@ horizontal and vice-versa."
 (defun sr-sort-order (label option)
   "Changes the sorting order of the active pane by appending additional options
    to dired-listing-switches"
+  (if (equalp major-mode 'sr-virtual-mode)
+      (error "Sorting in Sunrise VIRTUAL mode is not yet implemented. Sorry"))
   (put sr-selected-window 'sorting-order label)
-  (dired-sort-other (concat dired-listing-switches option))
+  (dired-sort-other (concat dired-listing-switches option) t)
   (sr-revert-buffer)
   (message (concat "Sunrise: sorting entries by " label)))
 
@@ -1541,6 +1556,7 @@ current directory in the active pane"
                 (t chars)))
     ad-do-it)
   (term-line-mode))
+(ad-deactivate 'term-send-raw-string)
 
 (defun sr-clex-activate ()
   "Activates the Command Line EXpansion feature in all active terminals."
