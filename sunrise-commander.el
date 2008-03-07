@@ -232,6 +232,10 @@
   "The root of the AVFS virtual filesystem to use for navigating compressed
    archives. Set to a non-nil value to activate AVFS support.")
 
+(defvar sr-avfs-handlers-alist '(("\\.[jwesh]ar$" . "#uzip/")
+                                 ("."             . "#/"))
+  "List of AVFS handlers to manage specific file extensions.")
+
 (defface sr-window-selected-face '((t (:background "#ace6ac" :foreground "yellow" :height 140)))
   "Face used to show a selected window"
   :group 'sunrise)
@@ -292,6 +296,7 @@
         C-c C-g ....... execute find-grep-dired in Sunrise VIRTUAL mode
         C-c C-l ....... execute locate in Sunrise VIRTUAL mode
         C-c C-r ....... browse list of recently visited files (requires recentf)
+        ; ............. follow file (go to same directory as current file)
 
         C-> ........... save named checkpoint (a.k.a. \"bookmark panes\")
         C-c > ......... save named checkpoint (a.k.a. \"bookmark panes\")
@@ -453,6 +458,7 @@ automatically (but only if at least one of the panes is visible):
 (define-key sr-mode-map "\C-c\C-g"            'sr-find-grep)
 (define-key sr-mode-map "\C-c\C-l"            'sr-locate)
 (define-key sr-mode-map "\C-c\C-r"            'sr-recent-files)
+(define-key sr-mode-map ";"                   'sr-follow-file)
 
 (define-key sr-mode-map "q"                   'keyboard-escape-quit)
 
@@ -547,7 +553,7 @@ Specifying nil for any of these values uses the default, ie. home."
           (save-excursion
             (if (re-search-forward "\\.\\./$" nil t)
                 (setq first-logic-point (match-beginning 0))))
-          
+
           ;;if the current point is less than the idea point... first-logic-point....
           (if (and first-logic-point
                    (< (point) first-logic-point))
@@ -758,8 +764,8 @@ Specifying nil for any of these values uses the default, ie. home."
                 (eq 'tar-mode mode)
                 (and (listp mode) (eq 'jka-compr (second mode)))
                 (eq 'avfs-mode mode))
-            (let ((vfile (concat sr-avfs-root filename "#/")))
-              (if (file-directory-p vfile)
+            (let ((vfile (sr-avfs-dir filename)))
+              (if vfile
                   (progn
                     (sr-goto-dir vfile)
                     (setq filename nil)))))
@@ -781,6 +787,13 @@ Specifying nil for any of these values uses the default, ie. home."
           (find-file filename)
         (error (message (second description))))
       (exit-recursive-edit))))
+
+(defun sr-avfs-dir (filename)
+  "Returns the virtual path for accessing the given file through AVFS, or nil if
+   AVFS cannot manage this kind of file."
+  (let* ((handler (assoc-default filename sr-avfs-handlers-alist 'string-match))
+          (vdir (concat sr-avfs-root filename handler)))
+     (if (file-directory-p vdir) vdir nil)))
 
 (defun sr-goto-dir (dir)
   "Changes the current directory in the active pane to the given one"
@@ -811,7 +824,7 @@ Specifying nil for any of these values uses the default, ie. home."
   (interactive)
   (if (not (string= dired-directory "/"))
       (let ((here (sr-directory-name-proper dired-directory)))
-        (setq here (replace-regexp-in-string "#/$" "" here))
+        (setq here (replace-regexp-in-string "#.*/$" "" here))
         (sr-goto-dir (expand-file-name "../"))
         (search-forward (concat " " here) nil t)
         (beginning-of-line)
@@ -826,6 +839,12 @@ Specifying nil for any of these values uses the default, ie. home."
       (sr-dired-prev-subdir)
     (error (message (second description))))
   (sr-change-window))
+
+(defun sr-follow-file ()
+  "Go to the same directory where the selected file is. Very useful inside
+   Sunrise VIRTUAL buffers."
+  (interactive)
+  (sr-goto-dir (file-name-directory (dired-get-filename nil t))))
 
 (defun sr-history-push (element)
   "Pushes a new path into the history ring of the current pane"
