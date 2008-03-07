@@ -175,6 +175,11 @@
    correct format of their entries."
   :group 'sunrise)
 
+(defcustom sr-windows-locked t
+  "Flag that indicates whether the vertical size of the panes should remain
+  constant during Sunrise operation."
+  :group 'sunrise)
+
 (defvar sr-restore-buffer nil
   "Buffer to restore when sr is quit.")
 
@@ -603,18 +608,21 @@ Specifying nil for any of these values uses the default, ie. home."
       (delete-window sr-right-window)
     (sr-force-passive-highlight)))
 
-;; Keeps the size of the Sunrise panes constant:
-(add-hook 'window-size-change-functions
-          (lambda (frame)
-            (if (and sr-running
-                     (not sr-ediff-on)
-                     (window-live-p sr-left-window))
-                (save-selected-window
-                  (select-window sr-left-window)
-                  (let* ((my-style-factor (if (equal sr-window-split-style 'horizontal) 2 1))
-                         (my-pane-height (* my-style-factor (/ (frame-height) 3)))
-                         (my-delta (- my-pane-height (window-height))))
-                    (enlarge-window my-delta))))))
+(defun sr-lock-window (frame)
+  "Resize the left Sunrise pane to have the \"right\" size."
+  (if (and sr-running
+           sr-windows-locked
+           (not sr-ediff-on)
+           (window-live-p sr-left-window))
+      (save-selected-window
+        (select-window sr-left-window)
+        (let* ((my-style-factor (if (equal sr-window-split-style 'horizontal) 2 1))
+               (my-pane-height (* my-style-factor (/ (frame-height) 3)))
+               (my-delta (- my-pane-height (window-height))))
+          (enlarge-window my-delta)))))
+
+;; This keeps the size of the Sunrise panes constant:
+(add-hook 'window-size-change-functions 'sr-lock-window)
 
 (defun sr-select-window(window)
   "Select/highlight the given sr window (right or left)."
@@ -1111,18 +1119,18 @@ horizontal and vice-versa."
         (sr-force-passive-highlight))))
 (ad-activate 'wdired-finish-edit)
 
-(defun sr-target-virtualp ()
+(defun sr-target-virtual-p ()
   "Returns t if the passive pane is in VIRTUAL mode, otherwise returns nil"
-  (let (mode)
-    (sr-change-window)
-    (setq mode major-mode)
-    (sr-change-window)
-    (equalp mode 'sr-virtual-mode)))
+  (save-window-excursion
+    (if (equal sr-selected-window 'left)
+        (switch-to-buffer sr-right-buffer)
+      (switch-to-buffer sr-left-buffer))
+    (equalp major-mode 'sr-virtual-mode)))
 
 (defun sr-do-copy ()
   "Copies recursively selected files and directories from one pane to the other"
   (interactive)
-  (if (sr-target-virtualp)
+  (if (sr-target-virtual-p)
       (error "Copying files in VIRTUAL mode is not yet implemented. Sorry"))
   (save-excursion
     (let* (
@@ -1150,7 +1158,7 @@ horizontal and vice-versa."
 (defun sr-do-rename ()
   "Moves recursively selected files and directories from one pane to the other"
   (interactive)
-  (if (sr-target-virtualp)
+  (if (sr-target-virtual-p)
       (error "Renaming files in VIRTUAL mode is not yet implemented. Sorry"))
   (save-excursion
     (let* (
