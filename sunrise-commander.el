@@ -268,8 +268,8 @@
         R ............. rename marked (or current) files and directories
         r ............. rename (using traditional dired-do-rename)
         D ............. delete marked (or current) files and directories
-        S ............. soft-link current file/directory to passive pane
-        H ............. hard-link current file/directory to passive pane
+        S ............. soft-link selected file/directory to passive pane
+        H ............. hard-link selected file/directory to passive pane
 
         M-a ........... move to beginning of current directory
         M-e ........... move to end of current directory
@@ -296,7 +296,7 @@
         C-c C-g ....... execute find-grep-dired in Sunrise VIRTUAL mode
         C-c C-l ....... execute locate in Sunrise VIRTUAL mode
         C-c C-r ....... browse list of recently visited files (requires recentf)
-        ; ............. follow file (go to same directory as current file)
+        ; ............. follow file (go to same directory as selected file)
 
         C-> ........... save named checkpoint (a.k.a. \"bookmark panes\")
         C-c > ......... save named checkpoint (a.k.a. \"bookmark panes\")
@@ -1099,24 +1099,15 @@ horizontal and vice-versa."
     (goto-char (point-min))
     (re-search-forward directory-listing-before-filename-regexp nil t)
     (beginning-of-line)
-    (let ((opt (string-to-char option)))
+    (let ((opt (string-to-char option))
+          (beg (point))
+          (end (point-max)))
       (toggle-read-only)
-      (cond ((eq opt ?X) (sort-regexp-fields nil "^.*$" "[/.][^/.]+$" (point) (point-max)))
-            ((eq opt ?t) (sr-sort-virtual-by-time))
-            ((eq opt ?S) (sort-numeric-fields 3 (point) (point-max)))
-            (t  (sort-regexp-fields nil "^.*$" "/[^/]*$" (point) (point-max))))
+      (cond ((eq opt ?X) (sort-regexp-fields nil "^.*$" "[/.][^/.]+$" beg end))
+            ((eq opt ?t) (sort-regexp-fields t "^.*$" "[0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}" beg end))
+            ((eq opt ?S) (sort-numeric-fields 3 beg end) (reverse-region beg end))
+            (t  (sort-regexp-fields nil "^.*$" "/[^/]*$" beg end)))
       (toggle-read-only))))
-
-(defun sr-sort-virtual-by-time ()
-  "Uses sort-columns to sort by date the records in the current VIRTUAL buffer."
-  (let ((space (re-search-forward "[0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}" nil t))
-        col)
-    (if space
-        (progn
-          (setq col (current-column))
-          (sr-end-of-buffer)
-          (move-to-column col)
-          (sort-columns nil (- space 11) (+ 6 (point)))))))
 
 ;;; ============================================================================
 ;;; File manipulation functions:
@@ -1505,14 +1496,14 @@ part of file-path can be accessed by the function parent-directory."
    mode."
   (interactive)
   (sr-switch-to-clean-buffer "*Recent Files*")
-  (insert "Recent Files: \n")
+  (insert "Recent Files: \n\n")
   (let ((dired-actual-switches dired-listing-switches))
     (condition-case nil
         (dired-insert-directory "/" sr-virtual-listing-switches recentf-list)
       (error
          (recentf-cleanup)
          (sr-switch-to-clean-buffer "*Recent Files*")
-         (insert "Recent Files: \n")
+         (insert "Recent Files: \n\n")
          (dired-insert-directory "/" sr-virtual-listing-switches recentf-list)))
     (sr-virtual-mode)
     (sr-keep-buffer)))
