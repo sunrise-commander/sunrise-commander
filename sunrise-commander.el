@@ -306,6 +306,7 @@
         C-c .  ........ restore named checkpoint
 
         C-x C-q ....... put pane in Editable Dired mode (commit with C-c C-c)
+        @! ............ fast backup files (but not dirs!), each to [filename].bak
 
         C-c t ......... open terminal in current directory
         q ............. quit Sunrise Commander
@@ -448,7 +449,7 @@ automatically (but only if at least one of the panes is visible):
 (define-key sr-mode-map "S"                   'sr-do-symlink)
 (define-key sr-mode-map "H"                   'sr-do-hardlink)
 (define-key sr-mode-map "\C-x\C-q"            'sr-editable-pane)
-(define-key sr-mode-map "\C-ct"               'sr-term)
+(define-key sr-mode-map "@"                   'sr-fast-backup-files)
 
 (define-key sr-mode-map "="                   'sr-diff)
 (define-key sr-mode-map "\C-c="               'sr-ediff)
@@ -461,7 +462,9 @@ automatically (but only if at least one of the panes is visible):
 (define-key sr-mode-map "\C-c\C-r"            'sr-recent-files)
 (define-key sr-mode-map ";"                   'sr-follow-file)
 
+(define-key sr-mode-map "\C-ct"               'sr-term)
 (define-key sr-mode-map "q"                   'keyboard-escape-quit)
+
 
 (if window-system
     (progn
@@ -1211,6 +1214,13 @@ horizontal and vice-versa."
   (if (sr-virtual-target)
       (error "Cannot hardlink files to a VIRTUAL buffer, try (C)opying instead.")
     (dired-do-hardlink)))
+
+(defun sr-fast-backup-files ()
+  "Makes  new  copies of all marked files (but not directories!) inside the same
+  directory, each with extension .bak"
+  (interactive)
+  (dired-do-copy-regexp "$" ".bak")
+  (sr-revert-buffer))
 
 (defun sr-copy-files (file-path-list target-dir &optional do-overwrite)
   "Copies all files in file-path-list (list of full paths) to target dir"
