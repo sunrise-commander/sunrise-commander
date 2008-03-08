@@ -288,8 +288,10 @@
         C-c C-s ....... change panes layout (vertical/horizontal/top-only)
 
         C-= ........... smart compare files (ediff)
+        C-c = ......... smart compare files (console compatible)
         = ............. fast smart compare files (plain diff)
         C-M-= ......... compare directories
+        C-x = ......... compare directories (console compatible)
 
         C-c C-f ....... execute find-dired in Sunrise VIRTUAL mode
         C-c C-n ....... execute find-name-dired in Sunrise VIRTUAL mode
@@ -423,12 +425,9 @@ automatically (but only if at least one of the panes is visible):
 (define-key sr-mode-map "\M-U"                'sr-dired-prev-subdir-other)
 (define-key sr-mode-map "\M-y"                'sr-history-prev)
 (define-key sr-mode-map "\M-u"                'sr-history-next)
-(define-key sr-mode-map [(control >)]         'sr-checkpoint-save)
 (define-key sr-mode-map "\C-c>"               'sr-checkpoint-save)
-(define-key sr-mode-map [(control .)]         'sr-checkpoint-restore)
 (define-key sr-mode-map "\C-c."               'sr-checkpoint-restore)
 (define-key sr-mode-map "\t"                  'sr-change-window)
-(define-key sr-mode-map [(control tab)]       'sr-select-viewer-window)
 (define-key sr-mode-map "\C-c\t"              'sr-select-viewer-window)
 (define-key sr-mode-map "\M-a"                'sr-beginning-of-buffer)
 (define-key sr-mode-map "\M-e"                'sr-end-of-buffer)
@@ -438,7 +437,6 @@ automatically (but only if at least one of the panes is visible):
 (define-key sr-mode-map "\C-o"                'sr-omit-mode)
 (define-key sr-mode-map "b"                   'sr-browse)
 (define-key sr-mode-map "g"                   'sr-revert-buffer)
-(define-key sr-mode-map [(control backspace)] 'sr-toggle-attributes)
 (define-key sr-mode-map "\C-c\d"              'sr-toggle-attributes)
 (define-key sr-mode-map "s"                   'sr-interactive-sort)
 
@@ -450,8 +448,8 @@ automatically (but only if at least one of the panes is visible):
 (define-key sr-mode-map "\C-ct"               'sr-term)
 
 (define-key sr-mode-map "="                   'sr-diff)
-(define-key sr-mode-map [(control ?\=)]       'sr-ediff)
-(define-key sr-mode-map [(control meta ?\=)]  'sr-compare-dirs)
+(define-key sr-mode-map "\C-c="               'sr-ediff)
+(define-key sr-mode-map "\C-x="               'sr-compare-dirs)
 
 (define-key sr-mode-map "\C-c\C-f"            'sr-find)
 (define-key sr-mode-map "\C-c\C-n"            'sr-find-name)
@@ -461,6 +459,15 @@ automatically (but only if at least one of the panes is visible):
 (define-key sr-mode-map ";"                   'sr-follow-file)
 
 (define-key sr-mode-map "q"                   'keyboard-escape-quit)
+
+(if window-system
+    (progn
+      (define-key sr-mode-map [(control >)]         'sr-checkpoint-save)
+      (define-key sr-mode-map [(control .)]         'sr-checkpoint-restore)
+      (define-key sr-mode-map [(control tab)]       'sr-select-viewer-window)
+      (define-key sr-mode-map [(control backspace)] 'sr-toggle-attributes)
+      (define-key sr-mode-map [(control ?\=)]       'sr-ediff)
+      (define-key sr-mode-map [(control meta ?\=)]  'sr-compare-dirs)))
 
 (defun sunrise-mc-keys ()
   "Binds the function keys F2 to F10 the traditional MC way"
@@ -675,16 +682,19 @@ Specifying nil for any of these values uses the default, ie. home."
                 (setq next (search-forward sr-avfs-root nil t))))
             (goto-char (point-min))))
 
-      ;;determine begining and end
-      (search-forward-regexp "\\S " nil t)
-      (setq begin (1- (point)))
-      (end-of-line)
-      (setq end (1- (point)))
-
-      ;;setup overlay
-      (setq sr-current-window-overlay (make-overlay begin end))
-      (overlay-put sr-current-window-overlay 'face 'sr-window-selected-face)
-      (overlay-put sr-current-window-overlay 'window (selected-window)))))
+      (if window-system
+          (progn
+            ;;determine begining and end
+            (search-forward-regexp "\\S " nil t)
+            (setq begin (1- (point)))
+            (end-of-line)
+            (setq end (1- (point)))
+            
+            ;;setup overlay
+            (setq sr-current-window-overlay (make-overlay begin end))
+            (overlay-put sr-current-window-overlay 'face 'sr-window-selected-face)
+            (overlay-put sr-current-window-overlay 'window (selected-window))))
+)))
 
 (defun sr-force-passive-highlight ()
   (sr-change-window)
