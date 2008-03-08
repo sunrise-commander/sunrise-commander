@@ -401,6 +401,7 @@ automatically (but only if at least one of the panes is visible):
         (setq sr-dired-directory (bookmark-get-filename str))
         ad-do-it
         (setq sr-dired-directory "")
+        (sr-keep-buffer)
         (hl-line-mode)
         (sr-highlight))
     ad-do-it))
@@ -789,10 +790,7 @@ automatically (but only if at least one of the panes is visible):
               (setq filename nil)))))
 
   (if (null filename) ;;the file is a virtual directory:
-      (if (eq sr-selected-window 'left)
-          (setq sr-left-buffer (window-buffer))
-        (setq sr-right-buffer (window-buffer)))
-
+      (sr-keep-buffer)
     (progn ;;the file is a regular file:
       (sr-quit)
       (condition-case description
@@ -823,9 +821,7 @@ automatically (but only if at least one of the panes is visible):
                      (string= sr-other-directory dired-directory))
                  (dired dir)
                (find-alternate-file dir)))
-  (if (eq sr-selected-window 'left)
-      (setq sr-left-buffer (window-buffer))
-    (setq sr-right-buffer (window-buffer)))
+  (sr-keep-buffer)
   (sr-history-push dired-directory)
   (sr-highlight)
   (sr-beginning-of-buffer)
