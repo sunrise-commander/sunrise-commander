@@ -169,10 +169,10 @@
           (const vertical)
           (const top)))
 
-(defcustom sr-virtual-listing-switches  "--time-style=long-iso --group-directories-first -alpgG"
-  "Listing switches for building buffers in Sunrise VIRTUAL mode based on find
-   and locate results. Sorting support in sr-virtual buffers depend on the
-   correct format of their entries."
+(defcustom sr-virtual-listing-switches  "--time-style=long-iso --group-directories-first -aldpgG"
+  "Listing  switches  for building buffers in Sunrise VIRTUAL mode based on find
+  and locate results. Sorting  support  in  sr-virtual  buffers  depend  on  the
+  correct format of their entries."
   :group 'sunrise)
 
 (defcustom sr-windows-locked t
@@ -444,6 +444,8 @@ automatically (but only if at least one of the panes is visible):
 (define-key sr-mode-map "c"                   'dired-do-copy)
 (define-key sr-mode-map "R"                   'sr-do-rename)
 (define-key sr-mode-map "r"                   'dired-do-rename)
+(define-key sr-mode-map "S"                   'sr-do-symlink)
+(define-key sr-mode-map "H"                   'sr-do-hardlink)
 (define-key sr-mode-map "\C-x\C-q"            'sr-editable-pane)
 (define-key sr-mode-map "\C-ct"               'sr-term)
 
@@ -487,9 +489,9 @@ automatically (but only if at least one of the panes is visible):
 ;;; Initialization and finalization functions:
 
 (defun sunrise (&optional left-directory right-directory) 
-  "Starts the Sunrise Commander.  If the param `left-directory' is given the
-left window will display this directory (the same for `right-directory').
-Specifying nil for any of these values uses the default, ie. home."
+  "Starts the Sunrise Commander. If the param `left-directory' is given the left
+  window  will  display  this  directory  (the  same   for   `right-directory').
+  Specifying nil for any of these values uses the default, ie. home."
   (interactive)
   (message "Starting Sunrise Commander...")
   
@@ -765,9 +767,9 @@ Specifying nil for any of these values uses the default, ie. home."
     (sr-change-window)))
 
 (defun sr-find-file (filename)
-  "Determines the proper way of handling a file. If the file is a compressed
-   archive and AVFS has been activated, first tries to display it as a catalogue
-   in the VFS, otherwise just visits the file."
+  "Determines  the  proper  way  of handling a file. If the file is a compressed
+  archive and AVFS has been activated, first tries to display it as a  catalogue
+  in the VFS, otherwise just visits the file."
   (if (not (null sr-avfs-root))
       (let ((mode (assoc-default filename auto-mode-alist 'string-match)))
         (if (or (eq 'archive-mode mode)
@@ -959,16 +961,18 @@ they can be restored later."
   "Go to the first directory/file in dired."
   (interactive)
   (goto-char (point-min))
-  (if (re-search-forward "\\.\\./$" nil t)
-      (progn
-        (goto-char (match-beginning 0))
-        (dired-next-line 1))))
+  (if (re-search-forward directory-listing-before-filename-regexp nil t)
+      (let ((file (dired-get-filename)))
+        (while (string-match "\\./$" file)
+          (dired-next-line 1)
+          (setq file (dired-get-filename))))))
 
 (defun sr-end-of-buffer()
   "Go to the last directory/file in dired."
   (interactive)
   (goto-char (point-max))
-  (dired-next-line -1))
+  (re-search-backward directory-listing-before-filename-regexp)
+  (dired-next-line 0))
 
 (defun sr-split-toggle()
   "If sr is currently configured for vertical splitting... change it to
@@ -1099,12 +1103,12 @@ horizontal and vice-versa."
   (message (concat "Sunrise: sorting entries by " label)))
 
 (defun sr-sort-virtual (option)
-  "Manages sorting of buffers in Sunrise VIRTUAL mode. Since we cannot rely any
-   more on all files in the buffer existing somewhere in the filesystem, we use
-   the contents of the buffer itself for sorting its records, which must not
-   only contain all the necessary data, but also must be in a format that can be
-   easily sorted. See the variable sr-virtual-listing-switches for the exact
-   switches for ls that should be used."
+  "Manages  sorting of buffers in Sunrise VIRTUAL mode. Since we cannot rely any
+  more on all files in the buffer existing somewhere in the filesystem,  we  use
+  the contents of the buffer itself for sorting its records, which must not only
+  contain all the necessary data, but also must be  in  a  format  that  can  be
+  easily  sorted.  See  the  variable  sr-virtual-listing-switches for the exact
+  switches for ls that should be used."
   (save-excursion
     (goto-char (point-min))
     (re-search-forward directory-listing-before-filename-regexp nil t)
@@ -1139,36 +1143,30 @@ horizontal and vice-versa."
         (sr-force-passive-highlight))))
 (ad-activate 'wdired-finish-edit)
 
-(defun sr-target-virtual-p ()
-  "Returns t if the passive pane is in VIRTUAL mode, otherwise returns nil"
-  (save-window-excursion
-    (if (equal sr-selected-window 'left)
-        (switch-to-buffer sr-right-buffer)
-      (switch-to-buffer sr-left-buffer))
-    (equalp major-mode 'sr-virtual-mode)))
-
 (defun sr-do-copy ()
   "Copies recursively selected files and directories from one pane to the other"
   (interactive)
-  (if (sr-target-virtual-p)
-      (error "Copying files in VIRTUAL mode is not yet implemented. Sorry"))
   (save-excursion
     (let* (
            (selected-files (dired-get-marked-files nil))
            (files-count (length selected-files))
            (files-count-str (int-to-string files-count))
-          )
+           (vtarget (sr-virtual-target))
+           (target (or vtarget sr-other-directory))
+           )
       (if (> files-count 0)
           (if (string= dired-directory sr-other-directory)
               (dired-do-copy)
-            (if (y-or-n-p (concat "Copy " files-count-str
-                                  " files to " sr-other-directory "? "))
+            (if (y-or-n-p (concat "Copy " files-count-str " files to " target "? "))
                 (progn
-                  (dired-unmark-all-marks)
-                  (sr-change-window)
-                  (sr-copy-files selected-files dired-directory)
-                  (sr-revert-buffer)
-                  (sr-change-window)
+                  (if vtarget
+                      (sr-copy-virtual)
+                    (progn
+                      (dired-unmark-all-marks)
+                      (sr-change-window)
+                      (sr-copy-files selected-files dired-directory)
+                      (sr-revert-buffer)
+                      (sr-change-window)))
                   (message (concat "Done: "
                                    (int-to-string (length selected-files))
                                    " file(s) dispatched")))))
@@ -1178,8 +1176,8 @@ horizontal and vice-versa."
 (defun sr-do-rename ()
   "Moves recursively selected files and directories from one pane to the other"
   (interactive)
-  (if (sr-target-virtual-p)
-      (error "Renaming files in VIRTUAL mode is not yet implemented. Sorry"))
+  (if (sr-virtual-target)
+      (error "Cannot move files to a VIRTUAL buffer, try (C)opying instead."))
   (save-excursion
     (let* (
            (selected-files (dired-get-marked-files nil))
@@ -1203,6 +1201,20 @@ horizontal and vice-versa."
                                    " file(s) dispatched")))))
         
         (message "Empty selection. Nothing done.")))))
+
+(defun sr-do-symlink ()
+  "Simply refuses to symlink files to VIRTUAL buffers."
+  (interactive)
+  (if (sr-virtual-target)
+      (error "Cannot symlink files to a VIRTUAL buffer, try (C)opying instead.")
+    (dired-do-symlink)))
+
+(defun sr-do-hardlink ()
+  "Simply refuses to hardlink files to VIRTUAL buffers."
+  (interactive)
+  (if (sr-virtual-target)
+      (error "Cannot hardlink files to a VIRTUAL buffer, try (C)opying instead.")
+    (dired-do-hardlink)))
 
 (defun sr-copy-files (file-path-list target-dir &optional do-overwrite)
   "Copies all files in file-path-list (list of full paths) to target dir"
@@ -1294,6 +1306,45 @@ the original one"
   (let ((delete-dir (concat in-dir d)))
     (dired-delete-file delete-dir 'always)))
 
+(defun sr-virtual-target ()
+  "If the passive pane is in VIRTUAL mode returns its name as a string,
+   otherwise returns nil"
+  (save-window-excursion
+    (if (equal sr-selected-window 'left)
+        (switch-to-buffer sr-right-buffer)
+      (switch-to-buffer sr-left-buffer))
+    (if (equalp major-mode 'sr-virtual-mode)
+        (or (buffer-file-name) "Sunrise VIRTUAL buffer")
+      nil)))
+
+(defun sr-copy-virtual ()
+  "Manages  copying  of  files/directories  to  buffers  in  VIRTUAL  mode. Like
+  sorting, this operation depends on  the  variable  sr-virtual-listing-switches
+  set  to the right value. See the documentation of function sr-sort-virtual for
+  more details."
+  (let ((fileset (dired-get-marked-files nil))
+        indentation)
+    (sr-change-window)
+    (sr-end-of-buffer)
+    (beginning-of-line)
+    (re-search-forward "\\S-" nil t)
+    (setq indentation (- (current-column) 1))
+    (dired-next-line 1)
+    (toggle-read-only)
+    (mapcar (lambda (file)
+              (insert-char 32 indentation)
+              (setq file (replace-regexp-in-string "/$" "" file))
+              (insert-directory file sr-virtual-listing-switches)
+              (sr-end-of-buffer)
+              (dired-next-line 1))
+            fileset)
+    (unwind-protect
+        (kill-line)
+      (progn
+        (toggle-read-only)
+        (sr-change-window)
+        (dired-unmark-all-marks)))))
+
 (defun ask-overwrite (file-name)
   "Asks whether to overwrite a given file."
   (y-n-or-a-p (concat "File " file-name " exists. OK to overwrite? ")))
@@ -1320,8 +1371,8 @@ the symbol ALWAYS."
       nil))
 
 (defun sr-list-of-directories (dir)
- "Return a list of directories in DIR. Each entry in the list is a string. The
-list does not include the current directory and the parent directory."
+ "Return  a  list of directories in DIR. Each entry in the list is a string. The
+ list does not include the current directory and the parent directory."
  (let (result)
    (setq result
          (sr-filter (function (lambda (x) (not (or (equal x ".") (equal x "..")))))
@@ -1339,9 +1390,9 @@ list does not include the current directory and the parent directory."
    (directory-files dir)))
 
 (defun sr-filter (p x)
-"Filter takes two arguments: a predicate P and a list X.
-Return the elements of the list X that satisfy the predicate P"
-;;Non-recursive version of sr-filter. Overwrites the previous recursive one.
+  "Filter  takes two arguments: a predicate P and a list X.  Return the elements
+  of the list X that satisfy the predicate P"
+  ;;Non-recursive version of sr-filter. Overwrites the previous recursive one.
   (let ((res-list nil))
     (while x
       (if (apply p (list (car x)))
@@ -1350,29 +1401,29 @@ Return the elements of the list X that satisfy the predicate P"
     (reverse res-list)))
 
 (defun sr-find-last-point (str)
-  "Return the position of the last point in the string str.  Do not allow to
-pass '/' while looking for the point. If no point is found under these
-conditions, return nil."
+  "Return the position of the last point in the string str. Do not allow to pass
+  '/' while looking for the point. If no point is found under these  conditions,
+  return nil."
   (let ((idx (- (length str) 1)))
     (while (and (>= idx 0) (not (eq (aref str idx) ?.)) (not (eq (aref str idx) ?/))) (setq idx (- idx 1)))
     (if (and (>= idx 0) (eq (aref str idx) ?.)) idx nil)))
 
 (defun sr-file-name-proper (filename)
-  "Takes as input a filename, without directory path.
-Return the file name proper. That is, the file name without the file extension.
-If no dot is found, return filename.  Use the native Emacs Lisp function
-file-name-nondirectory to access the the proper file name and the extension of a
-file path.  Use the native Emacs Lisp function file-name-directory to access the
-directory path of a file path."
+  "Takes  as  input  a  filename,  without directory path.  Return the file name
+  proper. That is, the file name without the  file  extension.   If  no  dot  is
+  found,  return  filename.  Use  the  native  Emacs  Lisp  function  file-name-
+  nondirectory to access the the proper file name and the extension  of  a  file
+  path.  Use  the  native  Emacs Lisp function file-name-directory to access the
+  directory path of a file path."
   (let ((point-idx (sr-find-last-point filename)))
     (cond ((eq point-idx nil) filename)
           ((eq point-idx   0) filename)
           (t (substring filename 0 point-idx)))))
 
 (defun sr-directory-name-proper (file-path)
-  "Takes as input an absolute or relative, forward slash terminated path to a directory.
-Return the proper name of the directory, without initial path.  The remaining
-part of file-path can be accessed by the function parent-directory."
+  "Takes  as  input  an absolute or relative, forward slash terminated path to a
+  directory.  Return the proper name of the directory, without initial path. The
+  remaining part of file-path can be accessed by the function parent-directory."
   (let (
         (file-path-1 (substring file-path 0 (- (length file-path) 1)))
         (lastchar (substring file-path (- (length file-path) 1)))
@@ -1540,8 +1591,8 @@ part of file-path can be accessed by the function parent-directory."
 ;;; TI (Terminal Integration) and CLEX (Command Line EXpansion) functions:
 
 (defun sr-term ()
-  "Runs terminal in a new buffer (or switches to an existing one) and cd's to the
-current directory in the active pane"
+  "Runs  terminal  in  a new buffer (or switches to an existing one) and cd's to
+  the current directory in the active pane"
   (interactive)
   (let ((dir dired-directory))
     (sr-select-viewer-window)
@@ -1668,9 +1719,9 @@ current directory in the active pane"
 ;;; Miscellaneous functions:
 
 (defun sr-keep-buffer ()
-  "Keeps the currently selected buffer as one of the panes, even if it does not
-   belong to the pane's history ring. Useful for maintaining the contents of a
-   pane during layout switching."
+  "Keeps  the currently selected buffer as one of the panes, even if it does not
+  belong to the pane's history ring. Useful for maintaining the  contents  of  a
+  pane during layout switching."
   (if (equal sr-selected-window 'left)
       (setq sr-left-buffer (current-buffer))
     (setq sr-right-buffer (current-buffer))))
