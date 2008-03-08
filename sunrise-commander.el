@@ -1671,7 +1671,8 @@ current directory in the active pane"
 (defmacro rainbow (symbol spec regexp)
   (list 'progn
         (list 'defface symbol (list 'quote (list (list t spec))) "rainbow face" :group ''sunrise)
-        (list 'font-lock-add-keywords (list 'quote 'sr-mode) (list 'quote (list (list regexp 1 (list 'quote symbol) ))))))
+        (list 'font-lock-add-keywords (list 'quote 'sr-mode) (list 'quote (list (list regexp 1 (list 'quote symbol) ))))
+        (list 'font-lock-add-keywords (list 'quote 'sr-virtual-mode) (list 'quote (list (list regexp 1 (list 'quote symbol) ))))))
 
 (rainbow sr-directory-face         (:foreground "blue1" :bold t)         "\\(^..d.*/$\\)")
 (rainbow sr-symlink-face           (:foreground "DeepSkyBlue" :italic t) "\\(^..l.*[^/]$\\)")
