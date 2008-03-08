@@ -1681,6 +1681,7 @@ current directory in the active pane"
 (rainbow sr-xml-face               (:foreground "DarkGreen")             "\\(^..[^d].*\\.\\(xml\\|xsd\\|xslt?\\|wsdl\\)$\\)")
 (rainbow sr-log-face               (:foreground "brown")                 "\\(^..[^d].*\\.log$\\)")
 (rainbow sr-compressed-face        (:foreground "magenta")               "\\(^..[^d].*\\.\\(zip\\|bz2\\|t?gz\\|[zZ]\\|[jwer]?ar\\)$\\)")
+(rainbow sr-packaged-face          (:foreground "DarkMagenta")           "\\(^..[^d].*\\.\\(deb\\|rpm\\)$\\)")
 (rainbow sr-encrypted-face         (:foreground "DarkOrange1")           "\\(^..[^d].*\\.\\(gpg\\|pgp\\)$\\)")
 (rainbow sr-marked-dir-face        (:foreground "red" :bold t)           "\\(^[*D].d.*$\\)")
 (rainbow sr-marked-file-face       (:foreground "red")                   "\\(^[*D].[^d].*$\\)")
