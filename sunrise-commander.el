@@ -1104,7 +1104,7 @@ horizontal and vice-versa."
           (end (point-max)))
       (toggle-read-only)
       (cond ((eq opt ?X) (sort-regexp-fields nil "^.*$" "[/.][^/.]+$" beg end))
-            ((eq opt ?t) (sort-regexp-fields t "^.*$" "[0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}" beg end))
+            ((eq opt ?t) (sort-regexp-fields t "^.*$" "[0-9]\\{4\\}\\(-[0-9]\\{2\\}\\)\\{2\\} [0-2][0-9]:[0-5][0-9]" beg end))
             ((eq opt ?S) (sort-numeric-fields 3 beg end) (reverse-region beg end))
             (t  (sort-regexp-fields nil "^.*$" "/[^/]*$" beg end)))
       (toggle-read-only))))
