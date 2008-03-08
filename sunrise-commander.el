@@ -397,14 +397,14 @@ automatically (but only if at least one of the panes is visible):
 ;; Handles panes opened from bookmarks in Sunrise:
 (defadvice bookmark-jump
   (around sr-advice-bookmark-jump (str))
-  (if (equalp major-mode 'sr-mode)
+  (if (memq major-mode '(sr-mode sr-virtual-mode))
       (progn
         (setq sr-dired-directory (bookmark-get-filename str))
         ad-do-it
         (setq sr-dired-directory "")
-        (sr-keep-buffer)
         (hl-line-mode)
-        (sr-highlight))
+        (sr-highlight)
+        (sr-keep-buffer))
     ad-do-it))
 (list 'ad-activate (quote 'bookmark-jump))
 
