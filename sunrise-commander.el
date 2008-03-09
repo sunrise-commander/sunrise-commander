@@ -492,7 +492,7 @@ automatically (but only if at least one of the panes is visible):
 ;;; ============================================================================
 ;;; Initialization and finalization functions:
 
-(defun sunrise (&optional left-directory right-directory) 
+(defun sunrise (&optional left-directory right-directory filename)
   "Starts the Sunrise Commander. If the param `left-directory' is given the left
   window  will  display  this  directory  (the  same   for   `right-directory').
   Specifying nil for any of these values uses the default, ie. home."
@@ -513,6 +513,8 @@ automatically (but only if at least one of the panes is visible):
           (setq sr-restore-buffer (current-buffer))
           (setq sr-prior-window-configuration (current-window-configuration))
           (sr-setup-windows)
+          (if filename
+              (sr-focus-filename (replace-regexp-in-string ".*/" "" filename)))
           (message sr-start-message)
           (recursive-edit))
         (sr-quit))
@@ -524,10 +526,17 @@ automatically (but only if at least one of the panes is visible):
 (defun sunrise-cd ()
   "Run Sunrise but give it the current directory to use."
   (interactive)
-  (let((left-directory default-directory))
-    (if (buffer-live-p sr-left-buffer)
-        (kill-buffer sr-left-buffer))
-    (sunrise left-directory)))
+  (let((target-directory default-directory)
+       (target-file (buffer-file-name)))
+    (if (equal sr-selected-window 'left)
+        (progn
+          (if (buffer-live-p sr-left-buffer)
+              (kill-buffer sr-left-buffer))
+          (sunrise target-directory sr-right-directory target-file))
+      (progn
+        (if (buffer-live-p sr-right-buffer)
+            (kill-buffer sr-right-buffer))
+        (sunrise sr-left-directory target-directory target-file)))))
 
 (defun sr-dired (directory)
   "Visits the given directory (or file) in sr-mode"
@@ -590,7 +599,7 @@ automatically (but only if at least one of the panes is visible):
 
 (defmacro sr-setup-pane (name)
   "Helper macro for function sr-setup-windows."
-  (list 'progn
+  (list 'let (list (list 'sr-selected-window (list 'intern name)))
         (list 'setq (sr-symbol name 'window) (list 'selected-window))
         (list 'if (list 'buffer-live-p (sr-symbol name 'buffer))
               (list 'progn
@@ -605,7 +614,7 @@ automatically (but only if at least one of the panes is visible):
   (sr-select-viewer-window)
   (delete-other-windows)
 
-  ;;now create the bottom window
+  ;;now create the viewer window
   (split-window (selected-window) (* 2 (/ (window-height) 3)))
 
   (cond 
@@ -617,8 +626,7 @@ automatically (but only if at least one of the panes is visible):
   ;;setup sunrise on both panes
   (sr-setup-pane "left")
   (other-window 1)
-  (let ((sr-selected-window 'right))
-    (sr-setup-pane "right"))
+  (sr-setup-pane "right")
 
   ;;select the correct window
   (sr-select-window sr-selected-window)
@@ -837,9 +845,7 @@ automatically (but only if at least one of the panes is visible):
       (let ((here (sr-directory-name-proper dired-directory)))
         (setq here (replace-regexp-in-string "#.*/$" "" here))
         (sr-goto-dir (expand-file-name "../"))
-        (search-forward (concat " " here) nil t)
-        (beginning-of-line)
-        (re-search-forward directory-listing-before-filename-regexp nil t))
+        (sr-focus-filename here))
     (error "ERROR: Already at root")))
 
 (defun sr-dired-prev-subdir-other ()
@@ -972,6 +978,12 @@ they can be restored later."
   (goto-char (point-max))
   (re-search-backward directory-listing-before-filename-regexp)
   (dired-next-line 0))
+
+(defun sr-focus-filename (filename)
+  "Tries to select the given file name in the current buffer."
+  (search-forward (concat " " filename) nil t)
+  (beginning-of-line)
+  (re-search-forward directory-listing-before-filename-regexp nil t))
 
 (defun sr-split-toggle()
   "If sr is currently configured for vertical splitting... change it to
