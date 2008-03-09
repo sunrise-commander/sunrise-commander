@@ -137,8 +137,9 @@
 ;; 6) Evaluate all the new lines, or reload your .emacs file, or restart emacs.
 
 ;; 7) Type M-x sunrise to invoke the Sunrise Commander (or much better: bind the
-;; function to your favorite key combination). Type C-h m  for   information  on
-;; available key bindings.
+;; function to your favorite key combination). The  command  sunrise-cd  invokes
+;; Sunrise  and  automatically  selects  the  current file wherever it is in the
+;; filesystem. Type h at any moment for information on available key bindings.
 
 ;; 8) Enjoy :)
 
@@ -464,7 +465,6 @@ automatically (but only if at least one of the panes is visible):
 
 (define-key sr-mode-map "\C-ct"               'sr-term)
 (define-key sr-mode-map "q"                   'keyboard-escape-quit)
-
 
 (if window-system
     (progn
