@@ -310,7 +310,8 @@
         @! ............ fast backup files (but not dirs!), each to [filename].bak
 
         C-c t ......... open terminal in current directory
-        q ............. quit Sunrise Commander
+        q ............. quit Sunrise Commander, restore previous window setup
+        M-q ........... quit Sunrise Commander, don't restore previous windows
 
 Additionally, if you activate the mc-compatible keybindings (by invoking the
 sunrise-mc-keys function) you'll get the following ones:
@@ -465,6 +466,7 @@ automatically (but only if at least one of the panes is visible):
 
 (define-key sr-mode-map "\C-ct"               'sr-term)
 (define-key sr-mode-map "q"                   'keyboard-escape-quit)
+(define-key sr-mode-map "\M-q"                (lambda () (interactive) (sr-quit t)))
 
 (if window-system
     (progn
@@ -526,17 +528,22 @@ automatically (but only if at least one of the panes is visible):
 (defun sunrise-cd ()
   "Run Sunrise but give it the current directory to use."
   (interactive)
-  (let((target-directory default-directory)
-       (target-file (buffer-file-name)))
-    (if (equal sr-selected-window 'left)
-        (progn
-          (if (buffer-live-p sr-left-buffer)
-              (kill-buffer sr-left-buffer))
-          (sunrise target-directory sr-right-directory target-file))
-      (progn
-        (if (buffer-live-p sr-right-buffer)
-            (kill-buffer sr-right-buffer))
-        (sunrise sr-left-directory target-directory target-file)))))
+  (if (not sr-running)
+      (let((target-directory default-directory)
+           (target-file (buffer-file-name)))
+        (if (equal sr-selected-window 'left)
+            (progn
+              (if (buffer-live-p sr-left-buffer)
+                  (kill-buffer sr-left-buffer))
+              (sunrise target-directory sr-right-directory target-file))
+          (progn
+            (if (buffer-live-p sr-right-buffer)
+                (kill-buffer sr-right-buffer))
+            (sunrise sr-left-directory target-directory target-file)))))
+  (progn
+    (sr-quit t)
+    (message "Hast thou a charm to stay the morning-star in his deep course?")
+    (exit-recursive-edit)))
 
 (defun sr-dired (directory)
   "Visits the given directory (or file) in sr-mode"
@@ -714,7 +721,7 @@ automatically (but only if at least one of the panes is visible):
   (sr-change-window)
   (sr-change-window))
 
-(defun sr-quit()
+(defun sr-quit (&optional norestore)
   "Quit Sunrise and restore emacs to previous operation."
   (interactive)
   (if sr-running
@@ -722,11 +729,15 @@ automatically (but only if at least one of the panes is visible):
         (setq sr-running nil)
         (sr-save-directories)
 
-        ;;restore previous window setup
-        (delete-other-windows)
-        (set-window-configuration sr-prior-window-configuration)
-        (if (buffer-live-p sr-restore-buffer)
-            (set-buffer sr-restore-buffer))
+        (if norestore
+            (progn
+              (sr-select-viewer-window)
+              (delete-other-windows))
+          (progn
+            ;;restore previous window setup
+            (set-window-configuration sr-prior-window-configuration)
+            (if (buffer-live-p sr-restore-buffer)
+                (set-buffer sr-restore-buffer))))
 
         ;;NOTE: never exit the recursive edit here.  functions should do this
         ;;themselves
