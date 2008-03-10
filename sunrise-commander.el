@@ -85,12 +85,12 @@
 ;; You  need to have AVFS with coda or fuse installed and running on your system
 ;; for this to work, though.
 
-;; *  Terminal  integration and Command line expansion (NEW!) integrates tightly
-;; with term-mode to allow interaction between terminal emulators in  line  mode
-;; (C-c  C-j)  and  the panes: the most important navigation commands (up, down,
-;; mark, unmark, go to parent dir) can be executed on the active  pane  directly
-;; from  the  terminal  by  pressing the usual keys with Meta: <M-up>, <M-down>,
-;; etc. Additionally, the following substitutions are automagically performed in
+;; *  Terminal  integration  and Command line expansion: integrates tightly with
+;; term-mode to allow interaction between terminal emulators in line  mode  (C-c
+;; C-j)  and  the panes: the most important navigation commands (up, down, mark,
+;; unmark, go to parent dir) can be executed on the active  pane  directly  from
+;; the  terminal  by  pressing  the usual keys with Meta: <M-up>, <M-down>, etc.
+;; Additionally, the following  substitutions  are  automagically  performed  in
 ;; term-line-mode:
 ;;     %f - expands to the currently selected file in the left pane
 ;;     %F - expands to the currently selected file in the right pane
@@ -98,6 +98,16 @@
 ;;     %M - expands to the list of all marked files in the right pane
 ;;     %d - expands to the current directory in the left pane
 ;;     %D - expands to the current directory in the right pane
+
+;; *  Alternate  navigation:  the  usual  navigation  keys  (n, p, Return, U, ;)
+;; combined with Meta allow to move across the  passive  pane  without  actually
+;; having to switch to it.
+
+;; *  Synchronized  navigation:  The sr-sync command toggles sync navigation. In
+;; this mode, the alternate navigation keys (M-n, M-p, M-Return, etc) operate on
+;; both  panes  simultaneously.  I've  found  this  quite  useful  for comparing
+;; hierarchically small to medium-sized directory trees (for large to very large
+;; directory trees one needs something on the lines of diff -r though).
 
 ;; * etc. ;-)
 
@@ -194,6 +204,8 @@
   "Window configuration before sr was started.")
 
 (defvar sr-running nil "True when sr commander mode is running.")
+
+(defvar sr-synchronized nil "True when synchronized navigation is on")
 
 (defvar sr-current-window-overlay nil
   "Holds the current overlay which marks the current dired buffer.")
@@ -488,7 +500,9 @@ automatically (but only if at least one of the panes is visible):
       (define-key sr-mode-map [(control tab)]       'sr-select-viewer-window)
       (define-key sr-mode-map [(control backspace)] 'sr-toggle-attributes)
       (define-key sr-mode-map [(control ?\=)]       'sr-ediff)
-      (define-key sr-mode-map [(control meta ?\=)]  'sr-compare-dirs)))
+      (define-key sr-mode-map [(control meta ?\=)]  'sr-compare-dirs)
+      (define-key sr-mode-map [(meta down)]         'sr-next-line-other)
+      (define-key sr-mode-map [(meta up)]           'sr-prev-line-other)))
 
 (defun sunrise-mc-keys ()
   "Binds the function keys F2 to F10 the traditional MC way"
@@ -1144,16 +1158,26 @@ horizontal and vice-versa."
       (toggle-read-only))))
 
 ;;; ============================================================================
-;;; Alternate navigation functions:
+;;; Alternate & synchronized navigation functions:
 
 (defmacro sr-in-other (form)
-  "Helper macro for alternate navigation"
+  "Helper macro for alternate & synchronized navigation."
   (list 'progn
+        (if sr-synchronized form)
         (list 'sr-change-window)
         (list 'condition-case 'description
               form
               (list 'error (list 'message (list 'second 'description))))
         (list 'sr-change-window)))
+
+(defun sr-sync ()
+  "Toggle the Sunrise synchronized navigation feature."
+  (interactive)
+  (if sr-synchronized
+      (setq sr-synchronized nil)
+    (setq sr-synchronized t))
+  (message (concat "Sync navigation is now "
+                   (if sr-synchronized "ON" "OFF"))))
 
 (defun sr-next-line-other ()
   "Move the cursor down in the other pane"
@@ -1168,7 +1192,16 @@ horizontal and vice-versa."
 (defun sr-advertised-find-file-other ()
   "Open the file/directory selected in the other pane."
   (interactive)
-  (sr-in-other (sr-advertised-find-file)))
+  (if sr-synchronized
+        (let ((target (sr-directory-name-proper (dired-get-filename))))
+          (sr-advertised-find-file)
+          (sr-change-window)
+          (if (file-directory-p target)
+              (sr-goto-dir (expand-file-name target))
+            (if (y-or-n-p "Unable to synchronize. Disable sync navigation? ")
+                (sr-sync)))
+          (sr-change-window))
+    (sr-in-other (sr-advertised-find-file))))
 
 (defun sr-prev-subdir-other ()
   "Go to the previous subdirectory in the other pane."
@@ -1526,9 +1559,9 @@ the symbol ALWAYS."
                  (list 'not (list '= 'size1 'size2)))))))
 
 (defun sr-md5 (file-alist)
-  "Builds  and  executes  the shell command to calculate the MD5 sum of the file
-  referred to by the given file list, where the second element is  the  name  of
-  the file."
+  "Builds  and  executes a shell command to calculate the MD5 sum of the file
+  referred to by the given file list, in which the second element is the name
+  of the file."
   (let* ((filename (second file-alist))
         (md5-command (replace-regexp-in-string "%f" filename sr-md5-shell-command)))
     (if (file-directory-p filename)
@@ -1823,8 +1856,6 @@ the symbol ALWAYS."
 (rainbow sr-encrypted-face         (:foreground "DarkOrange1")           "\\(^..[^d].*\\.\\(gpg\\|pgp\\)$\\)")
 (rainbow sr-marked-dir-face        (:foreground "red" :bold t)           "\\(^[*D].d.*$\\)")
 (rainbow sr-marked-file-face       (:foreground "red")                   "\\(^[*D].[^d].*$\\)")
-
-
 
 (provide 'sunrise-commander)
 
