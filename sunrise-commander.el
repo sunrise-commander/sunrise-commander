@@ -283,6 +283,7 @@
         C-c Tab ....... switch to viewer window (console portable) 
         Return ........ visit selected file/directory
         M-Return ...... visit selected file/directory in passive pane
+        C-c Return .... visit selected in passive pane (console portable)
         o ............. quick visit selected file (scroll with C-M-v, C-M-S-v)
 
         + ............. create new directory
@@ -321,6 +322,7 @@
         C-c C-g ....... execute find-grep-dired in Sunrise VIRTUAL mode
         C-c C-l ....... execute locate in Sunrise VIRTUAL mode
         C-c C-r ....... browse list of recently visited files (requires recentf)
+        C-c C-c ....... [after find, locate or recent] dismiss virtual buffer
         ; ............. follow file (go to same directory as selected file)
         M-; ........... follow file in passive pane
 
@@ -889,7 +891,8 @@ automatically (but only if at least one of the panes is visible):
   (interactive)
   (if (null filename)
       (setq filename (dired-get-filename nil t)))
-  (sr-goto-dir (file-name-directory filename)))
+  (sr-goto-dir (file-name-directory filename))
+  (sr-focus-filename (file-name-nondirectory filename)))
 
 (defun sr-history-push (element)
   "Pushes a new path into the history ring of the current pane"
@@ -1168,7 +1171,7 @@ horizontal and vice-versa."
 (defmacro sr-in-other (form)
   "Helper macro for alternate & synchronized navigation."
   (list 'progn
-        (if sr-synchronized form)
+        (list 'if 'sr-synchronized form)
         (list 'sr-change-window)
         (list 'condition-case 'description
               form
