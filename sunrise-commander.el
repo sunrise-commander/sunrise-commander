@@ -280,10 +280,10 @@
         M-U ........... go to parent directory in passive pane
         Tab ........... switch to other pane
         C-Tab.......... switch to viewer window
-        C-c Tab ....... switch to viewer window (console portable) 
+        C-c Tab ....... switch to viewer window (console compatible) 
         Return ........ visit selected file/directory
         M-Return ...... visit selected file/directory in passive pane
-        C-c Return .... visit selected in passive pane (console portable)
+        C-c Return .... visit selected in passive pane (console compatible)
         o ............. quick visit selected file (scroll with C-M-v, C-M-S-v)
 
         + ............. create new directory
@@ -304,7 +304,7 @@
         s ............. change sorting order or files (name/size/time/extension)
         C-o ........... show/hide hidden files (requires dired-omit-mode)
         C-Backspace ... hide/show file attributes in pane
-        C-c Backspace . hide/show file attributes in pane (console portable)
+        C-c Backspace . hide/show file attributes in pane (console compatible)
         b ............. browse directory tree using w3m
 
         M-t ........... transpose panes
