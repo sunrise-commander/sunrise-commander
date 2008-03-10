@@ -54,7 +54,7 @@
 ;; *  Press  = for fast "smart" file comparison -- like above, but using regular
 ;; diff.
 
-;; * Press C-M-= for directory comparison (only by date and/or size, by now).
+;; * Press C-M-= for directory comparison (by date / size / contents of files).
 
 ;; * Press C-c t to open a bash terminal into the current pane's directory.
 
@@ -176,6 +176,12 @@
   correct format of their entries."
   :group 'sunrise)
 
+(defcustom sr-md5-shell-command "md5sum %f | cut -d' ' -f1 2>/dev/null"
+  "Shell command to use for calculating MD5 sums for files when comparing
+   directories using the ``(c)ontents'' option. Use %f as a placeholder for the
+   name of the file."
+  :group 'sunrise)
+
 (defcustom sr-windows-locked t
   "Flag that indicates whether the vertical size of the panes should remain
   constant during Sunrise operation."
@@ -254,15 +260,17 @@
   following keybindings are available:
 
         / ............. go to directory
+        p, n .......... move cursor up/down
+        M-p, M-n ...... move cursor up/down in passive pane
         U ............. go to parent directory
         M-U ........... go to parent directory in passive pane
         Tab ........... switch to other pane
         C-Tab.......... switch to viewer window
         C-c Tab ....... switch to viewer window (console portable) 
-
         Return ........ visit selected file/directory
         M-Return ...... visit selected file/directory in passive pane
         o ............. quick visit selected file (scroll with C-M-v, C-M-S-v)
+
         + ............. create new directory
         C ............. copy marked (or current) files and directories
         c ............. copy (using traditional dired-do-copy)
@@ -300,6 +308,7 @@
         C-c C-l ....... execute locate in Sunrise VIRTUAL mode
         C-c C-r ....... browse list of recently visited files (requires recentf)
         ; ............. follow file (go to same directory as selected file)
+        M-; ........... follow file in passive pane
 
         C-> ........... save named checkpoint (a.k.a. \"bookmark panes\")
         C-c > ......... save named checkpoint (a.k.a. \"bookmark panes\")
@@ -422,11 +431,9 @@ automatically (but only if at least one of the panes is visible):
 ;;; Sunrise Commander keybindings:
 
 (define-key sr-mode-map "\C-m"                'sr-advertised-find-file)
-(define-key sr-mode-map "\M-\C-m"             'sr-advertised-find-file-other)
 (define-key sr-mode-map "o"                   'sr-quick-view)
 (define-key sr-mode-map "/"                   'sr-goto-dir)
 (define-key sr-mode-map "U"                   'sr-dired-prev-subdir)
-(define-key sr-mode-map "\M-U"                'sr-dired-prev-subdir-other)
 (define-key sr-mode-map "\M-y"                'sr-history-prev)
 (define-key sr-mode-map "\M-u"                'sr-history-next)
 (define-key sr-mode-map "\C-c>"               'sr-checkpoint-save)
@@ -463,6 +470,12 @@ automatically (but only if at least one of the panes is visible):
 (define-key sr-mode-map "\C-c\C-l"            'sr-locate)
 (define-key sr-mode-map "\C-c\C-r"            'sr-recent-files)
 (define-key sr-mode-map ";"                   'sr-follow-file)
+
+(define-key sr-mode-map "\M-n"                'sr-next-line-other)
+(define-key sr-mode-map "\M-p"                'sr-prev-line-other)
+(define-key sr-mode-map "\M-\C-m"             'sr-advertised-find-file-other)
+(define-key sr-mode-map "\M-U"                'sr-prev-subdir-other)
+(define-key sr-mode-map "\M-;"                'sr-follow-file-other)
 
 (define-key sr-mode-map "\C-ct"               'sr-term)
 (define-key sr-mode-map "q"                   'keyboard-escape-quit)
@@ -781,14 +794,6 @@ automatically (but only if at least one of the panes is visible):
               (sr-goto-dir filename)
             (sr-find-file filename))))))
 
-(defun sr-advertised-find-file-other ()
-  "Calls sr-advertise-find-file on the other pane."
-  (interactive)
-  (let ((filename (expand-file-name (dired-get-filename nil t))))
-    (sr-change-window)
-    (sr-advertised-find-file filename)
-    (sr-change-window)))
-
 (defun sr-find-file (filename)
   "Determines  the  proper  way  of handling a file. If the file is a compressed
   archive and AVFS has been activated, first tries to display it as a  catalogue
@@ -859,20 +864,13 @@ automatically (but only if at least one of the panes is visible):
         (sr-focus-filename here))
     (error "ERROR: Already at root")))
 
-(defun sr-dired-prev-subdir-other ()
-  "Go to the previous subdirectory in the other pane."
-  (interactive)
-  (sr-change-window)
-  (condition-case description
-      (sr-dired-prev-subdir)
-    (error (message (second description))))
-  (sr-change-window))
-
-(defun sr-follow-file ()
+(defun sr-follow-file (&optional filename)
   "Go to the same directory where the selected file is. Very useful inside
    Sunrise VIRTUAL buffers."
   (interactive)
-  (sr-goto-dir (file-name-directory (dired-get-filename nil t))))
+  (if (null filename)
+      (setq filename (dired-get-filename nil t)))
+  (sr-goto-dir (file-name-directory filename)))
 
 (defun sr-history-push (element)
   "Pushes a new path into the history ring of the current pane"
@@ -1144,6 +1142,44 @@ horizontal and vice-versa."
             ((eq opt ?S) (sort-numeric-fields 3 beg end) (reverse-region beg end))
             (t  (sort-regexp-fields nil "^.*$" "/[^/]*$" beg end)))
       (toggle-read-only))))
+
+;;; ============================================================================
+;;; Alternate navigation functions:
+
+(defmacro sr-in-other (form)
+  "Helper macro for alternate navigation"
+  (list 'progn
+        (list 'sr-change-window)
+        (list 'condition-case 'description
+              form
+              (list 'error (list 'message (list 'second 'description))))
+        (list 'sr-change-window)))
+
+(defun sr-next-line-other ()
+  "Move the cursor down in the other pane"
+  (interactive)
+  (sr-in-other (dired-next-line 1)))
+
+(defun sr-prev-line-other ()
+  "Move the cursor up in the other pane"
+  (interactive)
+  (sr-in-other (dired-next-line -1)))
+
+(defun sr-advertised-find-file-other ()
+  "Open the file/directory selected in the other pane."
+  (interactive)
+  (sr-in-other (sr-advertised-find-file)))
+
+(defun sr-prev-subdir-other ()
+  "Go to the previous subdirectory in the other pane."
+  (interactive)
+  (sr-in-other (sr-dired-prev-subdir)))
+
+(defun sr-follow-file-other ()
+  "Go to the same directory where the selected file is, but in the other pane."
+  (interactive)
+  (let ((filename (dired-get-filename nil t)))
+    (sr-in-other (sr-follow-file filename))))
 
 ;;; ============================================================================
 ;;; File manipulation functions:
@@ -1471,21 +1507,33 @@ the symbol ALWAYS."
   "Prompts for the criterion to use for comparing two directories."
   (let (
         (resp -1)
-        (prompt "Compare by (d)ate, (s)ize or (a)ll? ")
+        (prompt "Compare by (d)ate, (s)ize, date_(a)nd_size or (c)ontents? ")
        )
-    (while (not (memq resp '(?d ?D ?s ?S ?a ?A)))
+    (while (not (memq resp '(?d ?D ?s ?S ?a ?A ?c ?C)))
       (setq resp (read-event prompt))
-      (setq prompt "Please select: Compare by (d)ate, (s)ize or (a)ll? "))
+      (setq prompt "Please select: Compare by (d)ate, (s)ize, date_(a)nd_size or (c)ontents? "))
     (if (>= resp 97)
         (setq resp (- resp 32)))
-    (cond ((eq resp 68)
+    (cond ((eq resp ?D)
            (list 'not (list '= 'mtime1 'mtime2)))
-          ((eq resp 83)
+          ((eq resp ?S)
            (list 'not (list '= 'size1 'size2)))
+          ((eq resp ?C)
+           (list 'not (list 'string= (list 'sr-md5 'file1) (list 'sr-md5 'file2))))
           (t
            (list 'or
                  (list 'not (list '= 'mtime1 'mtime2))
                  (list 'not (list '= 'size1 'size2)))))))
+
+(defun sr-md5 (file-alist)
+  "Builds  and  executes  the shell command to calculate the MD5 sum of the file
+  referred to by the given file list, where the second element is  the  name  of
+  the file."
+  (let* ((filename (second file-alist))
+        (md5-command (replace-regexp-in-string "%f" filename sr-md5-shell-command)))
+    (if (file-directory-p filename)
+        ""
+      (shell-command-to-string md5-command))))
 
 (defun sr-diff ()
   "Runs diff on the top two marked files in both panes"
