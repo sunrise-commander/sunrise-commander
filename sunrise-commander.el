@@ -116,12 +116,13 @@
 
 ;; This is version 2 $Rev$ of the Sunrise Commander.
 
-;; Please note that it was written and tested only on GNU Emacs version 23 (from
-;; CVS). I *am* aware that there are several functions  (including,  alas,  file
-;; and  directory comparison) that simply will not work on GNU Emacs 21, but un-
-;; fortunately I do not have the time to port them back. I don't know either  if
-;; it  will  work  at  all on XEmacs, so try at your own risk. All contributions
-;; and/or bug reports will be very welcome.
+;; Please  note  that  it was written on GNU Emacs version 23 and tested only on
+;; GNU Emacs versions 22 and 23. I *am* aware that there are  several  functions
+;; (including, alas, file and directory comparison) that simply will not work on
+;; GNU Emacs 21, but unfortunately I do not have the time to port them  back.  I
+;; don't  know either if it will work at all on XEmacs (uses overlays, YMMV), so
+;; try at your own risk.  All contributions and/or  bug  reports  will  be  very
+;; welcome.
 
 ;;; Installation and Usage:
 
@@ -140,7 +141,8 @@
 
 ;; 5)  Choose  some  unused  extension for files to be opened in Sunrise VIRTUAL
 ;; mode and add it to auto-mode-alist, e.g. if you want  to  name  your  virtual
-;; folders like *.svrm just add to your .emacs file a line like the following:
+;; directories  like  *.svrm  just  add  to  your  .emacs  file  a line like the
+;; following:
 ;;
 ;;     (add-to-list 'auto-mode-alist '("\\.srvm\\'" . sr-virtual-mode))
 
@@ -198,7 +200,7 @@
   :group 'sunrise)
 
 (defvar sr-restore-buffer nil
-  "Buffer to restore when sr is quit.")
+  "Buffer to restore when sr quits.")
 
 (defvar sr-prior-window-configuration nil
   "Window configuration before sr was started.")
@@ -323,7 +325,7 @@
         M-; ........... follow file in passive pane
 
         C-> ........... save named checkpoint (a.k.a. \"bookmark panes\")
-        C-c > ......... save named checkpoint (a.k.a. \"bookmark panes\")
+        C-c > ......... save named checkpoint (console compatible)
         C-.    ........ restore named checkpoint
         C-c .  ........ restore named checkpoint
 
@@ -483,9 +485,14 @@ automatically (but only if at least one of the panes is visible):
 (define-key sr-mode-map "\C-c\C-r"            'sr-recent-files)
 (define-key sr-mode-map ";"                   'sr-follow-file)
 
-(define-key sr-mode-map "\M-n"                'sr-next-line-other)
+(define-key sr-mode-map "\M-n"                'sr-next-line-other) 
+(define-key sr-mode-map [M-down]              'sr-next-line-other)
+(define-key sr-mode-map [A-down]              'sr-next-line-other)
 (define-key sr-mode-map "\M-p"                'sr-prev-line-other)
+(define-key sr-mode-map [M-up]                'sr-prev-line-other)
+(define-key sr-mode-map [A-up]                'sr-prev-line-other)
 (define-key sr-mode-map "\M-\C-m"             'sr-advertised-find-file-other)
+(define-key sr-mode-map "\C-c\C-m"            'sr-advertised-find-file-other)
 (define-key sr-mode-map "\M-U"                'sr-prev-subdir-other)
 (define-key sr-mode-map "\M-;"                'sr-follow-file-other)
 
@@ -500,9 +507,7 @@ automatically (but only if at least one of the panes is visible):
       (define-key sr-mode-map [(control tab)]       'sr-select-viewer-window)
       (define-key sr-mode-map [(control backspace)] 'sr-toggle-attributes)
       (define-key sr-mode-map [(control ?\=)]       'sr-ediff)
-      (define-key sr-mode-map [(control meta ?\=)]  'sr-compare-dirs)
-      (define-key sr-mode-map [(meta down)]         'sr-next-line-other)
-      (define-key sr-mode-map [(meta up)]           'sr-prev-line-other)))
+      (define-key sr-mode-map [(control meta ?\=)]  'sr-compare-dirs)))
 
 (defun sunrise-mc-keys ()
   "Binds the function keys F2 to F10 the traditional MC way"
@@ -1812,8 +1817,10 @@ the symbol ALWAYS."
           '(lambda () (progn
                         (define-key term-mode-map [M-up]          'sr-ti-previous-line)
                         (define-key term-mode-map [A-up]          'sr-ti-previous-line)
+                        (define-key term-mode-map "\M-p"          'sr-ti-previous-line)
                         (define-key term-mode-map [M-down]        'sr-ti-next-line)
                         (define-key term-mode-map [A-down]        'sr-ti-next-line)
+                        (define-key term-mode-map "\M-n"          'sr-ti-next-line)
                         (define-key term-mode-map "\M-\C-m"       'sr-ti-select)
                         (define-key term-mode-map "\C-\M-j"       'sr-ti-select)
                         (define-key term-mode-map "\M-m"          'sr-ti-mark)
