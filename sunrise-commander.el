@@ -986,12 +986,12 @@ they can be restored later."
 (defun sr-change-window()
   "Change to the other sr buffer"
   (interactive)
-  (setq sr-other-directory dired-directory)
-  ;; this is much smarter than using (other-window) because we don't want to
-  ;; include windows that were created accidentally.
-  (if (equal (selected-window) sr-right-window)
-      (sr-select-window 'left)
-    (sr-select-window 'right)))
+  (if (not (equal sr-window-split-style 'top))
+      (progn
+        (setq sr-other-directory dired-directory)
+        (if (equal (selected-window) sr-right-window)
+            (sr-select-window 'left)
+          (sr-select-window 'right)))))
 
 (defun sr-beginning-of-buffer()
   "Go to the first directory/file in dired."
@@ -1866,6 +1866,8 @@ the symbol ALWAYS."
 (rainbow sr-encrypted-face         (:foreground "DarkOrange1")           "\\(^..[^d].*\\.\\(gpg\\|pgp\\)$\\)")
 (rainbow sr-marked-dir-face        (:foreground "red" :bold t)           "\\(^[*D].d.*$\\)")
 (rainbow sr-marked-file-face       (:foreground "red")                   "\\(^[*D].[^d].*$\\)")
+(rainbow sr-alt-marked-dir-face    (:foreground "DeepPink" :bold t)      "\\(^[^ *D].d.*$\\)")
+(rainbow sr-alt-marked-file-face   (:foreground "DeepPink")              "\\(^[^ *D].[^d].*$\\)")
 
 (provide 'sunrise-commander)
 
