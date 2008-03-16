@@ -86,12 +86,12 @@
 ;; for this to work, though.
 
 ;; *  Terminal  integration  and Command line expansion: integrates tightly with
-;; term-mode to allow interaction between terminal emulators in line  mode  (C-c
-;; C-j)  and  the panes: the most important navigation commands (up, down, mark,
-;; unmark, go to parent dir) can be executed on the active  pane  directly  from
-;; the  terminal  by  pressing  the usual keys with Meta: <M-up>, <M-down>, etc.
-;; Additionally, the following  substitutions  are  automagically  performed  in
-;; term-line-mode:
+;; eshell or term-mode to allow interaction between terminal emulators  in  line
+;; mode  (C-c  C-j)  and  the panes: the most important navigation commands (up,
+;; down, mark, unmark, go to parent dir) can be executed on the active pane  di-
+;; rectly  from  the  terminal by pressing the usual keys with Meta: <M-up>, <M-
+;; down>, etc.  Additionally, the following substitutions are automagically per-
+;; formed in term-line-mode:
 ;;     %f - expands to the currently selected file in the left pane
 ;;     %F - expands to the currently selected file in the right pane
 ;;     %m - expands to the list of all marked files in the left pane
@@ -160,6 +160,7 @@
 (require 'dired)
 (require 'dired-x)
 (require 'font-lock)
+(eval-when-compile (require 'cl))
 (eval-when-compile (require 'term))
 (eval-when-compile (require 'esh-mode))
 (require 'recentf)
@@ -1003,10 +1004,8 @@ they can be restored later."
   (interactive)
   (goto-char (point-min))
   (if (re-search-forward directory-listing-before-filename-regexp nil t)
-      (let ((file (dired-get-filename)))
-        (while (string-match "\\./$" file)
-          (dired-next-line 1)
-          (setq file (dired-get-filename))))))
+      (while (looking-at "\.\.?/$")
+        (dired-next-line 1))))
 
 (defun sr-end-of-buffer()
   "Go to the last directory/file in dired."
