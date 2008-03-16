@@ -56,7 +56,7 @@
 
 ;; * Press C-M-= for directory comparison (by date / size / contents of files).
 
-;; * Press C-c t to open a bash terminal into the current pane's directory.
+;; * Press C-c t to open a terminal into the current pane's directory.
 
 ;; * Press M-t to swap the panes.
 
@@ -116,13 +116,13 @@
 
 ;; This is version 2 $Rev$ of the Sunrise Commander.
 
-;; Please  note  that  it was written on GNU Emacs version 23 and tested only on
-;; GNU Emacs versions 22 and 23. I *am* aware that there are  several  functions
-;; (including, alas, file and directory comparison) that simply will not work on
-;; GNU Emacs 21, but unfortunately I do not have the time to port them  back.  I
-;; don't  know either if it will work at all on XEmacs (uses overlays, YMMV), so
-;; try at your own risk.  All contributions and/or  bug  reports  will  be  very
-;; welcome.
+;; Please  note  that it was written on GNU Emacs 23 on Linux, and tested on GNU
+;; Emacs 22 and 23 for Linux and on EmacsW32 (version 22) for  Windows.  I  *am*
+;; aware  that  there are several functions (including, alas, file and directory
+;; comparison) that simply will not work on GNU Emacs 21, but unfortunately I do
+;; not  have  the time to port them back. I don't know either if it will work at
+;; all on XEmacs (uses overlays, YMMV), so try at your own risk.  All  contribu-
+;; tions and/or bug reports will be very welcome.
 
 ;;; Installation and Usage:
 
@@ -161,6 +161,7 @@
 (require 'dired-x)
 (require 'font-lock)
 (eval-when-compile (require 'term))
+(eval-when-compile (require 'esh-mode))
 (require 'recentf)
 (recentf-mode 1)
 
@@ -170,7 +171,7 @@
       recentf-max-saved-items 100
       recentf-max-menu-items 20)
 
-(defcustom sr-terminal-program "bash"
+(defcustom sr-terminal-program "eshell"
   "The program to use for terminal emulation."
   :group 'sunrise)
 
@@ -227,7 +228,8 @@
 (defvar sr-other-directory "~/"
   "Dired directory in the window that is currently *not* selected")
 
-(defvar sr-checkpoint-registry (acons "~" (list sr-left-directory sr-right-directory) nil)
+(defvar sr-checkpoint-registry
+  (acons "~" (list sr-left-directory sr-right-directory) nil)
   "Registry of currently defined checkpoints")
 
 (defvar sr-left-window nil
@@ -257,11 +259,13 @@
                                  ("."             . "#/"))
   "List of AVFS handlers to manage specific file extensions.")
 
-(defface sr-window-selected-face '((t (:background "#ace6ac" :foreground "yellow" :height 140)))
+(defface sr-window-selected-face
+  '((t (:background "#ace6ac" :foreground "yellow" :height 140)))
   "Face used to show a selected window"
   :group 'sunrise)
 
-(defface sr-window-not-selected-face '((t (:background "white" :foreground "lightgray" :height 140)))
+(defface sr-window-not-selected-face
+  '((t (:background "white" :foreground "lightgray" :height 140)))
   "Face used to show an unselected window"
   :group 'sunrise)
 
@@ -634,9 +638,10 @@ automatically (but only if at least one of the panes is visible):
 ;;; ============================================================================
 ;;; Window management functions:
 
-(defun sr-symbol (name context)
-  "Helper function for macro sr-setup-pane."
-  (intern (concat "sr-" name "-" (symbol-name context))))
+(eval-when-compile
+  (defun sr-symbol (name context)
+    "Helper function for macro sr-setup-pane."
+    (intern (concat "sr-" name "-" (symbol-name context)))))
 
 (defmacro sr-setup-pane (name)
   "Helper macro for function sr-setup-windows."
@@ -1358,7 +1363,8 @@ indir/d => to-dir/d"
       (progn
         (if (string= "" d)
             (setq to-dir (concat to-dir (sr-directory-name-proper in-dir))))
-        (if (not (file-exists-p (concat to-dir d))) ; directory in-dir/d does not exist
+        ;; if directory in-dir/d does not exist:
+        (if (not (file-exists-p (concat to-dir d)))
 	    (make-directory (concat to-dir d))) ; makes d in to-dir
 	(let* (
                (files-in-d (append (sr-list-of-files (concat in-dir d))
@@ -1367,7 +1373,8 @@ indir/d => to-dir/d"
 		(mapcar (lambda (f) (concat in-dir d f)) files-in-d))
 	       )
 	  (sr-copy-files file-paths-in-d (concat to-dir d) do-overwrite)))
-    (error "ERROR: You cannot copy a directory into itself or one of its subdirectories")))
+    (error "ERROR: You cannot copy a directory into itself or one of its \
+subdirectories")))
 
 (defun sr-move-files (file-path-list target-dir &optional do-overwrite)
   "Moves all files in file-path-list (list of full paths) to target dir"
@@ -1381,7 +1388,8 @@ indir/d => to-dir/d"
                     (initial-path (file-name-directory f))
                    )
                (if (string= "" name)
-                   (setq target-subdir (concat target-dir (sr-directory-name-proper f))))
+                   (setq target-subdir
+                         (concat target-dir (sr-directory-name-proper f))))
                (if (file-exists-p target-subdir)
                    (if (or (eq do-overwrite 'ALWAYS)
                            (setq do-overwrite (ask-overwrite target-subdir)))
@@ -1511,7 +1519,10 @@ the symbol ALWAYS."
   '/' while looking for the point. If no point is found under these  conditions,
   return nil."
   (let ((idx (- (length str) 1)))
-    (while (and (>= idx 0) (not (eq (aref str idx) ?.)) (not (eq (aref str idx) ?/))) (setq idx (- idx 1)))
+    (while (and (>= idx 0)
+                (not (eq (aref str idx) ?.))
+                (not (eq (aref str idx) ?/)))
+      (setq idx (- idx 1)))
     (if (and (>= idx 0) (eq (aref str idx) ?.)) idx nil)))
 
 (defun sr-file-name-proper (filename)
@@ -1552,7 +1563,8 @@ the symbol ALWAYS."
        )
     (while (not (memq resp '(?d ?D ?s ?S ?a ?A ?c ?C)))
       (setq resp (read-event prompt))
-      (setq prompt "Please select: Compare by (d)ate, (s)ize, date_(a)nd_size or (c)ontents? "))
+      (setq prompt "Please select: Compare by (d)ate, (s)ize, date_(a)nd_size \
+or (c)ontents? "))
     (if (>= resp 97)
         (setq resp (- resp 32)))
     (cond ((eq resp ?D)
@@ -1560,7 +1572,9 @@ the symbol ALWAYS."
           ((eq resp ?S)
            (list 'not (list '= 'size1 'size2)))
           ((eq resp ?C)
-           (list 'not (list 'string= (list 'sr-md5 'file1) (list 'sr-md5 'file2))))
+           (list 'not (list 'string=
+                            (list 'sr-md5 'file1)
+                            (list 'sr-md5 'file2))))
           (t
            (list 'or
                  (list 'not (list '= 'mtime1 'mtime2))
@@ -1571,7 +1585,8 @@ the symbol ALWAYS."
   referred to by the given file list, in which the second element is the name
   of the file."
   (let* ((filename (second file-alist))
-        (md5-command (replace-regexp-in-string "%f" filename sr-md5-shell-command)))
+        (md5-command
+         (replace-regexp-in-string "%f" filename sr-md5-shell-command)))
     (if (file-directory-p filename)
         ""
       (shell-command-to-string md5-command))))
@@ -1628,7 +1643,8 @@ the symbol ALWAYS."
           (if (not (equalp t (car marks)))
               (progn
                 (mapcar (lambda (x)
-                          (dired-mark-files-regexp (concat "^" (regexp-quote x) "$")))
+                          (dired-mark-files-regexp
+                           (concat "^" (regexp-quote x) "$")))
                         (cdr marks))
                 (car marks))
             (second marks)))
@@ -1639,7 +1655,10 @@ the symbol ALWAYS."
 
 (defun sr-find-apply (fun pattern)
   "Helper function for functions sr-find, sr-find-name and sr-find-grep."
-  (let ((find-ls-option (cons (concat "-exec ls -d " sr-virtual-listing-switches " \\{\\} \\;") "ls -ld")))
+  (let ((find-ls-option
+         (cons
+          (concat "-exec ls -d " sr-virtual-listing-switches " \\{\\} \\;")
+          "ls -ld")))
     (apply fun (list dired-directory pattern)))
   (sr-virtual-mode)
   (sr-keep-buffer))
@@ -1666,7 +1685,9 @@ the symbol ALWAYS."
   (switch-to-buffer "*Locate*")
   (let ((locate-prompt-for-command t)
         (locate-filename-indentation 2)
-        (locate-make-command-line (lambda (arg) (list "locate" arg "| xargs ls -d" sr-virtual-listing-switches))))
+        (locate-make-command-line
+         (lambda (arg)
+           (list "locate" arg "| xargs ls -d" sr-virtual-listing-switches))))
     (call-interactively 'locate))
   (sr-virtual-mode)
   (sr-keep-buffer))
@@ -1712,11 +1733,38 @@ the symbol ALWAYS."
 (defun sr-term ()
   "Runs  terminal  in  a new buffer (or switches to an existing one) and cd's to
   the current directory in the active pane"
+  ;; Dynamic function -- redefines itself the first time it's executed:
   (interactive)
+  (if (string= sr-terminal-program "eshell")
+      (progn
+        (add-hook 'eshell-mode-hook
+                  '(lambda () (sr-define-ti-keys eshell-mode-map)))
+        (defun sr-term ()
+          (interactive)
+          (sr-term-eshell)))
+    (progn
+      (add-hook 'term-mode-hook
+                '(lambda () (sr-define-ti-keys term-mode-map)))
+      (defun sr-term ()
+        (interactive)
+        (sr-term-extern))))
+  (sr-term))
+
+(defun sr-term-extern ()
+  "This is the implementation of sr-term for external terminal programs."
   (let ((dir dired-directory))
     (sr-select-viewer-window)
     (term sr-terminal-program)
-    (term-send-raw-string (concat "cd " dir ""))))
+    (term-send-raw-string
+     (concat "cd " (shell-quote-wildcard-pattern dir) ""))))
+
+(defun sr-term-eshell ()
+  "This is the implementation of sr-term when using eshell."
+  (let ((dir dired-directory))
+    (sr-select-viewer-window)
+    (eshell)
+    (insert (concat "cd " (shell-quote-wildcard-pattern dir)))
+    (eshell-send-input)))
 
 (defmacro sr-ti (form)
   "Puts the given form in the context of the selected pane"
@@ -1724,9 +1772,11 @@ the symbol ALWAYS."
         (list 'progn
               (list 'sr-select-window 'sr-selected-window)
               (list 'hl-line-mode 0)
-              form
-              (list 'hl-line-mode 1)
-              (list 'sr-select-viewer-window))))
+	      (list 'unwind-protect
+		    form
+		    (list 'progn
+			  (list 'hl-line-mode 1)
+			  (list 'sr-select-viewer-window))))))
 
 (defun sr-ti-previous-line ()
   "Runs previous-line on active pane from the terminal window."
@@ -1770,7 +1820,7 @@ the symbol ALWAYS."
         (select-window sr-right-window)
       (select-window sr-left-window))
     (condition-case nil
-        (concat (dired-get-filename) " ")
+        (concat (shell-quote-wildcard-pattern (dired-get-filename)) " ")
       (error ""))))
 
 (defun sr-clex-marked (pane)
@@ -1780,61 +1830,47 @@ the symbol ALWAYS."
         (select-window sr-right-window)
       (select-window sr-left-window))
     (condition-case nil
-        (mapconcat 'identity (dired-get-marked-files) " ")
+        (mapconcat 'shell-quote-wildcard-pattern (dired-get-marked-files) " ")
       (error ""))))
 
 (defun sr-clex-dir (pane)
   "Returns the current directory in the given pane."
-  (if (equal pane 'right)
-      (concat sr-right-directory " ")
-    (concat sr-left-directory " ")))
+  (save-window-excursion
+    (if (equal pane 'right)
+	(select-window sr-right-window)
+      (select-window sr-left-window))
+    (condition-case nil
+	(concat (shell-quote-wildcard-pattern dired-directory) " ")
+      (error ""))))
 
-;; This performs the command line substitution while in CLEX mode:
-(defadvice term-send-raw-string
-  (around sr-advice-term-send-raw-string (chars))
-  (ad-deactivate 'term-send-raw-string)
-  (let ((my-char (string-to-char chars)))
-    (setq chars
-          (cond ((eq my-char ?m) (sr-clex-marked 'left ))
-                ((eq my-char ?f) (sr-clex-file   'left ))
-                ((eq my-char ?d) (sr-clex-dir    'left ))
-                ((eq my-char ?M) (sr-clex-marked 'right))
-                ((eq my-char ?F) (sr-clex-file   'right))
-                ((eq my-char ?D) (sr-clex-dir    'right))
-                (t chars)))
-    ad-do-it)
-  (term-line-mode))
-(ad-deactivate 'term-send-raw-string)
+(defvar sr-term-keys '(([M-up]          . sr-ti-previous-line)
+                       ([A-up]          . sr-ti-previous-line)
+                       ("\M-p"          . sr-ti-previous-line)
+                       ([M-down]        . sr-ti-next-line)
+                       ([A-down]        . sr-ti-next-line)
+                       ("\M-n"          . sr-ti-next-line)
+                       ("\M-\C-m"       . sr-ti-select)
+                       ("\C-\M-j"       . sr-ti-select)
+                       ([M-return]      . sr-ti-select)
+                       ("\M-m"          . sr-ti-mark)
+                       ([M-backspace]   . sr-ti-unmark)
+                       ("\M-\d"         . sr-ti-unmark)
+                       ("\M-U"          . sr-ti-prev-subdir)
+                       ([(control tab)] . sr-ti-change-window)
+                       ("\C-c\t"        . sr-ti-change-window)
+                       ("%m"            . (lambda () (interactive)(insert (sr-clex-marked 'left))))   
+                       ("%f"            . (lambda () (interactive)(insert (sr-clex-file 'left))))     
+                       ("%d"            . (lambda () (interactive)(insert (sr-clex-dir 'left))))      
+                       ("%M"            . (lambda () (interactive)(insert (sr-clex-marked 'right))))  
+                       ("%F"            . (lambda () (interactive)(insert (sr-clex-file 'right))))    
+                       ("%D"            . (lambda () (interactive)(insert (sr-clex-dir 'right))))     
+                       ("%%"            . (lambda () (interactive)(insert "%"))))
+  "Keybindings for terminal integration and command line expansion")
 
-(defun sr-clex-activate ()
-  "Activates the Command Line EXpansion feature in all active terminals."
-  (interactive)
-  (if sr-running
-      (progn
-        (ad-activate 'term-send-raw-string)
-        (term-char-mode)
-        (message "Sunrise: CLEX Mode is ON"))
-    (self-insert-command 1)))
-
-;; Sunrise TI & CLEX key bindings in term-line mode:
-(add-hook 'term-mode-hook
-          '(lambda () (progn
-                        (define-key term-mode-map [M-up]          'sr-ti-previous-line)
-                        (define-key term-mode-map [A-up]          'sr-ti-previous-line)
-                        (define-key term-mode-map "\M-p"          'sr-ti-previous-line)
-                        (define-key term-mode-map [M-down]        'sr-ti-next-line)
-                        (define-key term-mode-map [A-down]        'sr-ti-next-line)
-                        (define-key term-mode-map "\M-n"          'sr-ti-next-line)
-                        (define-key term-mode-map "\M-\C-m"       'sr-ti-select)
-                        (define-key term-mode-map "\C-\M-j"       'sr-ti-select)
-                        (define-key term-mode-map "\M-m"          'sr-ti-mark)
-                        (define-key term-mode-map [M-backspace]   'sr-ti-unmark)
-                        (define-key term-mode-map "\M-\d"         'sr-ti-unmark)
-                        (define-key term-mode-map "\M-U"          'sr-ti-prev-subdir)
-                        (define-key term-mode-map [(control tab)] 'sr-ti-change-window)
-                        (define-key term-mode-map "\C-c\t"        'sr-ti-change-window)
-                        (define-key term-mode-map "%"             'sr-clex-activate)
-)))
+(defun sr-define-ti-keys (mode-map)
+  (mapcar (lambda (key)
+            (define-key mode-map (car key) (cdr key)))
+          sr-term-keys))
 
 ;;; ============================================================================
 ;;; Miscellaneous functions:
