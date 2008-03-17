@@ -153,7 +153,10 @@
 ;; Sunrise  and  automatically  selects  the  current file wherever it is in the
 ;; filesystem. Type h at any moment for information on available key bindings.
 
-;; 8) Enjoy :)
+;; 8)  Type  M-x customize-group <RET> sunrise <RET> to customize options, fonts
+;; and colors.
+
+;; 9) Enjoy :)
 
 ;;; Code:
 
@@ -161,28 +164,22 @@
 (require 'dired-x)
 (require 'font-lock)
 (eval-when-compile (require 'cl))
-(eval-when-compile (require 'term))
 (eval-when-compile (require 'esh-mode))
-(require 'recentf)
-(recentf-mode 1)
-
-(setq dired-recursive-deletes 'top
-      ;; dired-listing-switches "-alp"
-      dired-listing-switches "--time-style=locale --group-directories-first -alDphgG"
-      recentf-max-saved-items 100
-      recentf-max-menu-items 20)
+(eval-when-compile (require 'recentf))
+(eval-when-compile (require 'term))
 
 (defcustom sr-terminal-program "eshell"
-  "The program to use for terminal emulation."
+  "The program to use for terminal emulation. If this value is set to
+  \"eshell\", the emacs shell will be used."
   :group 'sunrise)
 
-(defcustom sr-window-split-style 'horizontal
-  "The current window split configuration.  May be 'horizontal, 'vertical or 'top"
-  :group 'sunrise
-  :type '(choice
-          (const horizontal)
-          (const vertical)
-          (const top)))
+(defcustom sr-listing-switches "-alp"
+  "Listing switches to used (instead of dired-listing-switches) for building
+  Sunrise buffers.
+  Most portable value: \"-alp\"
+  Recommended value on GNU systems: \
+\"--time-style=locale --group-directories-first -alDphgG\""
+  :group 'sunrise)
 
 (defcustom sr-virtual-listing-switches  "--time-style=long-iso --group-directories-first -aldpgG"
   "Listing  switches  for building buffers in Sunrise VIRTUAL mode based on find
@@ -195,6 +192,14 @@
    directories using the ``(c)ontents'' option. Use %f as a placeholder for the
    name of the file."
   :group 'sunrise)
+
+(defcustom sr-window-split-style 'horizontal
+  "The current window split configuration.  May be 'horizontal, 'vertical or 'top"
+  :group 'sunrise
+  :type '(choice
+          (const horizontal)
+          (const vertical)
+          (const top)))
 
 (defcustom sr-windows-locked t
   "Flag that indicates whether the vertical size of the panes should remain
@@ -261,12 +266,12 @@
   "List of AVFS handlers to manage specific file extensions.")
 
 (defface sr-window-selected-face
-  '((t (:background "#ace6ac" :foreground "yellow" :height 140)))
+  '((t (:background "#ace6ac" :foreground "yellow" :bold t :height 120)))
   "Face used to show a selected window"
   :group 'sunrise)
 
 (defface sr-window-not-selected-face
-  '((t (:background "white" :foreground "lightgray" :height 140)))
+  '((t (:background "white" :foreground "lightgray" :bold t :height 120)))
   "Face used to show an unselected window"
   :group 'sunrise)
 
@@ -375,7 +380,7 @@ opening a terminal in the viewer window (with C-c t):
         C-Tab ......... switch focus to active pane
 
 In a terminal in line mode the following substitutions are also performed
-automatically (but only if at least one of the panes is visible):
+automatically:
 
        %f - expands to the currently selected file in the left pane
        %F - expands to the currently selected file in the right pane
@@ -386,7 +391,10 @@ automatically (but only if at least one of the panes is visible):
        %% - inserts a single % sign.
 "
   :group 'sunrise
-  (set-keymap-parent sr-mode-map dired-mode-map))
+  (set-keymap-parent sr-mode-map dired-mode-map)
+  (make-local-variable 'dired-recursive-deletes)
+  (setq dired-recursive-deletes 'top)
+)
 
 (define-derived-mode sr-virtual-mode dired-virtual-mode "Sunrise VIRTUAL"
   "Sunrise Commander Virtual Mode. Useful for reusing find and locate results."
@@ -416,8 +424,11 @@ automatically (but only if at least one of the panes is visible):
   "Sets Sunrise mode in every Dired buffer opened in Sunrise (called in hook)"
   (if (string= (expand-file-name sr-dired-directory)
                (expand-file-name dired-directory))
-      (sr-mode)
-    (message (concat "Sunrise: " sr-dired-directory " != " dired-directory))))
+      (let ((dired-listing-switches dired-listing-switches))
+        (if (null (string-match "^/ftp:" dired-directory))
+            (setq dired-listing-switches sr-listing-switches))
+        (sr-mode)
+        (dired-unadvertise dired-directory))))
 (add-hook 'dired-before-readin-hook 'sr-dired-mode)
 
 ;; This is a hack to avoid some dired mode quirks:
@@ -509,6 +520,8 @@ automatically (but only if at least one of the panes is visible):
 
 (if window-system
     (progn
+      (define-key sr-mode-map [mouse-1]             'sr-advertised-find-file)
+      (define-key sr-mode-map [mouse-2]             'sr-advertised-find-file)
       (define-key sr-mode-map [(control >)]         'sr-checkpoint-save)
       (define-key sr-mode-map [(control .)]         'sr-checkpoint-restore)
       (define-key sr-mode-map [(control tab)]       'sr-select-viewer-window)
@@ -813,7 +826,11 @@ automatically (but only if at least one of the panes is visible):
   (interactive)
   (save-excursion
     (if (null filename)
-        (setq filename (expand-file-name (dired-get-filename nil t))))
+        (if (eq 1 (line-number-at-pos)) ;; <- Click or Enter on path line
+            (setq filename (buffer-substring
+                            (+ 2 (point-min))
+                            (re-search-forward "\\(?:/\\|$\\)" nil t)))
+        (setq filename (expand-file-name (dired-get-filename nil t)))))
     (if filename
         (if (string= filename (expand-file-name "../"))
             (sr-dired-prev-subdir)
@@ -1144,7 +1161,10 @@ horizontal and vice-versa."
       (sr-sort-virtual option)
     (progn
       (put sr-selected-window 'sorting-order label)
-      (dired-sort-other (concat dired-listing-switches option) t)
+      (let ((dired-listing-switches dired-listing-switches))
+        (if (null (string-match "^/ftp:" dired-directory))
+            (setq dired-listing-switches sr-listing-switches))
+        (dired-sort-other (concat dired-listing-switches option) t))
       (sr-revert-buffer)))
   (message (concat "Sunrise: sorting entries by " label)))
 
@@ -1695,6 +1715,9 @@ or (c)ontents? "))
   "Displays the history of recent files maintained by recentf in sunrise virtual
    mode."
   (interactive)
+  (if (not (featurep 'recentf))
+      (error "ERROR: Feature recentf not available!"))
+
   (sr-switch-to-clean-buffer "*Recent Files*")
   (insert "Recent Files: \n\n")
   (let ((dired-actual-switches dired-listing-switches))
