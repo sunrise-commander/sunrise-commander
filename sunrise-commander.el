@@ -231,8 +231,12 @@
 (defvar sr-right-buffer nil
   "Dired buffer for the right window.")
 
+(defvar sr-this-directory "~/"
+  "Dired directory in the active pane. This isn't necessarily the same as
+  dired-directory")
+
 (defvar sr-other-directory "~/"
-  "Dired directory in the window that is currently *not* selected")
+  "Dired directory in the passive pane")
 
 (defvar sr-checkpoint-registry
   (acons "~" (list sr-left-directory sr-right-directory) nil)
@@ -265,14 +269,19 @@
                                  ("."             . "#/"))
   "List of AVFS handlers to manage specific file extensions.")
 
-(defface sr-window-selected-face
+(defface sr-active-path-face
   '((t (:background "#ace6ac" :foreground "yellow" :bold t :height 120)))
-  "Face used to show a selected window"
+  "Face of the directory path in the active pane"
   :group 'sunrise)
 
-(defface sr-window-not-selected-face
+(defface sr-passive-path-face
   '((t (:background "white" :foreground "lightgray" :bold t :height 120)))
-  "Face used to show an unselected window"
+  "Face of the directory path in the passive pane"
+  :group 'sunrise)
+
+(defface sr-highlight-path-face
+  '((t (:background "yellow" :foreground "#ace6ac" :bold t :height 120)))
+  "Face of the directory path on mouse hover"
   :group 'sunrise)
 
 ;;; ============================================================================
@@ -315,6 +324,7 @@
         C-o ........... show/hide hidden files (requires dired-omit-mode)
         C-Backspace ... hide/show file attributes in pane
         C-c Backspace . hide/show file attributes in pane (console compatible)
+        M-l ........... truncate/continue long lines in pane
         b ............. browse directory tree using w3m
 
         M-t ........... transpose panes
@@ -392,8 +402,12 @@ automatically:
 "
   :group 'sunrise
   (set-keymap-parent sr-mode-map dired-mode-map)
+
   (make-local-variable 'dired-recursive-deletes)
   (setq dired-recursive-deletes 'top)
+
+  (make-local-variable 'truncate-partial-width-windows)
+  (setq truncate-partial-width-windows t)
 )
 
 (define-derived-mode sr-virtual-mode dired-virtual-mode "Sunrise VIRTUAL"
@@ -481,6 +495,7 @@ automatically:
 (define-key sr-mode-map "b"                   'sr-browse)
 (define-key sr-mode-map "g"                   'sr-revert-buffer)
 (define-key sr-mode-map "\C-c\d"              'sr-toggle-attributes)
+(define-key sr-mode-map "\M-l"                'sr-toggle-truncate-lines)
 (define-key sr-mode-map "s"                   'sr-interactive-sort)
 
 (define-key sr-mode-map "C"                   'sr-do-copy)
@@ -518,10 +533,15 @@ automatically:
 (define-key sr-mode-map "q"                   'keyboard-escape-quit)
 (define-key sr-mode-map "\M-q"                (lambda () (interactive) (sr-quit t)))
 
+;;(define-key sr-mode-map [mouse-1]             'sr-advertised-find-file)
+(define-key sr-mode-map [mouse-2]             (lambda ()
+                                                (interactive)
+                                                (call-interactively 'mouse-set-point)
+                                                (sr-advertised-find-file)))
+(define-key sr-mode-map [follow-link]         'mouse-face)
+
 (if window-system
     (progn
-      (define-key sr-mode-map [mouse-1]             'sr-advertised-find-file)
-      (define-key sr-mode-map [mouse-2]             'sr-advertised-find-file)
       (define-key sr-mode-map [(control >)]         'sr-checkpoint-save)
       (define-key sr-mode-map [(control .)]         'sr-checkpoint-restore)
       (define-key sr-mode-map [(control tab)]       'sr-select-viewer-window)
@@ -711,10 +731,10 @@ automatically:
 ;; This keeps the size of the Sunrise panes constant:
 (add-hook 'window-size-change-functions 'sr-lock-window)
 
-(defun sr-select-window(window)
+(defun sr-select-window (window)
   "Select/highlight the given sr window (right or left)."
   (hl-line-mode 0)
-  (if (string= (symbol-name window) "left")
+  (if (eq window 'left)
       (progn
         (select-window sr-left-window)
         (setq sr-selected-window 'left))
@@ -732,43 +752,57 @@ automatically:
         (other-window 1))))
 
 (defun sr-highlight()
-  "Highlight the current buffer, destroying the previous buffer highlight if
-  necessary."
+  "Sets up the path line in the current buffer."
+  (if (memq major-mode '(sr-mode sr-virtual-mode))
+      (save-excursion
+        (goto-char (point-min))
+        (sr-hide-avfs-root)
+        (if window-system
+            (sr-graphical-highlight)))))
+
+(defun sr-graphical-highlight ()
+  "Sets up the graphical path line in the current buffer (fancy fonts and
+  clickable path)"
 
   ;;update the last overlay
   (if sr-current-window-overlay
-      (overlay-put sr-current-window-overlay 'face 'sr-window-not-selected-face))
+      (overlay-put sr-current-window-overlay 'face 'sr-passive-path-face))
+
+  (let (begin end)
+    ;;determine begining and end
+    (search-forward-regexp "\\S " nil t)
+    (setq begin (1- (point)))
+    (end-of-line)
+    (setq end (1- (point)))
   
-  (save-excursion
-    (let(begin end)
-      (goto-char (point-min))
+    ;;setup overlay
+    (setq sr-current-window-overlay (make-overlay begin end))
+    (overlay-put sr-current-window-overlay 'face 'sr-active-path-face)
+    (overlay-put sr-current-window-overlay 'window (selected-window))
+  
+    ;;make path line clickable
+    (toggle-read-only -1)
+    (add-text-properties
+     begin
+     end
+     '(mouse-face sr-highlight-path-face
+                  help-echo "mouse-2: move up")
+     nil)
+    (toggle-read-only 1)))
 
-      ;;hide avfs virtual filesystem root (if any):
-      (if (not (null sr-avfs-root))
-          (let ((next (search-forward sr-avfs-root nil t))
-                (len (length sr-avfs-root))
-                (overlay))
-            (while (not (null next))
-              (progn
-                (setq overlay (make-overlay (- next len) next))
-                (overlay-put overlay 'invisible t)
-                (overlay-put overlay 'intangible t)
-                (setq next (search-forward sr-avfs-root nil t))))
-            (goto-char (point-min))))
-
-      (if window-system
+(defun sr-hide-avfs-root ()
+  "Hides the AVFS virtual filesystem root (if any) on the path line."
+  (if (not (null sr-avfs-root))
+      (let ((next (search-forward sr-avfs-root nil t))
+            (len (length sr-avfs-root))
+            (overlay))
+        (while (not (null next))
           (progn
-            ;;determine begining and end
-            (search-forward-regexp "\\S " nil t)
-            (setq begin (1- (point)))
-            (end-of-line)
-            (setq end (1- (point)))
-            
-            ;;setup overlay
-            (setq sr-current-window-overlay (make-overlay begin end))
-            (overlay-put sr-current-window-overlay 'face 'sr-window-selected-face)
-            (overlay-put sr-current-window-overlay 'window (selected-window))))
-)))
+            (setq overlay (make-overlay (- next len) next))
+            (overlay-put overlay 'invisible t)
+            (overlay-put overlay 'intangible t)
+            (setq next (search-forward sr-avfs-root nil t))))
+        (goto-char (point-min)))))
 
 (defun sr-force-passive-highlight ()
   (sr-change-window)
@@ -827,10 +861,12 @@ automatically:
   (save-excursion
     (if (null filename)
         (if (eq 1 (line-number-at-pos)) ;; <- Click or Enter on path line
-            (setq filename (buffer-substring
-                            (+ 2 (point-min))
-                            (re-search-forward "\\(?:/\\|$\\)" nil t)))
-        (setq filename (expand-file-name (dired-get-filename nil t)))))
+            (let* ((eol (save-excursion (end-of-line) (point)))
+                   (slash (re-search-forward "/" eol t)))
+              (if slash
+                  (setq filename (buffer-substring (+ 2 (point-min)) slash))
+                (setq filename dired-directory)))
+          (setq filename (expand-file-name (dired-get-filename nil t)))))
     (if filename
         (if (string= filename (expand-file-name "../"))
             (sr-dired-prev-subdir)
@@ -886,12 +922,20 @@ automatically:
            (null (posix-string-match "#" dir)))
         (setq dir (replace-regexp-in-string sr-avfs-root "" dir)))
 
+  ;; Detect spontaneous windows changes (using the mouse):
+  (if (not (string= sr-this-directory dired-directory))
+      (setq sr-other-directory sr-this-directory))
+  (if (eq (selected-window) sr-left-window)
+      (sr-select-window 'left)
+    (sr-select-window 'right))
+
   (hl-line-mode 0)
   (sr-within dir
              (if (or (not dired-directory)
                      (string= sr-other-directory dired-directory))
                  (dired dir)
                (find-alternate-file dir)))
+  (setq sr-this-directory dired-directory)
   (sr-keep-buffer)
   (sr-history-push dired-directory)
   (sr-highlight)
@@ -1011,6 +1055,7 @@ they can be restored later."
   (interactive)
   (if (not (equal sr-window-split-style 'top))
       (progn
+        (setq sr-this-directory sr-other-directory)
         (setq sr-other-directory dired-directory)
         (if (equal (selected-window) sr-right-window)
             (sr-select-window 'left)
@@ -1144,6 +1189,15 @@ horizontal and vice-versa."
       (sr-hide-attributes)
     (sr-unhide-attributes)))
 
+(defun sr-toggle-truncate-lines ()
+  "Enables/Disables truncation of long lines in the active pane."
+  (interactive)
+  (setq truncate-partial-width-windows (not truncate-partial-width-windows))
+  (sr-revert-buffer)
+  (if truncate-partial-width-windows
+      (message "Sunrise: truncating long lines")
+    (message "Sunrise: continuing long lines")))
+
 (defun sr-interactive-sort (order)
   "Prompts for a new sorting order for the active pane and applies it."
   (interactive "cSort by (n)ame, (s)ize, (t)ime or e(x)tension? ")
@@ -1182,12 +1236,12 @@ horizontal and vice-versa."
     (let ((opt (string-to-char option))
           (beg (point))
           (end (point-max)))
-      (toggle-read-only)
+      (toggle-read-only -1)
       (cond ((eq opt ?X) (sort-regexp-fields nil "^.*$" "[/.][^/.]+$" beg end))
             ((eq opt ?t) (sort-regexp-fields t "^.*$" "[0-9]\\{4\\}\\(-[0-9]\\{2\\}\\)\\{2\\} [0-2][0-9]:[0-5][0-9]" beg end))
             ((eq opt ?S) (sort-numeric-fields 3 beg end) (reverse-region beg end))
             (t  (sort-regexp-fields nil "^.*$" "/[^/]*$" beg end)))
-      (toggle-read-only))))
+      (toggle-read-only 1))))
 
 ;;; ============================================================================
 ;;; Alternate & synchronized navigation functions:
@@ -1463,7 +1517,7 @@ the original one"
     (re-search-forward "\\S-" nil t)
     (setq indentation (- (current-column) 1))
     (dired-next-line 1)
-    (toggle-read-only)
+    (toggle-read-only -1)
     (mapcar (lambda (file)
               (insert-char 32 indentation)
               (setq file (replace-regexp-in-string "/$" "" file))
@@ -1474,7 +1528,7 @@ the original one"
     (unwind-protect
         (kill-line)
       (progn
-        (toggle-read-only)
+        (toggle-read-only 1)
         (sr-change-window)
         (dired-unmark-all-marks)))))
 
