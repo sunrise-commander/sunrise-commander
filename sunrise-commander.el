@@ -206,6 +206,12 @@
   constant during Sunrise operation."
   :group 'sunrise)
 
+(defcustom sr-quit-hook nil
+  "List of functions to be called after the Sunrise panes are hidden"
+  :group 'sunrise
+  :type 'hook
+  :options '(auto-insert))
+
 (defvar sr-restore-buffer nil
   "Buffer to restore when sr quits.")
 
@@ -303,7 +309,8 @@
         Return ........ visit selected file/directory
         M-Return ...... visit selected file/directory in passive pane
         C-c Return .... visit selected in passive pane (console compatible)
-        o ............. quick visit selected file (scroll with C-M-v, C-M-S-v)
+        o,v ........... quick visit selected file (scroll with C-M-v, C-M-S-v)
+        C-u o, C-u v .. kill quick-viewed buffer (restores normal scrolling)
 
         + ............. create new directory
         C ............. copy marked (or current) files and directories
@@ -478,6 +485,7 @@ automatically:
 
 (define-key sr-mode-map "\C-m"                'sr-advertised-find-file)
 (define-key sr-mode-map "o"                   'sr-quick-view)
+(define-key sr-mode-map "v"                   'sr-quick-view)
 (define-key sr-mode-map "/"                   'sr-goto-dir)
 (define-key sr-mode-map "U"                   'sr-dired-prev-subdir)
 (define-key sr-mode-map "\M-y"                'sr-history-prev)
@@ -828,7 +836,8 @@ automatically:
 
         ;;NOTE: never exit the recursive edit here.  functions should do this
         ;;themselves
-        (toggle-read-only -1))))
+        (toggle-read-only -1)
+        (run-hooks 'sr-quit-hook))))
 
 (defun sr-save-directories()
   "Save the current directories in the sr buffer to use the next time sr starts
@@ -1144,16 +1153,32 @@ horizontal and vice-versa."
   (dired-omit-mode)
   (sr-highlight))
 
-(defun sr-quick-view ()
+(defun sr-quick-view (&optional arg)
   "Opens the selected file on the viewer window without selecting it. Kills any
    other buffer opened previously the same way."
-  (interactive)
-  (let ((home (selected-window)))
-    (if (buffer-live-p other-window-scroll-buffer)
-        (kill-buffer other-window-scroll-buffer))
-    (dired-find-file-other-window)
-    (setq other-window-scroll-buffer (current-buffer))
-    (select-window home)))
+  (interactive "P")
+  (if arg
+      (sr-kill-quick-view)
+    (let ((home (selected-window)))
+      (if (buffer-live-p other-window-scroll-buffer)
+          (kill-buffer other-window-scroll-buffer))
+      (dired-find-file-other-window)
+      (setq other-window-scroll-buffer (current-buffer))
+      (select-window home))))
+
+(defun sr-kill-quick-view ()
+  "Kills the last buffer opened using quick view (if any)."
+  (let ((buf other-window-scroll-buffer))
+    (if (and (buffer-live-p buf)
+             (y-or-n-p (concat "Kill buffer " (buffer-name buf) " ? ")))
+        (kill-buffer buf))))
+
+;; These clean up after a quick view:
+(add-hook 'sr-quit-hook (lambda () (setq other-window-scroll-buffer nil)))
+(add-hook 'kill-buffer-hook
+          (lambda ()
+            (if (eq (current-buffer) other-window-scroll-buffer)
+                (setq other-window-scroll-buffer nil))))
 
 (defun sr-hide-attributes ()
   "Hides the attributes of all files in the active pane."
