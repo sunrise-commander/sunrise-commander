@@ -242,6 +242,10 @@
 (defvar sr-current-window-overlay nil
   "Holds the current overlay which marks the current dired buffer.")
 
+(defvar sr-clex-hotchar-overlay nil
+  "Holds the overlay used to highlight the hot character (%) during CLEX
+  operations.")
+
 (defvar sr-left-directory "~/"
   "Dired directory for the left window.  See variable `dired-directory'.")
 
@@ -277,6 +281,9 @@
 (defvar sr-ediff-on nil
   "Flag that indicates whether an ediff is being done by Sunrise")
 
+(defvar sr-clex-on nil
+  "Flag that indicates that a CLEX operation is taking place")
+
 (defvar sr-dired-directory ""
   "Directory inside which sr-mode is currently active")
 
@@ -297,6 +304,12 @@
 (defface sr-highlight-path-face
   '((t (:background "yellow" :foreground "#ace6ac" :bold t :height 120)))
   "Face of the directory path on mouse hover"
+  :group 'sunrise)
+
+(defface sr-clex-hotchar-face
+  '((t (:foreground "red" :bold t)))
+  "Face of the hot character (%) in CLEX mode. Indicates that a CLEX
+substitution may be about to happen."
   :group 'sunrise)
 
 ;;; ============================================================================
@@ -1944,6 +1957,47 @@ or (c)ontents? "))
 	(concat (shell-quote-wildcard-pattern dired-directory) " ")
       (error ""))))
 
+(defun sr-clex-start ()
+  "Starts a new CLEX operation. Registers sr-clex-commit as a local
+   after-change-function."
+  (interactive)
+  (if sr-clex-on
+      (progn
+        (setq sr-clex-on nil)
+        (delete-overlay sr-clex-hotchar-overlay))
+    (progn
+      (insert-char ?% 1)
+      (if sr-running
+          (progn
+            (add-hook 'after-change-functions 'sr-clex-commit nil t)
+            (setq sr-clex-on t)
+            (setq sr-clex-hotchar-overlay (make-overlay (point) (1- (point))))
+            (overlay-put sr-clex-hotchar-overlay 'face 'sr-clex-hotchar-face)
+            (message "Sunrise: CLEX is now ON for keys: m f d M F D %%"))))))
+
+(defun sr-clex-commit (&optional beg end range)
+  "Commits the current CLEX operation (if any). This function is added to the
+   local after-change-functions list of the buffer by sr-clex-start."
+  (interactive)
+  (if sr-clex-on
+      (progn
+        (setq sr-clex-on nil)
+        (delete-overlay sr-clex-hotchar-overlay)
+        (let ((xchar (char-before))
+              (expansion))
+          (setq expansion
+                (cond ((eq xchar ?m) (sr-clex-marked 'left))
+                      ((eq xchar ?f) (sr-clex-file   'left))
+                      ((eq xchar ?d) (sr-clex-dir    'left))
+                      ((eq xchar ?M) (sr-clex-marked 'right))
+                      ((eq xchar ?F) (sr-clex-file   'right))
+                      ((eq xchar ?D) (sr-clex-dir    'right))
+                      (t nil)))
+          (if expansion
+              (progn
+                (kill-backward-chars 2)
+                (insert expansion)))))))
+
 (defvar sr-term-keys '(([M-up]          . sr-ti-previous-line)
                        ([A-up]          . sr-ti-previous-line)
                        ("\M-p"          . sr-ti-previous-line)
@@ -1959,13 +2013,7 @@ or (c)ontents? "))
                        ("\M-U"          . sr-ti-prev-subdir)
                        ([(control tab)] . sr-ti-change-window)
                        ("\C-c\t"        . sr-ti-change-window)
-                       ("%m"            . (lambda () (interactive)(insert (sr-clex-marked 'left))))   
-                       ("%f"            . (lambda () (interactive)(insert (sr-clex-file 'left))))     
-                       ("%d"            . (lambda () (interactive)(insert (sr-clex-dir 'left))))      
-                       ("%M"            . (lambda () (interactive)(insert (sr-clex-marked 'right))))  
-                       ("%F"            . (lambda () (interactive)(insert (sr-clex-file 'right))))    
-                       ("%D"            . (lambda () (interactive)(insert (sr-clex-dir 'right))))     
-                       ("%%"            . (lambda () (interactive)(insert "%"))))
+                       ("%"             . sr-clex-start))
   "Keybindings for terminal integration and command line expansion")
 
 (defun sr-define-ti-keys (mode-map)
