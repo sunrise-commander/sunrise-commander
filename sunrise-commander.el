@@ -136,27 +136,24 @@
 ;; cause some MC power users may have them too deeply embedded in  their  spinal
 ;; cord)
 
-;; 4)  If  you have AVFS running on your system and want to use it directly from
-;; Sunrise, add: (sunrise-avfs "[path-to-AVFS-root]") after the "require"  line.
-
-;; 5)  Choose  some  unused  extension for files to be opened in Sunrise VIRTUAL
+;; 4)  Choose  some  unused  extension for files to be opened in Sunrise VIRTUAL
 ;; mode and add it to auto-mode-alist, e.g. if you want  to  name  your  virtual
 ;; directories  like  *.svrm  just  add  to  your  .emacs  file  a line like the
 ;; following:
 ;;
 ;;     (add-to-list 'auto-mode-alist '("\\.srvm\\'" . sr-virtual-mode))
 
-;; 6) Evaluate all the new lines, or reload your .emacs file, or restart emacs.
+;; 5) Evaluate the new lines, or reload your .emacs file, or restart emacs.
 
-;; 7) Type M-x sunrise to invoke the Sunrise Commander (or much better: bind the
+;; 6) Type M-x sunrise to invoke the Sunrise Commander (or much better: bind the
 ;; function to your favorite key combination). The  command  sunrise-cd  invokes
 ;; Sunrise  and  automatically  selects  the  current file wherever it is in the
 ;; filesystem. Type h at any moment for information on available key bindings.
 
-;; 8)  Type  M-x customize-group <RET> sunrise <RET> to customize options, fonts
-;; and colors.
+;; 7)  Type  M-x customize-group <RET> sunrise <RET> to customize options, fonts
+;; and colors (activate AVFS support here, too).
 
-;; 9) Enjoy :)
+;; 8) Enjoy :)
 
 ;;; Code:
 
@@ -171,27 +168,46 @@
 (defcustom sr-terminal-program "eshell"
   "The program to use for terminal emulation. If this value is set to
   \"eshell\", the emacs shell will be used."
-  :group 'sunrise)
+  :group 'sunrise
+  :type 'string)
 
 (defcustom sr-listing-switches "-alp"
   "Listing switches to used (instead of dired-listing-switches) for building
   Sunrise buffers.
-  Most portable value: \"-alp\"
+  Most portable value: -alp
   Recommended value on GNU systems: \
-\"--time-style=locale --group-directories-first -alDphgG\""
-  :group 'sunrise)
+--time-style=locale --group-directories-first -alDphgG"
+  :group 'sunrise
+  :type 'string)
 
 (defcustom sr-virtual-listing-switches  "--time-style=long-iso --group-directories-first -aldpgG"
   "Listing  switches  for building buffers in Sunrise VIRTUAL mode based on find
   and locate results. Sorting  support  in  sr-virtual  buffers  depend  on  the
   correct format of their entries."
-  :group 'sunrise)
+  :group 'sunrise
+  :type 'string)
+
+(defcustom sr-avfs-root nil
+  "The root of the AVFS virtual filesystem to use for navigating compressed
+   archives. Setting this value activate AVFS support."
+  :group 'sunrise
+  :type '(choice
+          (const :tag "AVFS support disabled" nil)
+          (directory :tag "AVFS root directory")))
+
+(defcustom sr-avfs-handlers-alist '(("\\.[jwesh]ar$" . "#uzip/")
+                                    ("\\.xpi$"       . "#uzip/")
+                                    ("."             . "#/"))
+  "List of AVFS handlers to manage specific file extensions."
+  :group 'sunrise
+  :type 'alist)
 
 (defcustom sr-md5-shell-command "md5sum %f | cut -d' ' -f1 2>/dev/null"
   "Shell command to use for calculating MD5 sums for files when comparing
    directories using the ``(c)ontents'' option. Use %f as a placeholder for the
    name of the file."
-  :group 'sunrise)
+  :group 'sunrise
+  :type 'string)
 
 (defcustom sr-window-split-style 'horizontal
   "The current window split configuration.  May be 'horizontal, 'vertical or 'top"
@@ -204,7 +220,8 @@
 (defcustom sr-windows-locked t
   "Flag that indicates whether the vertical size of the panes should remain
   constant during Sunrise operation."
-  :group 'sunrise)
+  :group 'sunrise
+  :type 'boolean)
 
 (defcustom sr-quit-hook nil
   "List of functions to be called after the Sunrise panes are hidden"
@@ -266,14 +283,6 @@
 (defvar sr-start-message
   "Been coding all night? Enjoy the Sunrise! (or press q to quit)"
   "Message to display when `sr' is started.")
-
-(defvar sr-avfs-root nil
-  "The root of the AVFS virtual filesystem to use for navigating compressed
-   archives. Set to a non-nil value to activate AVFS support.")
-
-(defvar sr-avfs-handlers-alist '(("\\.[jwesh]ar$" . "#uzip/")
-                                 ("."             . "#/"))
-  "List of AVFS handlers to manage specific file extensions.")
 
 (defface sr-active-path-face
   '((t (:background "#ace6ac" :foreground "yellow" :bold t :height 120)))
@@ -667,15 +676,6 @@ automatically:
           (if (and first-logic-point
                    (< (point) first-logic-point))
               (goto-char first-logic-point))))))
-
-(defun sunrise-avfs (root)
-  "Activates AVFS support and sets the root of the virtual filesystem."
-  (interactive "DAVFS root directory: ")
-  (setq root (expand-file-name root))
-  (let ((tail (string-match "/$" root)))
-    (if tail
-        (setq root (substring root 0 tail))))
-  (setq sr-avfs-root root))
 
 ;;; ============================================================================
 ;;; Window management functions:
@@ -1999,7 +1999,7 @@ or (c)ontents? "))
 (rainbow sr-html-face              (:foreground "DarkOliveGreen")        "\\(^..[^d].*\\.x?html?$\\)")
 (rainbow sr-xml-face               (:foreground "DarkGreen")             "\\(^..[^d].*\\.\\(xml\\|xsd\\|xslt?\\|wsdl\\)$\\)")
 (rainbow sr-log-face               (:foreground "brown")                 "\\(^..[^d].*\\.log$\\)")
-(rainbow sr-compressed-face        (:foreground "magenta")               "\\(^..[^d].*\\.\\(zip\\|bz2\\|t?gz\\|[zZ]\\|[jwers]?ar\\)$\\)")
+(rainbow sr-compressed-face        (:foreground "magenta")               "\\(^..[^d].*\\.\\(zip\\|bz2\\|t?gz\\|[zZ]\\|[jwers]?ar\\|xpi\\)$\\)")
 (rainbow sr-packaged-face          (:foreground "DarkMagenta")           "\\(^..[^d].*\\.\\(deb\\|rpm\\)$\\)")
 (rainbow sr-encrypted-face         (:foreground "DarkOrange1")           "\\(^..[^d].*\\.\\(gpg\\|pgp\\)$\\)")
 (rainbow sr-marked-dir-face        (:foreground "red" :bold t)           "\\(^[*D].d.*$\\)")
