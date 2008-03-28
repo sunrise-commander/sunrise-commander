@@ -70,15 +70,13 @@
 ;; capture find and locate results in regular files and to use them later as  if
 ;; they  were  directories  with  all  Dired  and  Sunrise  operations  at  your
 ;; fingertips.
-
-;; * The results of the following operations are displayed in VIRTUAL mode:
-;;     find-dired-name (by pressing C-c C-n),
-;;     find-grep-name  (by pressing C-c C-g),
-;;     find-dired      (by pressing C-c C-f),
-;;     locate          (by pressing C-c C-l).
-
-;; * Press C-c C-r to display the listing of all recently visited files (also in
-;; VIRTUAL mode).
+;; The results of the following operations are displayed in VIRTUAL mode:
+;;    - find-dired-name (press C-c C-n),
+;;    - find-grep-name  (press C-c C-g),
+;;    - find-dired      (press C-c C-f),
+;;    - locate          (press C-c C-l),
+;;    - list all recently visited files (press C-c C-r -- requires recentf),
+;;    - list all directories in active pane's history ring (press C-c C-d).
 
 ;; * Supports AVFS (http://www.inf.bme.hu/~mszeredi/avfs/) for transparent navi-
 ;; gation inside compressed archives (*.zip, *.tgz, *.tar.bz2, *.deb, etc. etc.)
@@ -407,14 +405,15 @@ Sunrise, like G for changing group, M for changing mode and so on.
 Some more bindings are provided for terminals in line mode, most useful after
 opening a terminal in the viewer window (with C-c t):
 
+       (these two are only for external shells - bash, ksh, etc. not for eshell)
         C-c C-j ....... put terminal in line mode
         C-c C-k ....... put terminal back in char mode
 
-        M-<up> ........ move cursor up in active pane
-        M-<down> ...... move cursor down in active pane
+        M-<up>, M-P ... move cursor up in active pane
+        M-<down>, M-N . move cursor down in active pane
         M-Return ...... visit selected file/directory in active pane
         M-U ........... go to parent directory in active pane
-        M-m ........... mark selected file/directory in active pane
+        M-M ........... mark selected file/directory in active pane
         M-Backspace ... unmark previous file/directory in active pane
         C-Tab ......... switch focus to active pane
 
@@ -546,6 +545,7 @@ automatically:
 (define-key sr-mode-map "\C-c\C-g"            'sr-find-grep)
 (define-key sr-mode-map "\C-c\C-l"            'sr-locate)
 (define-key sr-mode-map "\C-c\C-r"            'sr-recent-files)
+(define-key sr-mode-map "\C-c\C-d"            'sr-recent-directories)
 (define-key sr-mode-map ";"                   'sr-follow-file)
 
 (define-key sr-mode-map "\M-n"                'sr-next-line-other) 
@@ -1105,8 +1105,7 @@ they can be restored later."
   (re-search-forward directory-listing-before-filename-regexp nil t))
 
 (defun sr-split-toggle()
-  "If sr is currently configured for vertical splitting... change it to
-horizontal and vice-versa."
+  "Changes sunrise windows layout from horizontal to vertical to top and so on."
   (interactive)
   (cond
    ((equal sr-window-split-style 'horizontal) (sr-split-setup 'vertical))
@@ -1167,8 +1166,9 @@ horizontal and vice-versa."
   (sr-highlight))
 
 (defun sr-quick-view (&optional arg)
-  "Opens the selected file on the viewer window without selecting it. Kills any
-   other buffer opened previously the same way."
+  "Opens  the  selected file on the viewer window without selecting it. Kills
+  any other buffer opened previously the same  way.  With  optional  argument
+  kills the last quick view buffer without opening a new one."
   (interactive "P")
   (if arg
       (sr-kill-quick-view)
@@ -1248,7 +1248,7 @@ horizontal and vice-versa."
 
 (defun sr-sort-order (label option)
   "Changes the sorting order of the active pane by appending additional options
-   to dired-listing-switches"
+   to dired-listing-switches and reverting the buffer."
   (if (equalp major-mode 'sr-virtual-mode)
       (sr-sort-virtual option)
     (progn
@@ -1295,7 +1295,7 @@ horizontal and vice-versa."
         (list 'sr-change-window)))
 
 (defun sr-sync ()
-  "Toggle the Sunrise synchronized navigation feature."
+  "Toggles the Sunrise synchronized navigation feature."
   (interactive)
   (if sr-synchronized
       (setq sr-synchronized nil)
@@ -1811,15 +1811,36 @@ or (c)ontents? "))
       (error "ERROR: Feature recentf not available!"))
 
   (sr-switch-to-clean-buffer "*Recent Files*")
-  (insert "Recent Files: \n\n")
+  (insert "Recently Visited Files: \n")
   (let ((dired-actual-switches dired-listing-switches))
     (condition-case nil
         (dired-insert-directory "/" sr-virtual-listing-switches recentf-list)
       (error
          (recentf-cleanup)
          (sr-switch-to-clean-buffer "*Recent Files*")
-         (insert "Recent Files: \n\n")
+         (insert "Recently Visited Files: \n")
          (dired-insert-directory "/" sr-virtual-listing-switches recentf-list)))
+    (sr-virtual-mode)
+    (sr-keep-buffer)))
+
+(defun sr-recent-directories ()
+  "Displays the history of directories recently visited in the current pane."
+  (interactive)
+  (let ((hist (get sr-selected-window 'history))
+        (dired-actual-switches dired-listing-switches)
+        (pane-name (capitalize (symbol-name sr-selected-window)))
+        (seen-dirs) (beg))
+    (sr-switch-to-clean-buffer (concat "*" pane-name " Pane History*"))
+    (insert (concat "Recent Directories in " pane-name " Pane: \n"))
+    (dolist (dir hist)
+        (if (and (not (find-if (lambda (x) (string= x dir)) seen-dirs))
+                 (file-directory-p dir))
+            (progn
+              (setq seen-dirs (cons dir seen-dirs))
+              (setq dir (replace-regexp-in-string "\\(.\\)/$" "\\1" dir))
+              (setq beg (point))
+              (insert-directory dir sr-virtual-listing-switches nil nil)
+              (dired-align-file beg (point)))))
     (sr-virtual-mode)
     (sr-keep-buffer)))
 
@@ -1829,9 +1850,7 @@ or (c)ontents? "))
       (progn
         (kill-buffer nil)
         (switch-to-buffer name))
-    (progn
-      (goto-char (point-min))
-      (flush-lines "."))))
+    (kill-region (point-min) (point-max))))
 
 ;; This cleans up the current pane after deletion from the history of recent
 ;; files:
@@ -2000,14 +2019,14 @@ or (c)ontents? "))
 
 (defvar sr-term-keys '(([M-up]          . sr-ti-previous-line)
                        ([A-up]          . sr-ti-previous-line)
-                       ("\M-p"          . sr-ti-previous-line)
+                       ("\M-P"          . sr-ti-previous-line)
                        ([M-down]        . sr-ti-next-line)
                        ([A-down]        . sr-ti-next-line)
-                       ("\M-n"          . sr-ti-next-line)
+                       ("\M-N"          . sr-ti-next-line)
                        ("\M-\C-m"       . sr-ti-select)
                        ("\C-\M-j"       . sr-ti-select)
                        ([M-return]      . sr-ti-select)
-                       ("\M-m"          . sr-ti-mark)
+                       ("\M-M"          . sr-ti-mark)
                        ([M-backspace]   . sr-ti-unmark)
                        ("\M-\d"         . sr-ti-unmark)
                        ("\M-U"          . sr-ti-prev-subdir)
