@@ -546,6 +546,7 @@ automatically:
 (define-key sr-mode-map "\C-c\C-l"            'sr-locate)
 (define-key sr-mode-map "\C-c\C-r"            'sr-recent-files)
 (define-key sr-mode-map "\C-c\C-d"            'sr-recent-directories)
+(define-key sr-mode-map "\C-c\C-v"            'sr-pure-virtual)
 (define-key sr-mode-map ";"                   'sr-follow-file)
 
 (define-key sr-mode-map "\M-n"                'sr-next-line-other) 
@@ -1851,6 +1852,19 @@ or (c)ontents? "))
         (kill-buffer nil)
         (switch-to-buffer name))
     (kill-region (point-min) (point-max))))
+
+(defun sr-pure-virtual ()
+  "Creates a new empty buffer in Sunrise VIRTUAL mode."
+  (interactive)
+  (let ((dir (directory-file-name (dired-current-directory)))
+        (buff (generate-new-buffer-name (buffer-name (current-buffer)))))
+    (switch-to-buffer buff)
+    (goto-char (point-min))
+    (insert (concat "  " dir) ":\n")
+    (insert " Pure VIRTUAL buffer: \n")
+    (insert "  drwxrwxrwx 00 0000 0000-00-00 00:00 ./\n")
+    (sr-virtual-mode)
+    (sr-keep-buffer)))
 
 ;; This cleans up the current pane after deletion from the history of recent
 ;; files:
