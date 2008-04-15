@@ -827,8 +827,11 @@ automatically:
         (goto-char (point-min)))))
 
 (defun sr-force-passive-highlight ()
-  (sr-change-window)
-  (sr-change-window))
+  (if (equal sr-window-split-style 'top)
+      (sr-highlight)
+    (progn
+      (sr-change-window)
+      (sr-change-window))))
 
 (defun sr-quit (&optional norestore)
   "Quit Sunrise and restore emacs to previous operation."
