@@ -815,7 +815,7 @@ automatically:
 (defun sr-hide-avfs-root ()
   "Hides the AVFS virtual filesystem root (if any) on the path line."
   (if (not (null sr-avfs-root))
-      (let ((next (search-forward sr-avfs-root nil t))
+      (let ((next (search-forward (concat sr-avfs-root "/") nil t))
             (len (length sr-avfs-root))
             (overlay))
         (while (not (null next))
@@ -1837,7 +1837,8 @@ or (c)ontents? "))
     (sr-switch-to-clean-buffer (concat "*" pane-name " Pane History*"))
     (insert (concat "Recent Directories in " pane-name " Pane: \n"))
     (dolist (dir hist)
-        (if (and (not (find-if (lambda (x) (string= x dir)) seen-dirs))
+        (if (and dir
+                 (not (find-if (lambda (x) (string= x dir)) seen-dirs))
                  (file-directory-p dir))
             (progn
               (setq seen-dirs (cons dir seen-dirs))
