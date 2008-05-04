@@ -114,13 +114,14 @@
 
 ;; This is version 2 $Rev$ of the Sunrise Commander.
 
-;; Please  note  that it was written on GNU Emacs 23 on Linux, and tested on GNU
-;; Emacs 22 and 23 for Linux and on EmacsW32 (version 22) for  Windows.  I  *am*
-;; aware  that  there are several functions (including, alas, file and directory
-;; comparison) that simply will not work on GNU Emacs 21, but unfortunately I do
-;; not  have  the time to port them back. I don't know either if it will work at
-;; all on XEmacs (uses overlays, YMMV), so try at your own risk.  All  contribu-
-;; tions and/or bug reports will be very welcome.
+;; It  was  written  on GNU Emacs 23 on Linux, and tested on GNU Emacs 22 and 23
+;; for Linux and on EmacsW32 (version 22) for  Windows.  I  have  also  received
+;; feedback  from a user reporting it works OK on the Mac (GNU Emacs 22.2 on Mac
+;; OS X Leopard). I *am* aware that  there  are  several  functions  (including,
+;; alas,  file  and directory comparison) that simply will not work on GNU Emacs
+;; 21, but unfortunately I do not have the time to port them back. I don't  know
+;; either  if  it will work at all on XEmacs (uses overlays), so try at your own
+;; risk. All contributions and/or bug reports will be very welcome.
 
 ;;; Installation and Usage:
 
