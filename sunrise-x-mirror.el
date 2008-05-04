@@ -1,3 +1,97 @@
+;; sunrise-x-mirror.el  --- Extension to the Sunrise Commander file manager that
+;; allows to access compressed archived in read/write mode.
+
+;; Copyright (C) 2008 José Alfredo Romero L.
+
+;; Author: José Alfredo Romero L. <joseito@poczta.onet.pl>
+;; Keywords: Sunrise Commander Emacs File Manager Extension Archives Read/Write
+
+;; This program is free software: you can redistribute it and/or modify it under
+;; the terms of the GNU General Public License as published by the Free Software
+;; Foundation,  either  version  3 of the License, or (at your option) any later
+;; version.
+;; 
+;; This  program  is distributed in the hope that it will be useful, but WITHOUT
+;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+;; FOR  A  PARTICULAR  PURPOSE.  See the GNU General Public License for more de-
+;; tails.
+
+;; You  should have received a copy of the GNU General Public License along with
+;; this program. If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; This  is  an  *experimental* extension for the Sunrise Commander file manager
+;; (see http://joseito.republika.pl/sunrise-commander.el.gz for  details),  that
+;; allows  browsing  compressed  archives  in full read-write mode. Sunrise does
+;; provide means for transparent browsing of archives (through AVFS),  but  this
+;; supports exclusively read-only navigation - if you want to edit a file inside
+;; the virtual filesystem, copy, remove, or rename anything, you still  have  to
+;; uncompress the archive, do the stuff and compress it back yourself.
+
+;; It  uses  funionfs  to  create  a  writeable  overlay on top of the read-only
+;; filesystem provided by AVFS. You can freely add, remove  or  modify  anything
+;; inside  the  resulting  union filesystem (a.k.a. the "mirror area"), and then
+;; commit all modifications (or not) to  the  original  archive  with  a  single
+;; keystroke.  There  is no preliminary uncompressing of the archive and nothing
+;; happens if you don't make any modifications to it (or  if  you  don't  commit
+;; them).  When  you commit your modifications, the contents of the union fs are
+;; compressed to create an updated archive that is  then  used  to  replace  the
+;; original one (optionally, you can keep a backup copy of the original, just in
+;; case).
+
+;; Be  warned,  though,  that  this  method  can  be  impractical for very large
+;; archives with strong compression (like tar.gz or tar.bz2), since  the  uncom-
+;; pressing  happens  in the final stage and requires multiple access operations
+;; through AVFS. What this means is that probably you'll have to wait a looooong
+;; time  if you try to commit changes to a tar.bz2 file with several hundreds of
+;; megabytes in size.
+
+;; For this extension to work you ABSOLUTELY must have:
+;; 1) FUSE + AVFS support working in your Sunrise Commander installment.
+;; 2) FUSE + funionfs installed and working.
+;; 3) All programs required for repacking archives: at least zip, jar and tar.
+;; 4)  Your  AVFS  filesystem  root  mounted  inside  a directory where you have
+;; writing access.
+
+;; This  means  that  most  probably  this extension will work out-of-the-box on
+;; Linux (or other unices), but you'll have a hard  time  to  make  it  work  on
+;; Windows.   It was written on GNU Emacs 23 on Linux and tested on GNU Emacs 22
+;; and 23 for Linux.
+
+;; This is version 1 $Rev$ of the Sunrise Commander Mirror Extension.
+
+;;; Installation and Usage:
+
+;; 1) Put this file somewhere in your emacs load-path.
+
+;; 2) Add a (require 'sunrise-x-mirror) to your .emacs file, preferably right
+;; after (require 'sunrise-commander).
+
+;; 3) Evaluate the new expression, or reload your .emacs file, or restart emacs.
+
+;; 4)  Run  the Sunrise Commander (M-x sunrise), select any compressed directory
+;; in the active pane and press C-c C-b. This will automatically take you to the
+;; mirror area for the selected archive. You can make any modifications you want
+;; to the contents of the archive in here. When you're done,  just  press  again
+;; C-c C-b  anywhere  inside the mirror area. If there are any changes to commit
+;; (and if you confirm) the original archive will be replaced by a new one  with
+;; the  contents  of the mirror area you've just been working on.   If you don't
+;; change the defaults, the original will be renamed to  its  own  name  with  a
+;; ".bak" extension.
+
+;; 5)  You  can add support for new archive formats by adding new entries to the
+;; sr-mirror-pack-commands-alist  custom  variable,  which  contains  a  regular
+;; expression  to  match against the name of the archive and a string containing
+;; the shell command to  execute  for  packing  back  the  mirror  area  into  a
+;; compressed archive.
+
+;; 6)  Once you've gained enough confidence using this extension (if you do) you
+;; can reset the sr-mirror-keep-backups flag to get rid of all the backup copies
+;; produced by it.
+
+;;; Code:
+
 (require 'sunrise-commander)
 
 (defcustom sr-mirror-keep-backups t
@@ -9,17 +103,24 @@
 (defcustom sr-mirror-pack-commands-alist
   '(
     ("\\.zip$" .                    "zip -r   %f *")
-    ("\\.jar$" .                    "jar cvf  %f *")
+    ("\\.[jwesh]ar$" .              "jar cvf  %f *")
     ("\\.\\(?:tar\\.gz\\|tgz\\)$" . "tar cvzf %f *")
     ("\\.tar\\.bz2$" .              "tar cvjf %f *")
    )
   "List of shell commands to repack the contents of the current mirror area into
   a compressed archive of the appropriate type. Use %f as a placeholder for  the
-  name of the resulting archive."
+  name  of  the  resulting  archive. If no repacking command has been registered
+  here for a file (usu. a file extension),  Sunrise  will  refuse  to  create  a
+  mirror area for it even if it is normally browseable through AVFS."
   :group 'sunrise
   :type 'alist)
 
-(defvar sr-mirror-home nil)
+(defvar sr-mirror-home nil
+  "Root directory of all mirror areas. This is set automatically by the function
+  sr-mirror enable and reset by sr-mirror-disable to keep the mirror home  path,
+  as  well  as  to  indicate  mirroring  support  is on/off. Do not mess with it
+  directly - if you need to change the name of your mirror home then modify  sr-
+  mirror-enable.")
 
 (define-key sr-mode-map "\C-c\C-b" 'sr-mirror-toggle)
 
@@ -98,17 +199,17 @@
             (sr-mirror-commit mirror overlay)
             (sr-mirror-unmount mirror overlay))
         (error (concat "Sunrise: sorry, that's not a mirror area: " here)))
-      
+
       (if (null (directory-files sr-mirror-home nil "^[^.]"))
           (sr-mirror-disable))
-      
+
       t)))
 
 (defun sr-mirror-commit (mirror overlay)
   "Commits  all  modifications  made  to  the  given mirror in the given overlay
-  directory by replacing the original compressed archive with a  new  one  built
-  with the current content of the mirror. Keeps a backup of the original archive
-  if the sr-mirror-backup variable is not nil (it is by default)."
+  directory by replacing the mirrored archive with a  new  one  built  with  the
+  current  contents of the mirror. Keeps a backup of the original archive if the
+  sr-mirror-backup variable is not nil (as set by default)."
   (if (and (sr-mirror-files (concat sr-mirror-home overlay))
            (y-or-n-p "Sunrise: commit changes in mirror? "))
       (condition-case err
@@ -202,7 +303,7 @@
 (defun sr-mirror-overlay-redir (dirname &optional force-root)
   "Analyses  the  given  directory  path  and rewrites it (if necessary) to play
   nicely with the mirror fs the given path  belongs  to.  If  the  path  is  not
-  contained in a mirror fs then it is returned unmodified."
+  inside any mirror fs then it is returned unmodified."
   (if (null sr-avfs-root)
       dirname
     (let ((xpdir (expand-file-name dirname))
