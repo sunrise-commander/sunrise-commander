@@ -187,7 +187,7 @@
 
 (defcustom sr-avfs-root nil
   "The root of the AVFS virtual filesystem to use for navigating compressed
-   archives. Setting this value activate AVFS support."
+   archives. Setting this value activates AVFS support."
   :group 'sunrise
   :type '(choice
           (const :tag "AVFS support disabled" nil)
@@ -1709,7 +1709,8 @@ or (c)ontents? "))
 (defun sr-diff ()
   "Runs diff on the top two marked files in both panes"
   (interactive)
-  (eval (sr-diff-form 'diff)))
+  (eval (sr-diff-form 'diff))
+  (setq other-window-scroll-buffer (get-buffer "*Diff*")))
 
 (defun sr-ediff ()
   "Runs ediff on the two top marked files in both panes"
