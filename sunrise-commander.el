@@ -684,7 +684,7 @@ automatically:
 
         (let(first-logic-point)
           (save-excursion
-            (if (re-search-forward "\\.\\./$" nil t)
+            (if (re-search-forward "\\.\\./?$" nil t)
                 (setq first-logic-point (match-beginning 0))))
 
           ;;if the current point is less than the idea point... first-logic-point....
@@ -895,11 +895,13 @@ automatically:
                 (setq filename dired-directory)))
           (setq filename (expand-file-name (dired-get-filename nil t)))))
     (if filename
-        (if (string= filename (expand-file-name "../"))
-            (sr-dired-prev-subdir)
-          (if (file-directory-p filename)
-              (sr-goto-dir filename)
-            (sr-find-file filename))))))
+       (if (file-directory-p filename)
+	   (progn
+	     (setq filename (file-name-as-directory filename))
+	     (if (string= filename (expand-file-name "../"))
+		 (sr-dired-prev-subdir)
+	       (sr-goto-dir filename)))
+	 (sr-find-file filename)))))
 
 (defun sr-find-file (filename)
   "Determines  the  proper  way  of handling a file. If the file is a compressed
@@ -973,8 +975,8 @@ automatically:
   "Go to the previous subdirectory."
   (interactive)
   (if (not (string= dired-directory "/"))
-      (let ((here (sr-directory-name-proper dired-directory)))
-        (setq here (replace-regexp-in-string "#.*/$" "" here))
+      (let ((here (sr-directory-name-proper (expand-file-name dired-directory))))
+        (setq here (replace-regexp-in-string "#.*/?$" "" here))
         (sr-goto-dir (expand-file-name "../"))
         (sr-focus-filename here))
     (error "ERROR: Already at root")))
@@ -1093,7 +1095,7 @@ they can be restored later."
   (interactive)
   (goto-char (point-min))
   (if (re-search-forward directory-listing-before-filename-regexp nil t)
-      (while (looking-at "\.\.?/$")
+      (while (looking-at "\.\.?/?$")
         (dired-next-line 1))))
 
 (defun sr-end-of-buffer()
@@ -1105,7 +1107,12 @@ they can be restored later."
 
 (defun sr-focus-filename (filename)
   "Tries to select the given file name in the current buffer."
-  (search-forward (concat " " filename) nil t)
+  (if (file-directory-p filename)
+      (progn
+	(setq filename (replace-regexp-in-string "/$" "" filename))
+	(setq filename (concat " " (regexp-quote filename) "\\(?:/\\|$\\)"))
+	(re-search-forward filename nil t))
+    (search-forward (concat " " filename) nil t))
   (beginning-of-line)
   (re-search-forward directory-listing-before-filename-regexp nil t))
 
@@ -1844,7 +1851,7 @@ or (c)ontents? "))
                  (file-directory-p dir))
             (progn
               (setq seen-dirs (cons dir seen-dirs))
-              (setq dir (replace-regexp-in-string "\\(.\\)/$" "\\1" dir))
+              (setq dir (replace-regexp-in-string "\\(.\\)/?$" "\\1" dir))
               (setq beg (point))
               (insert-directory dir sr-virtual-listing-switches nil nil)
               (dired-align-file beg (point)))))
