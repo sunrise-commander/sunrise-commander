@@ -97,15 +97,16 @@
 ;;     %d - expands to the current directory in the left pane
 ;;     %D - expands to the current directory in the right pane
 
-;; *  Alternate  navigation:  the  usual  navigation  keys  (n, p, Return, U, ;)
-;; combined with Meta allow to move across the  passive  pane  without  actually
-;; having to switch to it.
+;; * Passive navigation: the usual navigation keys (n, p, Return, U, ;) combined
+;; with Meta allow to move across the passive pane without  actually  having  to
+;; switch to it.
 
-;; *  Synchronized  navigation:  The sr-sync command toggles sync navigation. In
-;; this mode, the alternate navigation keys (M-n, M-p, M-Return, etc) operate on
-;; both  panes  simultaneously.  I've  found  this  quite  useful  for comparing
-;; hierarchically small to medium-sized directory trees (for large to very large
-;; directory trees one needs something on the lines of diff -r though).
+;; * Synchronized navigation:  press  C-c C-z  to enable / disable  synchronized
+;; navigation. In this mode, the passive navigation keys  (M-n,  M-p,  M-Return,
+;; etc.)  operate on both panes simultaneously. I've found this quite useful for
+;; comparing hierarchically small to medium-sized directory trees (for large  to
+;; very  large  directory  trees  one  needs  something  on the lines of diff -r
+;; though).
 
 ;; * etc. ;-)
 
@@ -1267,10 +1268,10 @@ they can be restored later."
       (toggle-read-only 1))))
 
 ;;; ============================================================================
-;;; Alternate & synchronized navigation functions:
+;;; Passive & synchronized navigation functions:
 
 (defmacro sr-in-other (form)
-  "Helper macro for alternate & synchronized navigation."
+  "Helper macro for passive & synchronized navigation."
   (list 'progn
         (list 'if 'sr-synchronized form)
         (list 'sr-change-window)
