@@ -358,6 +358,7 @@ substitution may be about to happen."
         M-t ........... transpose panes
         M-o ........... synchronize panes
         C-c C-s ....... change panes layout (vertical/horizontal/top-only)
+        C-c C-z ....... enable/disable synchronized navigation
 
         C-= ........... smart compare files (ediff)
         C-c = ......... smart compare files (console compatible)
@@ -527,6 +528,7 @@ automatically:
 (define-key sr-mode-map "\C-c\d"              'sr-toggle-attributes)
 (define-key sr-mode-map "\M-l"                'sr-toggle-truncate-lines)
 (define-key sr-mode-map "s"                   'sr-interactive-sort)
+(define-key sr-mode-map "\C-c\C-z"            'sr-sync)
 
 (define-key sr-mode-map "C"                   'sr-do-copy)
 (define-key sr-mode-map "c"                   'dired-do-copy)
@@ -658,39 +660,10 @@ automatically:
   (if (and (file-exists-p directory)
            (file-readable-p directory))
       (if (file-directory-p directory)
-          (progn
-            (sr-goto-dir directory)
-            (sr-setup-interface))
+          (sr-goto-dir directory)
         (progn
           (sr-quit)
           (exit-recursive-edit)))))
-
-(defun sr-setup-interface ()
-  "Sets up the logical Sunrise interface"
-  (interactive)
-  (if (equal major-mode 'sr-mode)
-      (progn
-        (sr-highlight)
-        (font-lock-mode 1)
-
-        ;;update the mode with the current directory
-
-        (let(basic-line-format)
-          (setq basic-line-format (concat " " (expand-file-name dired-directory)))
-          (setq mode-line-format basic-line-format))
-
-        ;;if the point is below the .. directory... this is OK.  else set it to
-        ;;the correct dir.
-
-        (let(first-logic-point)
-          (save-excursion
-            (if (re-search-forward "\\.\\./?$" nil t)
-                (setq first-logic-point (match-beginning 0))))
-
-          ;;if the current point is less than the idea point... first-logic-point....
-          (if (and first-logic-point
-                   (< (point) first-logic-point))
-              (goto-char first-logic-point))))))
 
 ;;; ============================================================================
 ;;; Window management functions:
@@ -1312,8 +1285,21 @@ they can be restored later."
   (if sr-synchronized
       (setq sr-synchronized nil)
     (setq sr-synchronized t))
+  (mapcar 'sr-mark-sync (list sr-left-buffer sr-right-buffer))
   (message (concat "Sync navigation is now "
                    (if sr-synchronized "ON" "OFF"))))
+
+(defun sr-mark-sync (&optional buffer)
+  "Changes  the  pretty  name  of  the sr major mode to 'Sunrise SYNC-LOCK' when
+  operating in synchonized navigation mode."
+  (save-window-excursion
+    (if buffer
+        (switch-to-buffer buffer))
+    (setq mode-name (concat "Sunrise "
+                            (if sr-synchronized "SYNC-NAV" "Commander")))))
+
+;; This advertises synchronized navigation in all new buffers:
+(add-hook 'sr-mode-hook 'sr-mark-sync)
 
 (defun sr-next-line-other ()
   "Move the cursor down in the other pane"
@@ -1329,14 +1315,14 @@ they can be restored later."
   "Open the file/directory selected in the other pane."
   (interactive)
   (if sr-synchronized
-        (let ((target (sr-directory-name-proper (dired-get-filename))))
-          (sr-advertised-find-file)
-          (sr-change-window)
-          (if (file-directory-p target)
-              (sr-goto-dir (expand-file-name target))
-            (if (y-or-n-p "Unable to synchronize. Disable sync navigation? ")
-                (sr-sync)))
-          (sr-change-window))
+      (let ((target (sr-directory-name-proper (dired-get-filename))))
+        (sr-change-window)
+        (if (file-directory-p target)
+            (sr-goto-dir (expand-file-name target))
+          (if (y-or-n-p "Unable to synchronize. Disable sync navigation? ")
+              (sr-sync)))
+        (sr-change-window)
+        (sr-advertised-find-file))
     (sr-in-other (sr-advertised-find-file))))
 
 (defun sr-prev-subdir-other ()
