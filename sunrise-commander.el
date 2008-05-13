@@ -1404,12 +1404,12 @@ they can be restored later."
             (if (y-or-n-p (concat "Move " files-count-str
                                   " files to " sr-other-directory "? "))
                 (progn
-                  (dired-unmark-all-marks)
                   (sr-change-window)
                   (sr-move-files selected-files dired-directory)
                   (sr-revert-buffer)
                   (sr-change-window)
-                  (sr-revert-buffer)
+                  (if (= 0 (dired-do-kill-lines))
+                    (dired-kill-line))
                   (message (concat "Done: "
                                    (int-to-string (length selected-files))
                                    " file(s) dispatched")))))
