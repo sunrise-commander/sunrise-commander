@@ -1098,12 +1098,12 @@ they can be restored later."
 
 (defun sr-focus-filename (filename)
   "Tries to select the given file name in the current buffer."
-
-  (let ((expr (concat "[0-9] " filename)))
+  (let ((expr filename))
     (if (file-directory-p filename)
         (progn
           (setq expr (replace-regexp-in-string "/$" "" expr))
           (setq expr (concat (regexp-quote expr) "\\(?:/\\|$\\)"))))
+    (setq expr (concat "[0-9] +" expr))
     (if (null (re-search-forward expr nil t))
         (if (null (re-search-backward expr nil t))
             (error (concat "ERROR: unable to find " filename
