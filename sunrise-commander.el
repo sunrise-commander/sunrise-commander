@@ -2089,26 +2089,26 @@ or (c)ontents? "))
 ;;; ============================================================================
 ;;; Font-Lock colors & styles:
 
-(defmacro rainbow (symbol spec regexp)
+(defmacro sr-rainbow (symbol spec regexp)
   (list 'progn
-        (list 'defface symbol (list 'quote (list (list t spec))) "rainbow face" :group ''sunrise)
+        (list 'defface symbol (list 'quote (list (list t spec))) "Sunrise rainbow face" :group ''sunrise)
         (list 'font-lock-add-keywords (list 'quote 'sr-mode) (list 'quote (list (list regexp 1 (list 'quote symbol) ))))
         (list 'font-lock-add-keywords (list 'quote 'sr-virtual-mode) (list 'quote (list (list regexp 1 (list 'quote symbol) ))))))
 
-(rainbow sr-html-face              (:foreground "DarkOliveGreen")        "\\(^..[^d].*\\.x?html?$\\)")
-(rainbow sr-xml-face               (:foreground "DarkGreen")             "\\(^..[^d].*\\.\\(xml\\|xsd\\|xslt?\\|wsdl\\)$\\)")
-(rainbow sr-log-face               (:foreground "brown")                 "\\(^..[^d].*\\.log$\\)")
-(rainbow sr-compressed-face        (:foreground "magenta")               "\\(^..[^d].*\\.\\(zip\\|bz2\\|t?gz\\|[zZ]\\|[jwers]?ar\\|xpi\\)$\\)")
-(rainbow sr-packaged-face          (:foreground "DarkMagenta")           "\\(^..[^d].*\\.\\(deb\\|rpm\\)$\\)")
-(rainbow sr-encrypted-face         (:foreground "DarkOrange1")           "\\(^..[^d].*\\.\\(gpg\\|pgp\\)$\\)")
+(sr-rainbow sr-html-face              (:foreground "DarkOliveGreen")        "\\(^..[^d].*\\.x?html?$\\)")
+(sr-rainbow sr-xml-face               (:foreground "DarkGreen")             "\\(^..[^d].*\\.\\(xml\\|xsd\\|xslt?\\|wsdl\\)$\\)")
+(sr-rainbow sr-log-face               (:foreground "brown")                 "\\(^..[^d].*\\.log$\\)")
+(sr-rainbow sr-compressed-face        (:foreground "magenta")               "\\(^..[^d].*\\.\\(zip\\|bz2\\|t?gz\\|[zZ]\\|[jwers]?ar\\|xpi\\)$\\)")
+(sr-rainbow sr-packaged-face          (:foreground "DarkMagenta")           "\\(^..[^d].*\\.\\(deb\\|rpm\\)$\\)")
+(sr-rainbow sr-encrypted-face         (:foreground "DarkOrange1")           "\\(^..[^d].*\\.\\(gpg\\|pgp\\)$\\)")
 
-(rainbow sr-directory-face         (:foreground "blue1" :bold t)         "\\(^..d.*/$\\)")
-(rainbow sr-symlink-face           (:foreground "DeepSkyBlue" :italic t) "\\(^..l.*[^/]$\\)")
-(rainbow sr-symlink-directory-face (:foreground "blue1" :italic t)       "\\(^..l.*/$\\)")
-(rainbow sr-alt-marked-dir-face    (:foreground "DeepPink" :bold t)      "\\(^[^ *D].d.*$\\)")
-(rainbow sr-alt-marked-file-face   (:foreground "DeepPink")              "\\(^[^ *D].[^d].*$\\)")
-(rainbow sr-marked-dir-face        (:foreground "red" :bold t)           "\\(^[*D].d.*$\\)")
-(rainbow sr-marked-file-face       (:foreground "red")                   "\\(^[*D].[^d].*$\\)")
+(sr-rainbow sr-directory-face         (:foreground "blue1" :bold t)         "\\(^..d.*/$\\)")
+(sr-rainbow sr-symlink-face           (:foreground "DeepSkyBlue" :italic t) "\\(^..l.*[^/]$\\)")
+(sr-rainbow sr-symlink-directory-face (:foreground "blue1" :italic t)       "\\(^..l.*/$\\)")
+(sr-rainbow sr-alt-marked-dir-face    (:foreground "DeepPink" :bold t)      "\\(^[^ *D].d.*$\\)")
+(sr-rainbow sr-alt-marked-file-face   (:foreground "DeepPink")              "\\(^[^ *D].[^d].*$\\)")
+(sr-rainbow sr-marked-dir-face        (:foreground "red" :bold t)           "\\(^[*D].d.*$\\)")
+(sr-rainbow sr-marked-file-face       (:foreground "red")                   "\\(^[*D].[^d].*$\\)")
 
 (provide 'sunrise-commander)
 
