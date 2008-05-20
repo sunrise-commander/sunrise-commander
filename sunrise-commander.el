@@ -86,10 +86,10 @@
 ;; *  Terminal  integration  and Command line expansion: integrates tightly with
 ;; eshell or term-mode to allow interaction between terminal emulators  in  line
 ;; mode  (C-c  C-j)  and  the panes: the most important navigation commands (up,
-;; down, mark, unmark, go to parent dir) can be executed on the active pane  di-
-;; rectly  from  the  terminal by pressing the usual keys with Meta: <M-up>, <M-
-;; down>, etc.  Additionally, the following substitutions are automagically per-
-;; formed in term-line-mode:
+;; down, mark, unmark, go to parent dir) can be  executed  on  the  active  pane
+;; directly  from  the  terminal  by  pressing the usual keys with Meta: <M-up>,
+;; <M-down>,  etc.  Additionally,  the following substitutions are automagically
+;; performed in term-line-mode:
 ;;     %f - expands to the currently selected file in the left pane
 ;;     %F - expands to the currently selected file in the right pane
 ;;     %m - expands to the list of all marked files in the left pane
@@ -955,14 +955,31 @@ automatically:
         (sr-focus-filename here))
     (error "ERROR: Already at root")))
 
-(defun sr-follow-file (&optional filename)
+(defun sr-follow-file (&optional target-path)
   "Go to the same directory where the selected file is. Very useful inside
    Sunrise VIRTUAL buffers."
   (interactive)
-  (if (null filename)
-      (setq filename (dired-get-filename nil t)))
-  (sr-goto-dir (file-name-directory filename))
-  (sr-focus-filename (file-name-nondirectory filename)))
+  (if (null target-path)
+      (setq target-path (dired-get-filename nil t)))
+
+  (let ((target-dir (file-name-directory target-path))
+        (target-symlink (file-symlink-p target-path))
+        (target-file))
+
+    ;; if the target is a symlink and there's nothing more interesting to do
+    ;; then follow the symlink:
+    (if (and target-symlink
+             (string= target-dir (dired-current-directory))
+             (not (eq major-mode 'sr-virtual-mode)))
+        (progn
+          (setq target-path target-symlink)
+          (setq target-dir (file-name-directory target-symlink))))
+
+    (setq target-file (file-name-nondirectory target-path))
+    
+    (if target-dir ;; <-- nil in symlinks to other files in same directory:
+        (sr-goto-dir target-dir))
+    (sr-focus-filename target-file)))
 
 (defun sr-history-push (element)
   "Pushes a new path into the history ring of the current pane"
@@ -1081,12 +1098,16 @@ they can be restored later."
 
 (defun sr-focus-filename (filename)
   "Tries to select the given file name in the current buffer."
-  (if (file-directory-p filename)
-      (progn
-	(setq filename (replace-regexp-in-string "/$" "" filename))
-	(setq filename (concat " " (regexp-quote filename) "\\(?:/\\|$\\)"))
-	(re-search-forward filename nil t))
-    (search-forward (concat " " filename) nil t))
+
+  (let ((expr (concat "[0-9] " filename)))
+    (if (file-directory-p filename)
+        (progn
+          (setq expr (replace-regexp-in-string "/$" "" expr))
+          (setq expr (concat (regexp-quote expr) "\\(?:/\\|$\\)"))))
+    (if (null (re-search-forward expr nil t))
+        (if (null (re-search-backward expr nil t))
+            (error (concat "ERROR: unable to find " filename
+                           " in current directory")))))
   (beginning-of-line)
   (re-search-forward directory-listing-before-filename-regexp nil t))
 
