@@ -332,6 +332,7 @@ substitution may be about to happen."
         M-Return ...... visit selected file/directory in passive pane
         C-c Return .... visit selected in passive pane (console compatible)
         o,v ........... quick visit selected file (scroll with C-M-v, C-M-S-v)
+        b ............. visit selected file/directory in default browser
         C-u o, C-u v .. kill quick-viewed buffer (restores normal scrolling)
 
         + ............. create new directory
@@ -354,7 +355,7 @@ substitution may be about to happen."
         C-Backspace ... hide/show file attributes in pane
         C-c Backspace . hide/show file attributes in pane (console compatible)
         M-l ........... truncate/continue long lines in pane
-        b ............. browse directory tree using w3m
+        C-c C-w ....... browse directory tree using w3m
 
         M-t ........... transpose panes
         M-o ........... synchronize panes
@@ -452,6 +453,7 @@ automatically:
   (define-key sr-virtual-mode-map "\C-c\C-c"
     (lambda()
       (interactive)
+      (sr-unhide-attributes)
       (sr-goto-dir dired-directory))) )
 
 (defmacro sr-within (dir form)
@@ -524,7 +526,8 @@ automatically:
 (define-key sr-mode-map "\M-t"                'sr-transpose-panes)
 (define-key sr-mode-map "\M-o"                'sr-synchronize-panes)
 (define-key sr-mode-map "\C-o"                'sr-omit-mode)
-(define-key sr-mode-map "b"                   'sr-browse)
+(define-key sr-mode-map "b"                   'sr-browse-file)
+(define-key sr-mode-map "\C-c\C-w"            'sr-browse-pane)
 (define-key sr-mode-map "g"                   'sr-revert-buffer)
 (define-key sr-mode-map "\C-c\d"              'sr-toggle-attributes)
 (define-key sr-mode-map "\M-l"                'sr-toggle-truncate-lines)
@@ -1148,18 +1151,29 @@ they can be restored later."
     (sr-goto-dir target)
     (sr-change-window)))
 
-(defun sr-browse ()
-  "Browse the directory/file on the current line."
+(defun sr-browse-pane ()
+  "Browses the directory in the active pane."
   (interactive)
-  (if (featurep 'browse-url)
-      (let(filename)
-        (setq filename (dired-get-filename))
-        (if filename
-            (let(url)
-              (setq url (concat "file://" filename))
-              (message "Browsing %s " url)
-              (browse-url url))))
-    (error "ERROR: Feature browse-url not available!")))
+  (if (not (featurep 'browse-url))
+      (error "ERROR: Feature browse-url not available!")
+    (let ((url (concat "file://" (expand-file-name dired-directory))))
+      (message "Browsing directory %s " dired-directory)
+      (if (featurep 'w3m)
+          (w3m-goto-url url)
+        (browse-url url)))))
+
+(defun sr-browse-file (&optional file)
+  "Displays the selected file in the default web browser"
+  (interactive)
+  (if (not (featurep 'browse-url))
+      (error "ERROR: Feature browse-url not available!")
+    (progn
+      (if (null file)
+          (setq file (dired-get-filename)))
+      (if file
+          (progn
+            (message "Browsing \"%s\" in web browser" file)
+            (browse-url (concat "file://" file)))))))
 
 (defun sr-revert-buffer ()
   "Refreshes the current pane"
@@ -1439,11 +1453,22 @@ they can be restored later."
         (message "Empty selection. Nothing done.")))))
 
 (defun sr-do-symlink ()
-  "Simply refuses to symlink files to VIRTUAL buffers."
+  "Creates  symbolic  links  in  the  passive pane to all the currently selected
+  files and directories in the active one."
   (interactive)
   (if (sr-virtual-target)
       (error "Cannot symlink files to a VIRTUAL buffer, try (C)opying instead.")
-    (dired-do-symlink)))
+    (dired-create-files
+     #'make-symbolic-link
+     "Symlink"
+     (dired-get-marked-files nil)
+     #'(lambda (from)
+         (setq from (replace-regexp-in-string "/$" "" from))
+         (if (file-directory-p from)
+             (setq from (sr-directory-name-proper from))
+           (setq from (file-name-nondirectory from)))
+         (expand-file-name from sr-other-directory))
+     dired-keep-marker-symlink)))
 
 (defun sr-do-hardlink ()
   "Simply refuses to hardlink files to VIRTUAL buffers."
