@@ -1160,7 +1160,7 @@ they can be restored later."
     (let ((url (concat "file://" (expand-file-name dired-directory))))
       (message "Browsing directory %s " dired-directory)
       (if (featurep 'w3m)
-          (w3m-goto-url url)
+          (eval '(w3m-goto-url url))
         (browse-url url)))))
 
 (defun sr-browse-file (&optional file)
@@ -1457,37 +1457,15 @@ they can be restored later."
   "Creates  symbolic  links  in  the  passive pane to all the currently selected
   files and directories in the active one."
   (interactive)
-  (if (sr-virtual-target)
-      (error "Cannot symlink files to a VIRTUAL buffer, try (C)opying instead.")
-    (dired-create-files
-     #'make-symbolic-link
-     "Symlink"
-     (dired-get-marked-files nil)
-     #'(lambda (from)
-         (setq from (replace-regexp-in-string "/$" "" from))
-         (if (file-directory-p from)
-             (setq from (sr-directory-name-proper from))
-           (setq from (file-name-nondirectory from)))
-         (expand-file-name from sr-other-directory))
-     dired-keep-marker-symlink)))
+  (sr-link #'make-symbolic-link "Symlink" dired-keep-marker-symlink))
 
 (defun sr-do-relsymlink ()
-  "Creates relative symbolic links in the passive pane to all the currently
+  "Creates  relative  symbolic  links  in  the passive pane to all the currently
   selected files and directories in the active one."
   (interactive)
-  (if (sr-virtual-target)
-      (error "Cannot symlink files to a VIRTUAL buffer, try (C)opying instead.")
-    (dired-create-files
-     #'dired-make-relative-symlink
-     "RelSymLink"
-     (dired-get-marked-files nil)
-     #'(lambda (from)
-         (setq from (replace-regexp-in-string "/$" "" from))
-         (if (file-directory-p from)
-             (setq from (sr-directory-name-proper from))
-           (setq from (file-name-nondirectory from)))
-         (expand-file-name from sr-other-directory))
-     dired-keep-marker-relsymlink)))
+  (sr-link #'dired-make-relative-symlink
+              "RelSymLink"
+              dired-keep-marker-relsymlink))
 
 (defun sr-do-hardlink ()
   "Simply refuses to hardlink files to VIRTUAL buffers."
@@ -1595,6 +1573,19 @@ the original one"
   (sr-copy-directory in-dir d to-dir do-overwrite)
   (let ((delete-dir (concat in-dir d)))
     (dired-delete-file delete-dir 'always)))
+
+(defun sr-link (creator action marker)
+  "Helper function for implementing sr-do-symlink and sr-do-relsymlink."
+  (if (sr-virtual-target)
+      (error "Cannot link files to a VIRTUAL buffer, try (C)opying instead.")
+    (dired-create-files creator action (dired-get-marked-files nil)
+                        #'(lambda (from)
+                            (setq from (replace-regexp-in-string "/$" "" from))
+                            (if (file-directory-p from)
+                                (setq from (sr-directory-name-proper from))
+                              (setq from (file-name-nondirectory from)))
+                            (expand-file-name from sr-other-directory))
+                        marker)))
 
 (defun sr-virtual-target ()
   "If the passive pane is in VIRTUAL mode returns its name as a string,
