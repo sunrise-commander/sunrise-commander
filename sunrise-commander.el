@@ -539,6 +539,7 @@ automatically:
 (define-key sr-mode-map "R"                   'sr-do-rename)
 (define-key sr-mode-map "r"                   'dired-do-rename)
 (define-key sr-mode-map "S"                   'sr-do-symlink)
+(define-key sr-mode-map "Y"                   'sr-do-relsymlink)
 (define-key sr-mode-map "H"                   'sr-do-hardlink)
 (define-key sr-mode-map "\C-x\C-q"            'sr-editable-pane)
 (define-key sr-mode-map "@"                   'sr-fast-backup-files)
@@ -1469,6 +1470,24 @@ they can be restored later."
            (setq from (file-name-nondirectory from)))
          (expand-file-name from sr-other-directory))
      dired-keep-marker-symlink)))
+
+(defun sr-do-relsymlink ()
+  "Creates relative symbolic links in the passive pane to all the currently
+  selected files and directories in the active one."
+  (interactive)
+  (if (sr-virtual-target)
+      (error "Cannot symlink files to a VIRTUAL buffer, try (C)opying instead.")
+    (dired-create-files
+     #'dired-make-relative-symlink
+     "RelSymLink"
+     (dired-get-marked-files nil)
+     #'(lambda (from)
+         (setq from (replace-regexp-in-string "/$" "" from))
+         (if (file-directory-p from)
+             (setq from (sr-directory-name-proper from))
+           (setq from (file-name-nondirectory from)))
+         (expand-file-name from sr-other-directory))
+     dired-keep-marker-relsymlink)))
 
 (defun sr-do-hardlink ()
   "Simply refuses to hardlink files to VIRTUAL buffers."
