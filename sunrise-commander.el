@@ -337,12 +337,16 @@ substitution may be about to happen."
 
         + ............. create new directory
         C ............. copy marked (or current) files and directories
-        c ............. copy (using traditional dired-do-copy)
         R ............. rename marked (or current) files and directories
-        r ............. rename (using traditional dired-do-rename)
-        D ............. delete marked (or current) files and directories
         S ............. soft-link selected file/directory to passive pane
+        Y ............. do relative soft-link of selected file in passive pane
         H ............. hard-link selected file/directory to passive pane
+        M-C ........... copy (using traditional dired-do-copy)
+        M-R ........... rename (using traditional dired-do-rename)
+        M-S............ soft-link (using traditional dired-do-symlink)
+        M-Y............ do relative soft-link (with traditional dired-do-relsymlink)
+        M-H............ hard-link selected file/directory to passive pane
+        D ............. delete marked (or current) files and directories
 
         M-a ........... move to beginning of current directory
         M-e ........... move to end of current directory
@@ -393,7 +397,7 @@ Additionally, if you activate the mc-compatible keybindings (by invoking the
 sunrise-mc-keys function) you'll get the following ones:
 
         F2 ............ go to directory
-        F3 ............ visit selected file
+        F3 ............ quick visit selected file
         F4 ............ visit selected file
         F5 ............ copy marked (or current) files and directories
         F6 ............ rename marked (or current) files and directories
@@ -535,12 +539,15 @@ automatically:
 (define-key sr-mode-map "\C-c\C-z"            'sr-sync)
 
 (define-key sr-mode-map "C"                   'sr-do-copy)
-(define-key sr-mode-map "c"                   'dired-do-copy)
 (define-key sr-mode-map "R"                   'sr-do-rename)
-(define-key sr-mode-map "r"                   'dired-do-rename)
 (define-key sr-mode-map "S"                   'sr-do-symlink)
 (define-key sr-mode-map "Y"                   'sr-do-relsymlink)
 (define-key sr-mode-map "H"                   'sr-do-hardlink)
+(define-key sr-mode-map "\M-C"                'dired-do-copy)
+(define-key sr-mode-map "\M-R"                'dired-do-rename)
+(define-key sr-mode-map "\M-S"                'dired-do-symlink)
+(define-key sr-mode-map "\M-Y"                'dired-do-relsymlink)
+(define-key sr-mode-map "\M-H"                'dired-do-hardlink)
 (define-key sr-mode-map "\C-x\C-q"            'sr-editable-pane)
 (define-key sr-mode-map "@"                   'sr-fast-backup-files)
 
@@ -1457,15 +1464,19 @@ they can be restored later."
   "Creates  symbolic  links  in  the  passive pane to all the currently selected
   files and directories in the active one."
   (interactive)
-  (sr-link #'make-symbolic-link "Symlink" dired-keep-marker-symlink))
+  (if (string= dired-directory sr-other-directory)
+      (dired-do-symlink)
+    (sr-link #'make-symbolic-link "Symlink" dired-keep-marker-symlink)))
 
 (defun sr-do-relsymlink ()
   "Creates  relative  symbolic  links  in  the passive pane to all the currently
   selected files and directories in the active one."
   (interactive)
-  (sr-link #'dired-make-relative-symlink
-              "RelSymLink"
-              dired-keep-marker-relsymlink))
+  (if (string= dired-directory sr-other-directory)
+      (dired-do-relsymlink)
+    (sr-link #'dired-make-relative-symlink
+             "RelSymLink"
+             dired-keep-marker-relsymlink)))
 
 (defun sr-do-hardlink ()
   "Simply refuses to hardlink files to VIRTUAL buffers."
@@ -1483,36 +1494,38 @@ they can be restored later."
 
 (defun sr-copy-files (file-path-list target-dir &optional do-overwrite)
   "Copies all files in file-path-list (list of full paths) to target dir"
+  (setq target-dir (replace-regexp-in-string "/?$" "/" target-dir))
   (mapcar
    (function 
     (lambda (f)
-	(cond ((file-directory-p f) 
-               (let* (
-                      (name (file-name-nondirectory f))
-                      (initial-path (file-name-directory f))
-                     )
-                 (sr-copy-directory initial-path name target-dir do-overwrite)))
-
-	      ((file-regular-p f)
-               (let* (
-                      (name (sr-file-name-proper (file-name-nondirectory f)))
-          	      (ext (file-name-extension f))
-	              (name-ext (concat name (if ext (concat "." ext) "")))
-                      (target-file (concat target-dir name-ext))
-                     )
-                 (message (concat f " => " target-file))
-                 (if (file-exists-p target-file)
-                     (if (or (eq do-overwrite 'ALWAYS)
-                             (setq do-overwrite (ask-overwrite target-file)))
-                         (copy-file f target-file t t))
-                   (copy-file f target-file t t))))
-
-	      (t nil))))
+      (cond ((file-directory-p f) 
+	     (let* (
+		    (name (file-name-nondirectory f))
+		    (initial-path (file-name-directory f))
+		    )
+	       (sr-copy-directory initial-path name target-dir do-overwrite)))
+	    
+	    ((file-regular-p f)
+	     (let* (
+		    (name (sr-file-name-proper (file-name-nondirectory f)))
+		    (ext (file-name-extension f))
+		    (name-ext (concat name (if ext (concat "." ext) "")))
+		    (target-file (concat target-dir name-ext))
+		    )
+	       (message (concat f " => " target-file))
+	       (if (file-exists-p target-file)
+		   (if (or (eq do-overwrite 'ALWAYS)
+			   (setq do-overwrite (ask-overwrite target-file)))
+		       (copy-file f target-file t t))
+		 (copy-file f target-file t t))))
+	    
+	    (t nil))))
    file-path-list))
 
 (defun sr-copy-directory (in-dir d to-dir do-overwrite)
   "Copies directory d in in-dir to to-dir, and recursively, all files too.
 indir/d => to-dir/d"
+  (setq d (replace-regexp-in-string "/?$" "/" d))
   (if (not (sr-overlapping-paths-p (concat in-dir d) to-dir))
       (progn
         (if (string= "" d)
@@ -1536,6 +1549,7 @@ subdirectories")))
    (function 
     (lambda (f)
       (cond ((file-directory-p f)
+	     (setq f (replace-regexp-in-string "/?$" "/" f))
              (let* (
                     (name (sr-file-name-proper (file-name-nondirectory f)))
                     (target-subdir target-dir)
