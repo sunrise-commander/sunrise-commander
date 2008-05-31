@@ -563,6 +563,7 @@ automatically:
 (define-key sr-mode-map "\C-c\C-d"            'sr-recent-directories)
 (define-key sr-mode-map "\C-c\C-v"            'sr-pure-virtual)
 (define-key sr-mode-map ";"                   'sr-follow-file)
+(define-key sr-mode-map "Q"                   'sr-do-query-replace-regexp)
 
 (define-key sr-mode-map "\M-n"                'sr-next-line-other) 
 (define-key sr-mode-map [M-down]              'sr-next-line-other)
@@ -1944,6 +1945,16 @@ or (c)ontents? "))
   (if (string= (buffer-name) "*Recent Files*")
       (sr-recent-files)))
 (ad-activate 'dired-do-flagged-delete)
+
+(defun sr-do-query-replace-regexp ()
+  "Forces Sunrise to quit before executing dired-do-query-replace-regexp."
+  (interactive)
+  (unwind-protect
+      (let ((buff (current-buffer)))
+        (sr-quit)
+        (switch-to-buffer buff)
+        (call-interactively 'dired-do-query-replace-regexp))
+    (exit-recursive-edit)))
 
 ;;; ============================================================================
 ;;; TI (Terminal Integration) and CLEX (Command Line EXpansion) functions:
