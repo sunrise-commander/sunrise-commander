@@ -172,18 +172,29 @@
   :type 'string)
 
 (defcustom sr-listing-switches "-alp"
-  "Listing switches to used (instead of dired-listing-switches) for building
-  Sunrise buffers.
+  "Listing  switches  to  use  (instead  of dired-listing-switches) for building
+  Sunrise buffers. Notice that buffers in  VIRTUAL  mode  (such  as  the  recent
+  directories and recent files listings) use sr-virtual-listing-switches instead
+  of this.
   Most portable value: -alp
   Recommended value on GNU systems: \
 --time-style=locale --group-directories-first -alDphgG"
   :group 'sunrise
   :type 'string)
 
-(defcustom sr-virtual-listing-switches  "--time-style=long-iso --group-directories-first -aldpgG"
-  "Listing  switches  for building buffers in Sunrise VIRTUAL mode based on find
-  and locate results. Sorting  support  in  sr-virtual  buffers  depend  on  the
-  correct format of their entries."
+(defcustom sr-virtual-listing-switches "--time-style=long-iso --group-directories-first -aldpgG"
+  "Listing switches for building buffers in Sunrise VIRTUAL mode based on find
+  and locate results. Sorting support in sr-virtual buffers depend on the
+  correct format of their entries.
+
+  NOTE:  the  default  value  for  these  switches may be incompatible with your
+  installment if you're using Sunrise in  a  non-GNU  environment.  If  you  are
+  getting error reports of the form ``Listing directory failed but `access-file'
+  worked'', then you may try changing this value to -alp (be aware, though, that
+  this will cripple sorting in all your VIRTUAL buffers), or much better install
+  GNU coreutils in your system and use gls as your ls program.  For  details  on
+  how to do this please consult the GNU Emacs FAQ for MS Windows.
+  (Thanks Vagn Johansen for pointing out this issue)"
   :group 'sunrise
   :type 'string)
 
