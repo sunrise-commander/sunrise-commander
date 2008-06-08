@@ -952,10 +952,7 @@ automatically:
 
 (defun sr-goto-dir (dir)
   "Changes the current directory in the active pane to the given one"
-  (interactive
-   (list 
-    (read-file-name "Change directory (file or pattern): " nil nil nil)))
-
+  (interactive "DChange directory (file or pattern): ")
   (if (and (not (null sr-avfs-root))
            (null (posix-string-match "#" dir)))
         (setq dir (replace-regexp-in-string sr-avfs-root "" dir)))
