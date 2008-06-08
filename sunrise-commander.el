@@ -234,6 +234,12 @@
   :group 'sunrise
   :type 'boolean)
 
+(defcustom sr-start-hook nil
+  "List of functions to be called after the Sunrise panes are displayed"
+  :group 'sunrise
+  :type 'hook
+  :options '(auto-insert))
+
 (defcustom sr-quit-hook nil
   "List of functions to be called after the Sunrise panes are hidden"
   :group 'sunrise
@@ -351,7 +357,7 @@ substitution may be about to happen."
         R ............. rename marked (or current) files and directories
         S ............. soft-link selected file/directory to passive pane
         Y ............. do relative soft-link of selected file in passive pane
-        H ............. hard-link selected file/directory to passive pane
+        H ............. hard-link selected file to passive pane
         M-C ........... copy (using traditional dired-do-copy)
         M-R ........... rename (using traditional dired-do-rename)
         M-S............ soft-link (using traditional dired-do-symlink)
@@ -465,11 +471,15 @@ automatically:
   (hl-line-mode 1)
   (define-key sr-virtual-mode-map "g" nil)
   (define-key sr-virtual-mode-map "\C-x\C-q" 'toggle-read-only)
-  (define-key sr-virtual-mode-map "\C-c\C-c"
-    (lambda()
-      (interactive)
-      (sr-unhide-attributes)
-      (sr-goto-dir dired-directory))) )
+  (define-key sr-virtual-mode-map "\C-c\C-c" 'sr-virtual-dismiss))
+
+(defun sr-virtual-dismiss ()
+  "Restores normal view of pane in Sunrise VIRTUAL mode."
+  (interactive)
+  (if (equalp major-mode 'sr-virtual-mode)
+      (progn
+        (sr-unhide-attributes)
+        (sr-goto-dir dired-directory))))
 
 (defmacro sr-within (dir form)
   "Puts the given form in Sunrise context"
@@ -590,6 +600,7 @@ automatically:
 (define-key sr-mode-map "\C-ct"               'sr-term)
 (define-key sr-mode-map "q"                   'keyboard-escape-quit)
 (define-key sr-mode-map "\M-q"                (lambda () (interactive) (sr-quit t)))
+(define-key sr-mode-map "h"                   'sr-describe-mode)
 
 ;;(define-key sr-mode-map [mouse-1]             'sr-advertised-find-file)
 (define-key sr-mode-map [mouse-2]             (lambda ()
@@ -648,6 +659,7 @@ automatically:
           (if filename
               (sr-focus-filename (replace-regexp-in-string ".*/" "" filename)))
           (message sr-start-message)
+          (run-hooks 'sr-start-hook)
           (recursive-edit))
         (sr-quit))
     (progn
@@ -1218,7 +1230,7 @@ they can be restored later."
       (if (buffer-live-p other-window-scroll-buffer)
           (kill-buffer other-window-scroll-buffer))
       (dired-find-file-other-window)
-      (setq other-window-scroll-buffer (current-buffer))
+      (sr-scrollable-viewer (current-buffer))
       (select-window home))))
 
 (defun sr-kill-quick-view ()
@@ -1233,7 +1245,7 @@ they can be restored later."
 (add-hook 'kill-buffer-hook
           (lambda ()
             (if (eq (current-buffer) other-window-scroll-buffer)
-                (setq other-window-scroll-buffer nil))))
+                (setq other-window-scroll-buffer  nil))))
 
 (defun sr-hide-attributes ()
   "Hides the attributes of all files in the active pane."
@@ -1788,7 +1800,7 @@ or (c)ontents? "))
   "Runs diff on the top two marked files in both panes"
   (interactive)
   (eval (sr-diff-form 'diff))
-  (setq other-window-scroll-buffer (get-buffer "*Diff*")))
+  (sr-scrollable-viewer (get-buffer "*Diff*")))
 
 (defun sr-ediff ()
   "Runs ediff on the two top marked files in both panes"
@@ -2157,6 +2169,19 @@ or (c)ontents? "))
   (if (equal sr-selected-window 'left)
       (setq sr-left-buffer (current-buffer))
     (setq sr-right-buffer (current-buffer))))
+
+(defmacro sr-scrollable-viewer (buffer)
+  "Sets the other-window-scroll-buffer variable to the given buffer (or nil)."
+  `(progn
+     (setq other-window-scroll-buffer ,buffer)
+     (if ,buffer
+         (message "QUICK VIEW: Press C-M-v, S-C-M-v to scroll up/down and C-u v (or C-u o) to dismiss"))))
+
+(defun sr-describe-mode ()
+  "Calls describe-mode and makes the resulting buffer C-M-v scrollable."
+  (interactive)
+  (describe-mode)
+  (sr-scrollable-viewer (get-buffer "*Help*")))
 
 ;;; ============================================================================
 ;;; Font-Lock colors & styles:
