@@ -24,14 +24,15 @@
 ;; Here  is  a  small extension that may be of help to new users who want to get
 ;; acquainted fast with  the  most  frequent  functions  found  in  the  Sunrise
 ;; Commander  and  their  keybindings.  Once installed, it displays a panel with
-;; mouse clickable buttons that show some of the most useful functions  provided
+;; mouse clickable buttons that show some of the most useful  actions  performed
 ;; by  Sunrise and their respective bindings in the bottom window (a.k.a. viewer
-;; window) every time the main panels are invoked. You can execute any of  these
-;; functions by clicking the appropriate button, but the extension was conceived
-;; more as a cheat sheet than as a real interface to  the  Sunrise  (and  dired)
-;; functions.  Eventually, if you like this kind of interaction with the program
-;; you can add your own commands to the list and let this extension  manage  the
-;; creation and layout of the buttons for you.
+;; window here) every time the main panels are invoked. You can execute  any  of
+;; these  functions  by  clicking  the appropriate button, but the extension was
+;; conceived more as a simple cheat sheet (a very, very limited one, as you  can
+;; easily  learn  by pressing the last button, labeled "More...") than as a real
+;; interface to Sunrise and Dired functions. Eventually, if you like  this  kind
+;; of interaction with the program you can add your own commands to the list and
+;; let this extension manage the creation and layout of the buttons for you.
 
 ;; This is version 1 $Rev$ of the Sunrise Commander Buttons Extension.
 
@@ -114,12 +115,6 @@
     )
   "Sunrise button definitions.")
 
-(defun sr-buttons-click ()
-  "Handles all click events that take place in the buttons buffer."
-  (interactive)
-  (unwind-protect
-      (call-interactively 'widget-button-click)
-    (sr-select-window sr-selected-window)))
 
 (define-derived-mode sr-buttons-mode custom-mode "Sunrise Buttons"
   "Sunrise Commander Buttons pannel mode"
@@ -130,6 +125,13 @@
   (setq double-click-time nil)
   (make-local-variable 'double-click-fuzz)
   (setq double-click-fuzz 0)
+
+  (defun sr-buttons-click ()
+    "Handles all click events that take place in the buttons buffer."
+    (interactive)
+    (unwind-protect
+        (call-interactively 'widget-button-click)
+      (sr-select-window sr-selected-window)))
 
   (mapc (lambda (x) (define-key sr-buttons-mode-map x 'sr-buttons-click))
         '([down-mouse-1] [down-mouse-2] [down-mouse-3]))
@@ -148,6 +150,8 @@
           [triple-down-mouse-1] [triple-down-mouse-2] [triple-down-mouse-3])))
 
 (add-hook 'sr-start-hook 'sr-buttons-display)
+(add-hook 'sr-quit-hook (lambda ()
+                          (bury-buffer (get-buffer sr-buttons-buffer-name))))
 
 (defun sr-buttons-display ()
   "Displays the buttons buffer in the viewer window. If no buttons buffer exists
@@ -176,9 +180,9 @@
   (goto-char (point-min)))
 
 (defun sr-buttons-build (spec mc-keys-on maxlen)
-  "Builds and renders a new widget in the buttons buffer. The first argument is
-  one element from sr-buttons-list (list containing tag, action and hint), the
-  second one is a flag that indicates whether mc style keybindings have been
+  "Builds  and renders a new widget in the buttons buffer. The first argument is
+  one element from sr-buttons-list (list containing tag, action and  hint),  the
+  second  one  is  a  flag that indicates whether mc style keybindings have been
   activated in Sunrise, and the last one is the length of the longest tag in the
   list."
   (if (or (null spec)
@@ -223,8 +227,8 @@
             (mapcar 'length (mapcar chopfun (mapcar 'car sr-buttons-list))))))
 
 (defun sr-buttons-normalize-tag (tag total-length fill-char)
-  "Lengthens the given tag to total-length by prepending and appending the
-  appropriate quantity of fill characters, so the text appears approximately
+  "Lengthens  the  given  tag  to  total-length  by prepending and appending the
+  appropriate quantity of fill characters, so  the  text  appears  approximately
   centered on its button."
   (let* ((fill-length (- total-length (length tag)))
          (before (/ fill-length 2))
