@@ -1926,6 +1926,7 @@ or (c)ontents? "))
     (insert (concat "Recent Directories in " pane-name " Pane: \n"))
     (dolist (dir hist)
         (if (and dir
+                 (file-exists-p dir)
                  (not (find-if (lambda (x) (string= x dir)) seen-dirs))
                  (file-directory-p dir))
             (progn
