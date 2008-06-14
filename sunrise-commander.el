@@ -659,7 +659,6 @@ automatically:
           (if filename
               (sr-focus-filename (replace-regexp-in-string ".*/" "" filename)))
           (message sr-start-message)
-          (run-hooks 'sr-start-hook)
           (recursive-edit))
         (sr-quit))
     (progn
@@ -745,7 +744,8 @@ automatically:
 
   (if (equal sr-window-split-style 'top)
       (delete-window sr-right-window)
-    (sr-force-passive-highlight)))
+    (sr-force-passive-highlight))
+  (run-hooks 'sr-start-hook))
 
 (defun sr-lock-window (frame)
   "Resize the left Sunrise pane to have the \"right\" size."
