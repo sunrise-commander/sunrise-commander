@@ -1015,58 +1015,80 @@ automatically:
 
 (defun sr-history-push (element)
   "Pushes a new path into the history ring of the current pane"
-  (let* (
-         (hist (get sr-selected-window 'history))
-         (len (length hist))
-        )
+  (let* ((hist (get sr-selected-window 'history))
+         (len (length hist)))
     (if (>= len 20)
         (nbutlast hist (- len 19)))
-    (if (not (string= element (car hist)))
-        (progn
-          (push element hist)
-          (put sr-selected-window 'history hist)))))
+    (if (null element)
+        (ignore)
+      (progn
+        (setq element (replace-regexp-in-string "/?$" "" element))
+        (if (member element hist)
+            (progn
+              (setq hist (remove element hist))
+              (put sr-selected-window 'history hist)))
+        (push element hist)
+        (put sr-selected-window 'history hist)))))
 
 (defun sr-history-next ()
   "Changes the current directory to the next one (if any) in the history list of
-the current pane"
+  the current pane"
   (interactive)
-  (let (
-        (hist (get sr-selected-window 'history))
-        (item nil)
-       )
-    (while (and (> (length hist) 0) (not item))
-      (setq item (car (last hist)))
-      (nbutlast hist))
-    (if item
-        (progn
-          (push item hist)
-          (put sr-selected-window 'history hist)
-          (if (file-directory-p item)
-              (sr-goto-dir item)
-            (sr-find-file item))))))
+  (sr-history-move 'sr-history-unwind))
 
 (defun sr-history-prev ()
   "Changes the current directory to the previous one (if any) in the history
-list of the current pane"
+  list of the current pane"
   (interactive)
-  (let (
-        (hist (get sr-selected-window 'history))
-        (item nil)
-       )
-    (while (and (> (length hist) 0) (not item))
-      (setq item (pop hist)))
+  (sr-history-move 'sr-history-wind))
+
+(defun sr-history-move (fun)
+  "Moves  the current pane backwards and forwards through its history of visited
+  directories, depending on the given direction function (wind or unwind)"
+  (let* ((hist (get sr-selected-window 'history))
+         (hist (apply fun (list hist)))
+         (item (car hist)))
     (if item
         (progn
-          (nconc hist (list item))
           (put sr-selected-window 'history hist)
-          (setq item (car hist))
           (if (file-directory-p item)
               (sr-goto-dir item)
             (sr-find-file item))))))
 
+(defun sr-history-wind (hist)
+  "Rotates clockwise the elements in the given history ring, ie. takes the first
+  element and puts it at the end of the list. Additionally discards all elements
+  that did not represent valid files when the function was executed."
+  (let ((item) (head))
+    (while (and (> (length hist) 0)
+                (or (null item) (not (file-exists-p item))))
+      (setq item (pop hist)))
+    (setq head (car hist))
+    (while (and (> (length hist) 0)
+                (or (null head) (not (file-exists-p head))))
+      (pop hist)
+      (setq head (car hist)))
+    (if item
+        (append hist (list item))
+      hist)))
+
+(defun sr-history-unwind (hist)
+  "Rotates  counter-clockwise  the  elements inthe given history ring, ie. takes
+  the last element and puts it  at  the  beginning  of  the  list.  Additionally
+  discards all elements that did not represent valid files when the function was
+  executed. (WARNING: uses nbutlast, destroys its own input list)."
+  (let (item)
+    (while (and (> (length hist) 0)
+                (or (null item) (not (file-exists-p item))))
+      (setq item (car (last hist)))
+      (nbutlast hist))
+    (if item
+        (cons item hist)
+      hist)))
+
 (defun sr-checkpoint-save (name)
   "Allows to give a name to the current directories in the Sunrise panes, so
-they can be restored later."
+  they can be restored later."
   (interactive "sCheckpoint name to save? ")
   (let ((my-window (selected-window))
         (my-cell))
