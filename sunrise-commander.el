@@ -1023,10 +1023,7 @@ automatically:
         (ignore)
       (progn
         (setq element (replace-regexp-in-string "/?$" "" element))
-        (if (member element hist)
-            (progn
-              (setq hist (remove element hist))
-              (put sr-selected-window 'history hist)))
+        (setq hist (delete element hist))
         (push element hist)
         (put sr-selected-window 'history hist)))))
 
@@ -1051,23 +1048,26 @@ automatically:
     (if item
         (progn
           (put sr-selected-window 'history hist)
-          (if (file-directory-p item)
-              (sr-goto-dir item)
-            (sr-find-file item))))))
+          (cond ((file-directory-p item) (sr-goto-dir item))
+                ((file-exists-p item) (sr-find-file item))
+                (t (ignore)))
+          ))))
+
+(defmacro sr-pick-file (item hist pick-next)
+  "Helper macro for implementing sr-history-wind and sr-history-unwind. Executes
+  pick-next until item becomes a valid file or hist runs out of elements."
+  `(while (and (> (length ,hist) 0)
+               (or (null ,item) (not (file-exists-p ,item))))
+     ,pick-next))
 
 (defun sr-history-wind (hist)
   "Rotates clockwise the elements in the given history ring, ie. takes the first
   element and puts it at the end of the list. Additionally discards all elements
   that did not represent valid files when the function was executed."
   (let ((item) (head))
-    (while (and (> (length hist) 0)
-                (or (null item) (not (file-exists-p item))))
-      (setq item (pop hist)))
+    (sr-pick-file item hist (setq item (pop hist)))
     (setq head (car hist))
-    (while (and (> (length hist) 0)
-                (or (null head) (not (file-exists-p head))))
-      (pop hist)
-      (setq head (car hist)))
+    (sr-pick-file head hist (progn (pop hist) (setq head (car hist))))
     (if item
         (append hist (list item))
       hist)))
@@ -1078,10 +1078,9 @@ automatically:
   discards all elements that did not represent valid files when the function was
   executed. (WARNING: uses nbutlast, destroys its own input list)."
   (let (item)
-    (while (and (> (length hist) 0)
-                (or (null item) (not (file-exists-p item))))
-      (setq item (car (last hist)))
-      (nbutlast hist))
+    (sr-pick-file item hist (progn
+                              (setq item (car (last hist)))
+                              (setq hist (nbutlast hist))))
     (if item
         (cons item hist)
       hist)))
