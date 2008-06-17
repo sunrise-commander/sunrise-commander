@@ -585,6 +585,7 @@ automatically:
 (define-key sr-mode-map "\C-c\C-v"            'sr-pure-virtual)
 (define-key sr-mode-map ";"                   'sr-follow-file)
 (define-key sr-mode-map "Q"                   'sr-do-query-replace-regexp)
+(define-key sr-mode-map "F"                   'sr-do-find-marked-files)
 
 (define-key sr-mode-map "\M-n"                'sr-next-line-other) 
 (define-key sr-mode-map [M-down]              'sr-next-line-other)
@@ -1119,6 +1120,15 @@ automatically:
     (sr-goto-dir (third cp-list))
     (select-window my-window)
     (sr-force-passive-highlight)))
+
+(defun sr-do-find-marked-files (&optional noselect)
+  "Sunrise replacement for dired-do-marked-files."
+  (interactive "P")
+  (unwind-protect
+      (let ((files (dired-get-marked-files)))
+        (if (null noselect) (sr-quit))
+        (dired-simultaneous-find-file files noselect))
+    (if (null noselect) (exit-recursive-edit))))
 
 ;;; ============================================================================
 ;;; Graphical interface interaction functions:
