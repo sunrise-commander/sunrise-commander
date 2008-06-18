@@ -234,6 +234,11 @@
   :group 'sunrise
   :type 'boolean)
 
+(defcustom sr-history-length 20
+  "Number of entries to keep in each of the pane history rings."
+  :group 'sunrise
+  :type 'integer)
+
 (defcustom sr-start-hook nil
   "List of functions to be called after the Sunrise panes are displayed"
   :group 'sunrise
@@ -586,6 +591,7 @@ automatically:
 (define-key sr-mode-map ";"                   'sr-follow-file)
 (define-key sr-mode-map "Q"                   'sr-do-query-replace-regexp)
 (define-key sr-mode-map "F"                   'sr-do-find-marked-files)
+(define-key sr-mode-map "\C-x\C-f"            'sr-find-file)
 
 (define-key sr-mode-map "\M-n"                'sr-next-line-other) 
 (define-key sr-mode-map [M-down]              'sr-next-line-other)
@@ -913,10 +919,11 @@ automatically:
 	       (sr-goto-dir filename)))
 	 (sr-find-file filename)))))
 
-(defun sr-find-file (filename)
+(defun sr-find-file (filename &optional wildcards)
   "Determines  the  proper  way  of handling a file. If the file is a compressed
   archive and AVFS has been activated, first tries to display it as a  catalogue
   in the VFS, otherwise just visits the file."
+  (interactive (find-file-read-args "Find file: " nil))
   (if (not (null sr-avfs-root))
       (let ((mode (assoc-default filename auto-mode-alist 'string-match)))
         (if (or (eq 'archive-mode mode)
@@ -940,7 +947,7 @@ automatically:
     (progn ;;the file is a regular file:
       (sr-quit)
       (condition-case description
-          (find-file filename)
+          (find-file filename wildcards)
         (error (message (second description))))
       (exit-recursive-edit))))
 
@@ -1016,17 +1023,16 @@ automatically:
 
 (defun sr-history-push (element)
   "Pushes a new path into the history ring of the current pane"
-  (let* ((hist (get sr-selected-window 'history))
-         (len (length hist)))
-    (if (>= len 20)
-        (nbutlast hist (- len 19)))
-    (if (null element)
-        (ignore)
-      (progn
-        (setq element (replace-regexp-in-string "/?$" "" element))
-        (setq hist (delete element hist))
-        (push element hist)
-        (put sr-selected-window 'history hist)))))
+  (unless (null element)
+    (let* ((hist (get sr-selected-window 'history))
+           (len (length hist)))
+      (if (>= len sr-history-length)
+          (nbutlast hist (- len sr-history-length)))
+      (if (< 1 (length element))
+          (setq element (replace-regexp-in-string "/?$" "" element)))
+      (setq hist (delete element hist))
+      (push element hist)
+      (put sr-selected-window 'history hist))))
 
 (defun sr-history-next ()
   "Changes the current directory to the next one (if any) in the history list of
@@ -1550,28 +1556,24 @@ automatically:
   (mapcar
    (function 
     (lambda (f)
-      (cond ((file-directory-p f) 
-	     (let* (
-		    (name (file-name-nondirectory f))
-		    (initial-path (file-name-directory f))
-		    )
-	       (sr-copy-directory initial-path name target-dir do-overwrite)))
-	    
-	    ((file-regular-p f)
-	     (let* (
-		    (name (sr-file-name-proper (file-name-nondirectory f)))
-		    (ext (file-name-extension f))
-		    (name-ext (concat name (if ext (concat "." ext) "")))
-		    (target-file (concat target-dir name-ext))
-		    )
-	       (message (concat f " => " target-file))
-	       (if (file-exists-p target-file)
-		   (if (or (eq do-overwrite 'ALWAYS)
-			   (setq do-overwrite (ask-overwrite target-file)))
-		       (copy-file f target-file t t))
-		 (copy-file f target-file t t))))
-	    
-	    (t nil))))
+      (if (file-directory-p f) 
+          (let* (
+                 (name (file-name-nondirectory f))
+                 (initial-path (file-name-directory f))
+                 )
+            (sr-copy-directory initial-path name target-dir do-overwrite))
+        (let* (
+               (name (sr-file-name-proper (file-name-nondirectory f)))
+               (ext (file-name-extension f))
+               (name-ext (concat name (if ext (concat "." ext) "")))
+               (target-file (concat target-dir name-ext))
+               )
+          (message (concat f " => " target-file))
+          (if (file-exists-p target-file)
+              (if (or (eq do-overwrite 'ALWAYS)
+                      (setq do-overwrite (ask-overwrite target-file)))
+                  (dired-copy-file f target-file t))
+            (dired-copy-file f target-file t))))))
    file-path-list))
 
 (defun sr-copy-directory (in-dir d to-dir do-overwrite)
@@ -1600,37 +1602,34 @@ subdirectories")))
   (mapcar
    (function 
     (lambda (f)
-      (cond ((file-directory-p f)
-	     (setq f (replace-regexp-in-string "/?$" "/" f))
-             (let* (
-                    (name (sr-file-name-proper (file-name-nondirectory f)))
-                    (target-subdir target-dir)
-                    (initial-path (file-name-directory f))
+      (if (file-directory-p f)
+          (progn
+            (setq f (replace-regexp-in-string "/?$" "/" f))
+            (let* (
+                   (name (sr-file-name-proper (file-name-nondirectory f)))
+                   (target-subdir target-dir)
+                   (initial-path (file-name-directory f))
                    )
-               (if (string= "" name)
-                   (setq target-subdir
-                         (concat target-dir (sr-directory-name-proper f))))
-               (if (file-exists-p target-subdir)
-                   (if (or (eq do-overwrite 'ALWAYS)
-                           (setq do-overwrite (ask-overwrite target-subdir)))
-                       (sr-move-directory initial-path name target-dir do-overwrite))
-                 (sr-move-directory initial-path name target-dir do-overwrite))))
-
-            ((file-regular-p f)
-             (let* (
-                    (name (sr-file-name-proper (file-name-nondirectory f)))
-                    (ext (file-name-extension f))
-                    (name-ext (concat name (if ext (concat "." ext) "")))
-                    (target-file (concat target-dir name-ext))
-                   )
-               (message (concat f " => " target-file))
-               (if (file-exists-p target-file)
-                   (if (or (eq do-overwrite 'ALWAYS)
-                           (setq do-overwrite (ask-overwrite target-file)))
-                       (rename-file f target-file t))
-                 (rename-file f target-file t))))
-
-            (t nil))))
+              (if (string= "" name)
+                  (setq target-subdir
+                        (concat target-dir (sr-directory-name-proper f))))
+              (if (file-exists-p target-subdir)
+                  (if (or (eq do-overwrite 'ALWAYS)
+                          (setq do-overwrite (ask-overwrite target-subdir)))
+                      (sr-move-directory initial-path name target-dir do-overwrite))
+                (sr-move-directory initial-path name target-dir do-overwrite))))
+        (let* (
+               (name (sr-file-name-proper (file-name-nondirectory f)))
+               (ext (file-name-extension f))
+               (name-ext (concat name (if ext (concat "." ext) "")))
+               (target-file (concat target-dir name-ext))
+               )
+          (message (concat f " => " target-file))
+          (if (file-exists-p target-file)
+              (if (or (eq do-overwrite 'ALWAYS)
+                      (setq do-overwrite (ask-overwrite target-file)))
+                  (dired-rename-file f target-file t))
+            (dired-rename-file f target-file t))) )))
    file-path-list))
 
 (defun sr-move-directory (in-dir d to-dir do-overwrite)
@@ -1956,16 +1955,16 @@ or (c)ontents? "))
     (sr-switch-to-clean-buffer (concat "*" pane-name " Pane History*"))
     (insert (concat "Recent Directories in " pane-name " Pane: \n"))
     (dolist (dir hist)
-        (if (and dir
-                 (file-exists-p dir)
-                 (not (find-if (lambda (x) (string= x dir)) seen-dirs))
-                 (file-directory-p dir))
-            (progn
-              (setq seen-dirs (cons dir seen-dirs))
-              (setq dir (replace-regexp-in-string "\\(.\\)/?$" "\\1" dir))
-              (setq beg (point))
-              (insert-directory dir sr-virtual-listing-switches nil nil)
-              (dired-align-file beg (point)))))
+      (if (and dir
+               (file-exists-p dir)
+               (not (find-if (lambda (x) (string= x dir)) seen-dirs))
+               (file-directory-p dir))
+          (progn
+            (setq seen-dirs (cons dir seen-dirs))
+            (setq dir (replace-regexp-in-string "\\(.\\)/?$" "\\1" dir))
+            (setq beg (point))
+            (insert-directory dir sr-virtual-listing-switches nil nil)
+            (dired-align-file beg (point)))))
     (sr-virtual-mode)
     (sr-keep-buffer)))
 
