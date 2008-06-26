@@ -152,6 +152,11 @@
 (add-hook 'sr-start-hook 'sr-buttons-display)
 (add-hook 'sr-quit-hook (lambda ()
                           (bury-buffer (get-buffer sr-buttons-buffer-name))))
+(add-hook 'kill-buffer-hook
+          (lambda ()
+            (if (and sr-running
+                     (eq (current-buffer) other-window-scroll-buffer))
+                (sr-buttons-display))))
 
 (defun sr-buttons-display ()
   "Displays the buttons buffer in the viewer window. If no buttons buffer exists

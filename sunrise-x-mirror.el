@@ -1,5 +1,5 @@
-;; sunrise-x-mirror.el  --- Extension to the Sunrise Commander file manager that
-;; allows to access compressed archived in read/write mode.
+;; sunrise-x-mirror.el  --- Extension to the Sunrise Commander File Manager that
+;; allows to access compressed archives in read/write mode.
 
 ;; Copyright (C) 2008 José Alfredo Romero L.
 
@@ -40,7 +40,7 @@
 ;; original one (optionally, you can keep a backup copy of the original, just in
 ;; case).
 
-;; Be  warned,  though,  that  this  method  can  be  impractical for very large
+;; Be  warned,  though,  that  this  method  may  be  impractical for very large
 ;; archives with strong compression (like tar.gz or tar.bz2), since  the  uncom-
 ;; pressing  happens  in the final stage and requires multiple access operations
 ;; through AVFS. What this means is that probably you'll have to wait a looooong
@@ -92,7 +92,7 @@
 
 ;;; Code:
 
-(require 'sunrise-commander)
+(eval-when-compile (require 'sunrise-commander))
 
 (defcustom sr-mirror-keep-backups t
   "Flag that indicates whether backup files are to be kept whenever the mirror
@@ -119,8 +119,8 @@
   "Root directory of all mirror areas. This is set automatically by the function
   sr-mirror enable and reset by sr-mirror-disable to keep the mirror home  path,
   as  well  as  to  indicate  mirroring  support  is on/off. Do not mess with it
-  directly - if you need to change the name of your mirror home then modify  sr-
-  mirror-enable.")
+  directly - if you need to change the name of your mirror home dir then  modify
+  sr-mirror-enable.")
 
 (define-key sr-mode-map "\C-c\C-b" 'sr-mirror-toggle)
 

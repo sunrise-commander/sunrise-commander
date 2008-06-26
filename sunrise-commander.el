@@ -2032,7 +2032,7 @@ or (c)ontents? "))
 
 (defun sr-term-extern ()
   "This is the implementation of sr-term for external terminal programs."
-  (let ((dir dired-directory))
+  (let ((dir default-directory))
     (sr-select-viewer-window)
     (term sr-terminal-program)
     (term-send-raw-string
@@ -2040,7 +2040,7 @@ or (c)ontents? "))
 
 (defun sr-term-eshell ()
   "This is the implementation of sr-term when using eshell."
-  (let ((dir dired-directory))
+  (let ((dir default-directory))
     (sr-select-viewer-window)
     (eshell)
     (insert (concat "cd " (shell-quote-wildcard-pattern dir)))
@@ -2092,6 +2092,15 @@ or (c)ontents? "))
   "Switches focus to the currently active pane."
   (interactive)
   (sr-select-window sr-selected-window))
+
+(defun sr-ti-newterm ()
+  "Opens a new terminal after renaming the previous one."
+  (interactive)
+  (let (new-name)
+    (rename-uniquely)
+    (setq new-name (buffer-name))
+    (sr-term)
+    (message (concat "Previous terminal renamed to " new-name))))
 
 (defun sr-clex-file (pane)
   "Returns the currently selected file in the given pane"
@@ -2179,6 +2188,7 @@ or (c)ontents? "))
                        ("\M-U"          . sr-ti-prev-subdir)
                        ([(control tab)] . sr-ti-change-window)
                        ("\C-c\t"        . sr-ti-change-window)
+                       ("\C-ct"         . sr-ti-newterm)
                        ("%"             . sr-clex-start))
   "Keybindings for terminal integration and command line expansion")
 
