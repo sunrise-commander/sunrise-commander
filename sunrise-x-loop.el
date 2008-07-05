@@ -179,9 +179,10 @@
 
 (defun sr-loop-cmd-loop ()
   "Main execution loop for the background elisp interpreter."
+  (sr-loop-disengage)
+  (defun read-char nil ?y) ;; Always answer "yes" to any prompt
   (let (command)
     (while t
-      (sr-loop-disengage)
       (setq command (read))
       (condition-case description
           (progn
@@ -228,6 +229,15 @@
       (setq prompt (replace-regexp-in-string
                     "\?" " in the background? (overwrites ALWAYS!)" prompt))))
 
+;; This modifies all queries from dired inside a loop scope:
+(defadvice dired-mark-read-file-name
+  (before sr-loop-advice-dired-mark-read-file-name
+          (prompt dir op-symbol arg files &optional default))
+  (if sr-loop-scope
+      (setq prompt (replace-regexp-in-string
+                    "^\\([^ ]+\\) ?\\(.*\\)"
+                    "\\1 (in background - overwrites ALWAYS!) \\2" prompt))))
+
 ;; This delegates to the background interpreter all copy and rename operations
 ;; triggered by dired-do-copy inside a loop scope:
 (defadvice dired-create-files
@@ -267,6 +277,7 @@
 (defun sr-loop-engage ()
   "Activates all advice used by the Sunrise Loop extension."
   (mapc 'ad-activate '(y-or-n-p
+                       dired-mark-read-file-name
                        dired-create-files
                        sr-copy-files
                        sr-move-files)))
@@ -274,6 +285,7 @@
 (defun sr-loop-disengage ()
   "Deactivates all advice used by the Sunrise Loop extension."
   (mapc 'ad-deactivate '(y-or-n-p
+                         dired-mark-read-file-name
                          dired-create-files
                          sr-copy-files
                          sr-move-files)))
