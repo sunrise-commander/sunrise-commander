@@ -1,5 +1,5 @@
-;;  sunrise-x-loop.el  ---  Asynchronous execution of copy and rename operations
-;; for the Sunrise Commander File Manager.
+;;  sunrise-x-loop.el  ---  Asynchronous  execution of filesystem operations for
+;;  the Sunrise Commander File Manager.
 
 ;; Copyright (C) 2008 José Alfredo Romero L.
 
@@ -41,12 +41,12 @@
 ;; the background interpreter to shut down by invoking the sr-loop-stop  command
 ;; (M-x sr-loop-stop).
 
-;; If  you  need to debug something or are just curious about how the background
-;; elisp interpreter works, you can set the variable sr-loop-debug to t to  have
-;; the  interpreter launched in debug mode. In this mode all input and output of
-;; background operations are sent to a buffer named *SUNRISE-LOOP*. To return to
-;; normal  mode  set  back sr-loop-debug to nil and use sr-loop-stop to kill the
-;; currently running interpreter.
+;; If  you  need to debug something or are just curious about how this extension
+;; works, you can set the variable sr-loop-debug to t to  have  the  interpreter
+;; launched  in  debug  mode.  In  this  mode all input and output of background
+;; operations are sent to a buffer named *SUNRISE-LOOP*.  To  return  to  normal
+;; mode set back sr-loop-debug to nil and use sr-loop-stop to kill the currently
+;; running interpreter.
 
 ;; The extension disables itself and tries to do its best to keep out of the way
 ;; when working with remote directories through FTP (e.g. when using  ange-ftp),
@@ -62,7 +62,7 @@
 
 ;; 1) Put this file somewhere in your emacs load-path.
 
-;; 2)  Add a (require 'sunrise-x-loop) instruction to your .emacs file somewhere
+;; 2)  Add  a (require 'sunrise-x-loop) expression to your .emacs file somewhere
 ;; after the (require 'sunrise-commander) one.
 
 ;; 3) Evaluate the new expression, or reload your .emacs file, or restart emacs.

@@ -484,7 +484,7 @@ automatically:
   (if (equalp major-mode 'sr-virtual-mode)
       (progn
         (sr-unhide-attributes)
-        (sr-goto-dir dired-directory))))
+        (sr-goto-dir default-directory))))
 
 (defmacro sr-within (dir form)
   "Puts the given form in Sunrise context"
@@ -500,9 +500,9 @@ automatically:
 (defun sr-dired-mode ()
   "Sets Sunrise mode in every Dired buffer opened in Sunrise (called in hook)"
   (if (string= (expand-file-name sr-dired-directory)
-               (expand-file-name dired-directory))
+               (expand-file-name default-directory))
       (let ((dired-listing-switches dired-listing-switches))
-        (if (null (string-match "^/ftp:" dired-directory))
+        (if (null (string-match "^/ftp:" default-directory))
             (setq dired-listing-switches sr-listing-switches))
         (sr-mode)
         (dired-unadvertise dired-directory))))
@@ -722,7 +722,7 @@ automatically:
         (list 'if (list 'buffer-live-p (sr-symbol name 'buffer))
               (list 'progn
                     (list 'switch-to-buffer (sr-symbol name 'buffer))
-                    (list 'setq (sr-symbol name 'directory) 'dired-directory))
+                    (list 'setq (sr-symbol name 'directory) 'default-directory))
               (list 'sr-dired (sr-symbol name 'directory)))))
 
 (defun sr-setup-windows()
@@ -882,7 +882,7 @@ automatically:
         (set-buffer (window-buffer sr-left-window))
         (if (equal major-mode 'sr-mode)
             (progn
-              (setq sr-left-directory dired-directory)
+              (setq sr-left-directory default-directory)
               (setq sr-left-buffer (window-buffer sr-left-window))))
         (bury-buffer)))
 
@@ -891,7 +891,7 @@ automatically:
         (set-buffer (window-buffer sr-right-window))
         (if (equal major-mode 'sr-mode)
             (progn
-              (setq sr-right-directory dired-directory)
+              (setq sr-right-directory default-directory)
               (setq sr-right-buffer (window-buffer sr-right-window))))
         (bury-buffer))))
 
@@ -908,7 +908,7 @@ automatically:
                    (slash (re-search-forward "/" eol t)))
               (if slash
                   (setq filename (buffer-substring (+ 2 (point-min)) slash))
-                (setq filename dired-directory)))
+                (setq filename default-directory)))
           (setq filename (expand-file-name (dired-get-filename nil t)))))
     (if filename
        (if (file-directory-p filename)
@@ -966,7 +966,7 @@ automatically:
         (setq dir (replace-regexp-in-string sr-avfs-root "" dir)))
 
   ;; Detect spontaneous windows changes (using the mouse):
-  (if (not (string= sr-this-directory dired-directory))
+  (if (not (string= sr-this-directory default-directory))
       (setq sr-other-directory sr-this-directory))
   (if (eq (selected-window) sr-left-window)
       (sr-select-window 'left)
@@ -975,12 +975,12 @@ automatically:
   (hl-line-mode 0)
   (sr-within dir
              (if (or (not dired-directory)
-                     (string= sr-other-directory dired-directory))
+                     (string= sr-other-directory default-directory))
                  (dired dir)
                (find-alternate-file dir)))
-  (setq sr-this-directory dired-directory)
+  (setq sr-this-directory default-directory)
   (sr-keep-buffer)
-  (sr-history-push dired-directory)
+  (sr-history-push default-directory)
   (sr-highlight)
   (sr-beginning-of-buffer)
   (hl-line-mode 1))
@@ -988,8 +988,8 @@ automatically:
 (defun sr-dired-prev-subdir ()
   "Go to the previous subdirectory."
   (interactive)
-  (if (not (string= dired-directory "/"))
-      (let ((here (sr-directory-name-proper (expand-file-name dired-directory))))
+  (if (not (string= default-directory "/"))
+      (let ((here (sr-directory-name-proper (expand-file-name default-directory))))
         (setq here (replace-regexp-in-string "#.*/?$" "" here))
         (sr-goto-dir (expand-file-name "../"))
         (sr-focus-filename here))
@@ -1100,9 +1100,9 @@ automatically:
         (my-cell))
     (setq my-cell (assoc-string name sr-checkpoint-registry))
     (select-window sr-left-window)
-    (setq sr-left-directory dired-directory)
+    (setq sr-left-directory default-directory)
     (select-window sr-right-window)
-    (setq sr-right-directory dired-directory)
+    (setq sr-right-directory default-directory)
     (select-window my-window)
     (if (null my-cell)
         (setq sr-checkpoint-registry
@@ -1145,7 +1145,7 @@ automatically:
   (if (not (equal sr-window-split-style 'top))
       (progn
         (setq sr-this-directory sr-other-directory)
-        (setq sr-other-directory dired-directory)
+        (setq sr-other-directory default-directory)
         (if (equal (selected-window) sr-right-window)
             (sr-select-window 'left)
           (sr-select-window 'right)))))
@@ -1201,8 +1201,8 @@ automatically:
 (defun sr-transpose-panes ()
   "Changes the order of the panes"
   (interactive)
-  (if (not (equal dired-directory sr-other-directory))
-           (let ((this dired-directory))
+  (if (not (equal default-directory sr-other-directory))
+           (let ((this default-directory))
              (sr-dired sr-other-directory)
              (sr-change-window)
              (sr-dired this)
@@ -1212,7 +1212,7 @@ automatically:
 (defun sr-synchronize-panes ()
   "Changes the directory in the other pane to that in the current one"
   (interactive)
-  (let ((target dired-directory))
+  (let ((target default-directory))
     (sr-change-window)
     (sr-goto-dir target)
     (sr-change-window)))
@@ -1222,8 +1222,8 @@ automatically:
   (interactive)
   (if (not (featurep 'browse-url))
       (error "ERROR: Feature browse-url not available!")
-    (let ((url (concat "file://" (expand-file-name dired-directory))))
-      (message "Browsing directory %s " dired-directory)
+    (let ((url (concat "file://" (expand-file-name default-directory))))
+      (message "Browsing directory %s " default-directory)
       (if (featurep 'w3m)
           (eval '(w3m-goto-url url))
         (browse-url url)))))
@@ -1342,7 +1342,7 @@ automatically:
     (progn
       (put sr-selected-window 'sorting-order label)
       (let ((dired-listing-switches dired-listing-switches))
-        (if (null (string-match "^/ftp:" dired-directory))
+        (if (null (string-match "^/ftp:" default-directory))
             (setq dired-listing-switches sr-listing-switches))
         (dired-sort-other (concat dired-listing-switches option) t))
       (sr-revert-buffer)))
@@ -1471,7 +1471,7 @@ automatically:
            (target (or vtarget sr-other-directory))
            )
       (if (> files-count 0)
-          (if (string= dired-directory sr-other-directory)
+          (if (string= default-directory sr-other-directory)
               (dired-do-copy)
             (if (y-or-n-p (concat "Copy " files-count-str " files to " target "? "))
                 (progn
@@ -1480,7 +1480,7 @@ automatically:
                     (progn
                       (dired-unmark-all-marks)
                       (sr-change-window)
-                      (sr-copy-files selected-files dired-directory)
+                      (sr-copy-files selected-files default-directory)
                       (sr-revert-buffer)
                       (sr-change-window)))
                   (message (concat "Done: "
@@ -1501,13 +1501,13 @@ automatically:
            (files-count-str (int-to-string files-count))
           )
       (if (> files-count 0)
-          (if (string= dired-directory sr-other-directory)
+          (if (string= default-directory sr-other-directory)
               (dired-do-rename)
             (if (y-or-n-p (concat "Move " files-count-str
                                   " files to " sr-other-directory "? "))
                 (progn
                   (sr-change-window)
-                  (sr-move-files selected-files dired-directory)
+                  (sr-move-files selected-files default-directory)
                   (sr-revert-buffer)
                   (sr-change-window)
                   (if (= 0 (dired-do-kill-lines))
@@ -1522,7 +1522,7 @@ automatically:
   "Creates  symbolic  links  in  the  passive pane to all the currently selected
   files and directories in the active one."
   (interactive)
-  (if (string= dired-directory sr-other-directory)
+  (if (string= default-directory sr-other-directory)
       (dired-do-symlink)
     (sr-link #'make-symbolic-link "Symlink" dired-keep-marker-symlink)))
 
@@ -1530,7 +1530,7 @@ automatically:
   "Creates  relative  symbolic  links  in  the passive pane to all the currently
   selected files and directories in the active one."
   (interactive)
-  (if (string= dired-directory sr-other-directory)
+  (if (string= default-directory sr-other-directory)
       (dired-do-relsymlink)
     (sr-link #'dired-make-relative-symlink
              "RelSymLink"
@@ -1855,7 +1855,7 @@ or (c)ontents? "))
         (other nil))
     (if (not this)
         (setq this (car (dired-get-marked-files t))))
-    (if (string= dired-directory sr-other-directory)
+    (if (string= default-directory sr-other-directory)
         (setq other (sr-pop-mark))
       (progn
         (sr-change-window)
@@ -1863,7 +1863,7 @@ or (c)ontents? "))
         (sr-change-window)
         (if (not other)
             (setq other this))))
-    (setq this (concat dired-directory this))
+    (setq this (concat default-directory this))
     (setq other (concat sr-other-directory other))
     (list fun this other)))
 
@@ -1892,7 +1892,7 @@ or (c)ontents? "))
          (cons
           (concat "-exec ls -d " sr-virtual-listing-switches " \\{\\} \\;")
           "ls -ld")))
-    (apply fun (list dired-directory pattern)))
+    (apply fun (list default-directory pattern)))
   (sr-virtual-mode)
   (sr-keep-buffer))
 
@@ -2129,7 +2129,7 @@ or (c)ontents? "))
 	(select-window sr-right-window)
       (select-window sr-left-window))
     (condition-case nil
-	(concat (shell-quote-wildcard-pattern dired-directory) " ")
+	(concat (shell-quote-wildcard-pattern default-directory) " ")
       (error ""))))
 
 (defun sr-clex-start ()
