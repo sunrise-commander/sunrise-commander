@@ -606,7 +606,7 @@ automatically:
 
 (define-key sr-mode-map "\C-ct"               'sr-term)
 (define-key sr-mode-map "q"                   'keyboard-escape-quit)
-(define-key sr-mode-map "\M-q"                (lambda () (interactive) (sr-quit t)))
+(define-key sr-mode-map "\M-q"                'sunrise-cd)
 (define-key sr-mode-map "h"                   'sr-describe-mode)
 
 ;;(define-key sr-mode-map [mouse-1]             'sr-advertised-find-file)
@@ -857,7 +857,6 @@ automatically:
       (progn
         (setq sr-running nil)
         (sr-save-directories)
-
         (if norestore
             (progn
               (sr-select-viewer-window)
@@ -870,30 +869,28 @@ automatically:
 
         ;;NOTE: never exit the recursive edit here.  functions should do this
         ;;themselves
+        (sr-bury-panes)
         (toggle-read-only -1)
         (run-hooks 'sr-quit-hook))))
 
-(defun sr-save-directories()
-  "Save the current directories in the sr buffer to use the next time sr starts
-  up."
-  ;;update directory variables..
-  (if (window-live-p sr-left-window)
-      (progn
-        (set-buffer (window-buffer sr-left-window))
-        (if (equal major-mode 'sr-mode)
-            (progn
-              (setq sr-left-directory default-directory)
-              (setq sr-left-buffer (window-buffer sr-left-window))))
-        (bury-buffer)))
+(defun sr-save-directories ()
+  "Save the current directories in the panes to use the next time sr starts up."
+  (unless (not (window-live-p sr-left-window))
+    (set-buffer (window-buffer sr-left-window))
+    (unless (not (equal major-mode 'sr-mode))
+      (setq sr-left-directory default-directory)
+      (setq sr-left-buffer (current-buffer))))
+  
+  (unless (not (window-live-p sr-right-window))
+    (set-buffer (window-buffer sr-right-window))
+    (unless (not (equal major-mode 'sr-mode))
+      (setq sr-right-directory default-directory)
+      (setq sr-right-buffer (current-buffer)))))
 
-  (if (window-live-p sr-right-window)
-      (progn
-        (set-buffer (window-buffer sr-right-window))
-        (if (equal major-mode 'sr-mode)
-            (progn
-              (setq sr-right-directory default-directory)
-              (setq sr-right-buffer (window-buffer sr-right-window))))
-        (bury-buffer))))
+(defun sr-bury-panes ()
+  "Sends both pane buffers to the end of the emacs list of buffers."
+  (bury-buffer (buffer-name sr-left-buffer))
+  (bury-buffer (buffer-name sr-right-buffer)))
 
 ;;; ============================================================================
 ;;; File system navigation functions:
