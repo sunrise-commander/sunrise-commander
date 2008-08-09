@@ -169,7 +169,7 @@
   "Delegates  the  execution of the given form to the background interpreter. If
   no such interpreter is currently running, then launches first a new one."
   (if (or (null sr-loop-process)
-          (equalp 'exit (process-status sr-loop-process)))
+          (equal 'exit (process-status sr-loop-process)))
       (sr-loop-start))
   (sr-loop-disable-timer)
   (setq sr-loop-queue-length (1+ sr-loop-queue-length))

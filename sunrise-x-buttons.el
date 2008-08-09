@@ -167,7 +167,7 @@
   (setq truncate-lines t)
   (setq line-spacing 5)
   (setq cursor-in-non-selected-windows nil)
-  (if (not (equalp major-mode 'sr-buttons-mode))
+  (if (not (equal major-mode 'sr-buttons-mode))
       (let ((line-spacing 5)
             (cursor-in-non-selected-windows nil))
         (sr-buttons-render)
@@ -260,8 +260,8 @@
 (defun sr-buttons-restore-mode ()
   "Implements the [Restore] action in the Sunrise buttons panel."
   (interactive)
-  (cond ((equalp major-mode 'sr-virtual-mode) (sr-virtual-dismiss))
-        ((equalp major-mode 'wdired-mode) (eval '(wdired-finish-edit)))
+  (cond ((equal major-mode 'sr-virtual-mode) (sr-virtual-dismiss))
+        ((equal major-mode 'wdired-mode) (eval '(wdired-finish-edit)))
         (t (message "Already in regular mode"))))
 
 (provide 'sunrise-x-buttons)

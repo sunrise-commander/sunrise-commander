@@ -474,6 +474,7 @@ automatically:
   (set-keymap-parent sr-virtual-mode-map sr-mode-map)
   (sr-highlight)
   (hl-line-mode 1)
+  (setq truncate-lines t)
   (define-key sr-virtual-mode-map "g" nil)
   (define-key sr-virtual-mode-map "\C-x\C-q" 'toggle-read-only)
   (define-key sr-virtual-mode-map "\C-c\C-c" 'sr-virtual-dismiss))
@@ -481,7 +482,7 @@ automatically:
 (defun sr-virtual-dismiss ()
   "Restores normal view of pane in Sunrise VIRTUAL mode."
   (interactive)
-  (if (equalp major-mode 'sr-virtual-mode)
+  (if (equal major-mode 'sr-virtual-mode)
       (progn
         (sr-unhide-attributes)
         (sr-goto-dir default-directory))))
@@ -1292,7 +1293,7 @@ automatically:
         (setq attr-list (cons overlay attr-list))
         (overlay-put overlay 'invisible t)
         (overlay-put overlay 'intangible t)
-        (next-line)
+        (forward-line)
         (setq next (re-search-forward directory-listing-before-filename-regexp nil t)))
       (put sr-selected-window 'hidden-attrs attr-list))))
 
@@ -1301,7 +1302,7 @@ automatically:
   (let ((attr-list (get sr-selected-window 'hidden-attrs)))
     (if (not (null attr-list))
         (progn
-          (mapcar 'delete-overlay attr-list)
+          (mapc 'delete-overlay attr-list)
           (put sr-selected-window 'hidden-attrs nil)))))
 (add-hook 'dired-after-readin-hook 'sr-unhide-attributes)
 
@@ -1334,7 +1335,7 @@ automatically:
 (defun sr-sort-order (label option)
   "Changes the sorting order of the active pane by appending additional options
    to dired-listing-switches and reverting the buffer."
-  (if (equalp major-mode 'sr-virtual-mode)
+  (if (equal major-mode 'sr-virtual-mode)
       (sr-sort-virtual option)
     (progn
       (put sr-selected-window 'sorting-order label)
@@ -1385,7 +1386,7 @@ automatically:
   (if sr-synchronized
       (setq sr-synchronized nil)
     (setq sr-synchronized t))
-  (mapcar 'sr-mark-sync (list sr-left-buffer sr-right-buffer))
+  (mapc 'sr-mark-sync (list sr-left-buffer sr-right-buffer))
   (message (concat "Sync navigation is now "
                    (if sr-synchronized "ON" "OFF"))))
 
@@ -1656,7 +1657,7 @@ the original one"
     (if (equal sr-selected-window 'left)
         (switch-to-buffer sr-right-buffer)
       (switch-to-buffer sr-left-buffer))
-    (if (equalp major-mode 'sr-virtual-mode)
+    (if (equal major-mode 'sr-virtual-mode)
         (or (buffer-file-name) "Sunrise VIRTUAL buffer")
       nil)))
 
@@ -1674,7 +1675,7 @@ the original one"
     (setq indentation (- (current-column) 1))
     (dired-next-line 1)
     (toggle-read-only -1)
-    (mapcar (lambda (file)
+    (mapc (lambda (file)
               (insert-char 32 indentation)
               (setq file (replace-regexp-in-string "/$" "" file))
               (insert-directory file sr-virtual-listing-switches)
@@ -1870,9 +1871,9 @@ or (c)ontents? "))
     (if (< 1 (length marks))
         (progn
           (dired-unmark-all-marks)
-          (if (not (equalp t (car marks)))
+          (if (not (equal t (car marks)))
               (progn
-                (mapcar (lambda (x)
+                (mapc (lambda (x)
                           (dired-mark-files-regexp
                            (concat "^" (regexp-quote x) "$")))
                         (cdr marks))
@@ -1954,7 +1955,7 @@ or (c)ontents? "))
     (dolist (dir hist)
       (if (and dir
                (file-exists-p dir)
-               (not (find-if (lambda (x) (string= x dir)) seen-dirs))
+               (not (member dir seen-dirs))
                (file-directory-p dir))
           (progn
             (setq seen-dirs (cons dir seen-dirs))
@@ -1967,7 +1968,7 @@ or (c)ontents? "))
 
 (defun sr-switch-to-clean-buffer (name)
   (switch-to-buffer name)
-  (if (equalp major-mode 'sr-virtual-mode)
+  (if (equal major-mode 'sr-virtual-mode)
       (progn
         (kill-buffer nil)
         (switch-to-buffer name))

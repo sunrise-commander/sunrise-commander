@@ -276,7 +276,7 @@
 (defun sr-mirror-mangle (path)
   "Transforms  the  given  filesystem  path  into  a  string  that  can  be used
   internally as the name of a new mirror area."
-  (if (equalp ?/ (string-to-char path))
+  (if (equal ?/ (string-to-char path))
       (setq path (substring path 1)))
   (replace-regexp-in-string
    "/" "+"
@@ -296,7 +296,7 @@
   (if (not (file-directory-p directory))
       (ignore)
     (let ((files (directory-files directory)))
-      (mapcar (lambda (x) (setq files (delete x files)))
+      (mapc (lambda (x) (setq files (delete x files)))
               '("." ".." "._funionfs_control~"))
       files)))
 
