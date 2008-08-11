@@ -541,11 +541,13 @@ automatically:
 
 ;; Fixes dired-goto-file and all functions that depend on it in *nix systems
 ;; in which directory names end with a slash.
-(defadvice dired-move-to-end-of-filename
-  (after sr-advice-dired-move-to-end-of-filename (&optional no-error))
-  (if (equal (char-before) ?/)
-      (backward-char 1)))
-(ad-activate 'dired-move-to-end-of-filename)
+(defadvice dired-get-filename
+  (around sr-advice-dired-get-filename (&optional localp no-error-if-not-filep))
+  ad-do-it
+  (if ad-return-value
+      (setq ad-return-value
+            (replace-regexp-in-string "/$" "" ad-return-value))))
+(ad-activate 'dired-get-filename)
 
 ;;; ============================================================================
 ;;; Sunrise Commander keybindings:
