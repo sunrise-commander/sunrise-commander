@@ -160,7 +160,6 @@
 (require 'dired)
 (require 'dired-x)
 (require 'font-lock)
-(eval-when-compile (require 'cl))
 (eval-when-compile (require 'esh-mode))
 (eval-when-compile (require 'recentf))
 (eval-when-compile (require 'term))
@@ -466,6 +465,9 @@ automatically:
 
   (make-local-variable 'truncate-partial-width-windows)
   (setq truncate-partial-width-windows t)
+
+  (make-local-variable 'truncate-lines)
+  (setq truncate-lines t)
 )
 
 (define-derived-mode sr-virtual-mode dired-virtual-mode "Sunrise VIRTUAL"
@@ -536,6 +538,14 @@ automatically:
       (setq ad-return-value sr-other-directory)
     ad-do-it))
 (ad-activate 'dired-dwim-target-directory)
+
+;; Fixes dired-goto-file and all functions that depend on it in *nix systems
+;; in which directory names end with a slash.
+(defadvice dired-move-to-end-of-filename
+  (after sr-advice-dired-move-to-end-of-filename (&optional no-error))
+  (if (equal (char-before) ?/)
+      (backward-char 1)))
+(ad-activate 'dired-move-to-end-of-filename)
 
 ;;; ============================================================================
 ;;; Sunrise Commander keybindings:
