@@ -160,6 +160,7 @@
 (require 'dired)
 (require 'dired-x)
 (require 'font-lock)
+(eval-when-compile (require 'cl))
 (eval-when-compile (require 'esh-mode))
 (eval-when-compile (require 'recentf))
 (eval-when-compile (require 'term))
