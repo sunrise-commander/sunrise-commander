@@ -165,6 +165,10 @@
 (eval-when-compile (require 'recentf))
 (eval-when-compile (require 'term))
 
+(defgroup sunrise nil
+  "The Sunrise Commander File Manager."
+  :group 'files)
+
 (defcustom sr-terminal-program "eshell"
   "The program to use for terminal emulation. If this value is set to
   \"eshell\", the emacs shell will be used."
