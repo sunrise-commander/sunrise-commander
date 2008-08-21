@@ -469,10 +469,10 @@ automatically:
   (setq dired-recursive-deletes 'top)
 
   (make-local-variable 'truncate-partial-width-windows)
-  (setq truncate-partial-width-windows t)
+  (setq truncate-partial-width-windows (sr-truncate-v t))
 
   (make-local-variable 'truncate-lines)
-  (setq truncate-lines t)
+  (setq truncate-lines nil)
 )
 
 (define-derived-mode sr-virtual-mode dired-virtual-mode "Sunrise VIRTUAL"
@@ -481,7 +481,8 @@ automatically:
   (set-keymap-parent sr-virtual-mode-map sr-mode-map)
   (sr-highlight)
   (hl-line-mode 1)
-  (setq truncate-lines t)
+  (make-local-variable 'truncate-lines)
+  (setq truncate-lines nil)
   (define-key sr-virtual-mode-map "g" nil)
   (define-key sr-virtual-mode-map "\C-x\C-q" 'toggle-read-only)
   (define-key sr-virtual-mode-map "\C-c\C-c" 'sr-virtual-dismiss))
@@ -954,7 +955,7 @@ automatically:
             (progn
               (find-file filename)
               (sr-history-push filename)
-              (sr-keep-buffer)
+              (set-visited-file-name nil t)
               (setq filename nil)))))
 
   (if (null filename) ;;the file is a virtual directory:
@@ -1333,11 +1334,28 @@ automatically:
 (defun sr-toggle-truncate-lines ()
   "Enables/Disables truncation of long lines in the active pane."
   (interactive)
-  (setq truncate-partial-width-windows (not truncate-partial-width-windows))
-  (sr-revert-buffer)
-  (if truncate-partial-width-windows
-      (message "Sunrise: truncating long lines")
-    (message "Sunrise: continuing long lines")))
+  (if (sr-truncate-p)
+      (progn
+        (setq truncate-partial-width-windows (sr-truncate-v nil))
+        (message "Sunrise: continuing long lines"))
+    (progn
+      (setq truncate-partial-width-windows (sr-truncate-v t))
+      (message "Sunrise: truncating long lines")))
+  (sr-revert-buffer))
+
+(defun sr-truncate-p nil
+  "Returns  whether  truncate-partial-width-widows  is  set to truncate the long
+  lines in the current pane. Used by sr-toggle-truncate-lines."
+  (if (equal "23.0.60" (substring emacs-version 0 -2))
+      (< 0 truncate-partial-width-windows)
+    truncate-partial-width-windows))
+
+(defun sr-truncate-v (active)
+  "Returns the right value to set for truncate-partial-width-widows depending on
+  the emacs version being used. Used by sr-toggle-truncate-lines."
+  (or (and (equal "23.0.60" (substring emacs-version 0 -2))
+           (or (and active 3000) 0))
+      active))
 
 (defun sr-interactive-sort (order)
   "Prompts for a new sorting order for the active pane and applies it."
