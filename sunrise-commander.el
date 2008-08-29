@@ -927,13 +927,13 @@ automatically:
                 (setq filename default-directory)))
           (setq filename (expand-file-name (dired-get-filename nil t)))))
     (if filename
-       (if (file-directory-p filename)
-	   (progn
-	     (setq filename (file-name-as-directory filename))
-	     (if (string= filename (expand-file-name "../"))
-		 (sr-dired-prev-subdir)
-	       (sr-goto-dir filename)))
-	 (sr-find-file filename)))))
+        (if (file-directory-p filename)
+            (progn
+              (setq filename (file-name-as-directory filename))
+              (if (string= filename (expand-file-name "../"))
+                  (sr-dired-prev-subdir)
+                (sr-goto-dir filename)))
+          (sr-find-file filename)))))
 
 (defun sr-find-file (filename &optional wildcards)
   "Determines  the  proper  way  of handling a file. If the file is a compressed
@@ -1184,10 +1184,10 @@ automatically:
 (defun sr-focus-filename (filename)
   "Tries to select the given file name in the current buffer."
   (let ((expr filename))
-    (if (file-directory-p filename)
+    (if (or (file-directory-p filename) (file-symlink-p filename))
         (progn
           (setq expr (replace-regexp-in-string "/$" "" expr))
-          (setq expr (concat (regexp-quote expr) "\\(?:/\\|$\\)"))))
+          (setq expr (concat (regexp-quote expr) "\\(?:/\\| ->\\|$\\)"))))
     (setq expr (concat "[0-9] +" expr))
     (beginning-of-line)
     (if (null (re-search-forward expr nil t))
@@ -1195,7 +1195,8 @@ automatically:
             (error (concat "ERROR: unable to find " filename
                            " in current directory")))))
   (beginning-of-line)
-  (re-search-forward directory-listing-before-filename-regexp nil t))
+  (re-search-forward directory-listing-before-filename-regexp nil t)
+  (hl-line-mode 1))
 
 (defun sr-split-toggle()
   "Changes sunrise windows layout from horizontal to vertical to top and so on."
@@ -1619,14 +1620,14 @@ indir/d => to-dir/d"
             (setq to-dir (concat to-dir (sr-directory-name-proper in-dir))))
         ;; if directory in-dir/d does not exist:
         (if (not (file-exists-p (concat to-dir d)))
-	    (make-directory (concat to-dir d))) ; makes d in to-dir
-	(let* (
+        (make-directory (concat to-dir d))) ; makes d in to-dir
+    (let* (
                (files-in-d (append (sr-list-of-files (concat in-dir d))
                                    (sr-list-of-directories (concat in-dir d))))
-	       (file-paths-in-d 
-		(mapcar (lambda (f) (concat in-dir d f)) files-in-d))
-	       )
-	  (sr-copy-files file-paths-in-d (concat to-dir d) do-overwrite)))
+           (file-paths-in-d 
+        (mapcar (lambda (f) (concat in-dir d f)) files-in-d))
+           )
+      (sr-copy-files file-paths-in-d (concat to-dir d) do-overwrite)))
     (error "ERROR: You cannot copy a directory into itself or one of its \
 subdirectories")))
 
@@ -2085,11 +2086,11 @@ or (c)ontents? "))
         (list 'progn
               (list 'sr-select-window 'sr-selected-window)
               (list 'hl-line-mode 0)
-	      (list 'unwind-protect
-		    form
-		    (list 'progn
-			  (list 'hl-line-mode 1)
-			  (list 'sr-select-viewer-window))))))
+              (list 'unwind-protect
+                    form
+                    (list 'progn
+                          (list 'hl-line-mode 1)
+                          (list 'sr-select-viewer-window))))))
 
 (defun sr-ti-previous-line ()
   "Runs previous-line on active pane from the terminal window."
@@ -2159,10 +2160,10 @@ or (c)ontents? "))
   "Returns the current directory in the given pane."
   (save-window-excursion
     (if (equal pane 'right)
-	(select-window sr-right-window)
+        (select-window sr-right-window)
       (select-window sr-left-window))
     (condition-case nil
-	(concat (shell-quote-wildcard-pattern default-directory) " ")
+        (concat (shell-quote-wildcard-pattern default-directory) " ")
       (error ""))))
 
 (defun sr-clex-start ()
