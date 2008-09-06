@@ -684,7 +684,7 @@ automatically:
           (sr-setup-windows)
           (if filename
               (sr-focus-filename (replace-regexp-in-string ".*/" "" filename)))
-          (message sr-start-message)
+          (message "%s" sr-start-message)
           (recursive-edit))
         (sr-quit))
     (progn
@@ -964,7 +964,7 @@ automatically:
       (sr-quit)
       (condition-case description
           (find-file filename wildcards)
-        (error (message (second description))))
+        (error (message "%s" (second description))))
       (exit-recursive-edit))))
 
 (defun sr-avfs-dir (filename)
@@ -1126,7 +1126,7 @@ automatically:
                      (list sr-left-directory sr-right-directory)
                      sr-checkpoint-registry))
       (setcdr my-cell (list sr-left-directory sr-right-directory)))
-  (message (concat "Checkpoint \"" name "\" saved"))))
+  (message "%s" (concat "Checkpoint \"" name "\" saved"))))
 
 (defun sr-checkpoint-restore (name)
   "Allows to restore a previously saved checkpoint."
@@ -1380,7 +1380,7 @@ automatically:
             (setq dired-listing-switches sr-listing-switches))
         (dired-sort-other (concat dired-listing-switches option) t))
       (sr-revert-buffer)))
-  (message (concat "Sunrise: sorting entries by " label)))
+  (message "%s" (concat "Sunrise: sorting entries by " label)))
 
 (defun sr-sort-virtual (option)
   "Manages  sorting of buffers in Sunrise VIRTUAL mode. Since we cannot rely any
@@ -1517,9 +1517,9 @@ automatically:
                       (sr-copy-files selected-files default-directory)
                       (sr-revert-buffer)
                       (sr-change-window)))
-                  (message (concat "Done: "
-                                   (int-to-string (length selected-files))
-                                   " file(s) dispatched")))))
+                  (message "%s" (concat "Done: "
+                                        (int-to-string (length selected-files))
+                                        " file(s) dispatched")))))
         
         (message "Empty selection. Nothing done.")))))
 
@@ -1546,9 +1546,9 @@ automatically:
                   (sr-change-window)
                   (if (= 0 (dired-do-kill-lines))
                     (dired-kill-line))
-                  (message (concat "Done: "
-                                   (int-to-string (length selected-files))
-                                   " file(s) dispatched")))))
+                  (message "%s" (concat "Done: "
+                                        (int-to-string (length selected-files))
+                                        " file(s) dispatched")))))
         
         (message "Empty selection. Nothing done.")))))
 
@@ -1602,7 +1602,7 @@ automatically:
                (name-ext (concat name (if ext (concat "." ext) "")))
                (target-file (concat target-dir name-ext))
                )
-          (message (concat f " => " target-file))
+          (message "%s" (concat f " => " target-file))
           (if (file-exists-p target-file)
               (if (or (eq do-overwrite 'ALWAYS)
                       (setq do-overwrite (ask-overwrite target-file)))
@@ -1658,7 +1658,7 @@ subdirectories")))
                (name-ext (concat name (if ext (concat "." ext) "")))
                (target-file (concat target-dir name-ext))
                )
-          (message (concat f " => " target-file))
+          (message "%s" (concat f " => " target-file))
           (if (file-exists-p target-file)
               (if (or (eq do-overwrite 'ALWAYS)
                       (setq do-overwrite (ask-overwrite target-file)))
@@ -2134,7 +2134,7 @@ or (c)ontents? "))
     (rename-uniquely)
     (setq new-name (buffer-name))
     (sr-term)
-    (message (concat "Previous terminal renamed to " new-name))))
+    (message "%s" (concat "Previous terminal renamed to " new-name))))
 
 (defun sr-clex-file (pane)
   "Returns the currently selected file in the given pane"
