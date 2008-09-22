@@ -186,7 +186,7 @@
   :group 'sunrise
   :type 'string)
 
-(defcustom sr-virtual-listing-switches "--time-style=long-iso --group-directories-first -aldpgG"
+(defcustom sr-virtual-listing-switches "--time-style=long-iso --group-directories-first -aldp"
   "Listing switches for building buffers in Sunrise VIRTUAL mode based on find
   and locate results. Sorting support in sr-virtual buffers depend on the
   correct format of their entries.
@@ -481,8 +481,13 @@ automatically:
   (set-keymap-parent sr-virtual-mode-map sr-mode-map)
   (sr-highlight)
   (hl-line-mode 1)
+
+  (make-local-variable 'truncate-partial-width-windows)
+  (setq truncate-partial-width-windows (sr-truncate-v t))
+
   (make-local-variable 'truncate-lines)
   (setq truncate-lines nil)
+
   (define-key sr-virtual-mode-map "g" nil)
   (define-key sr-virtual-mode-map "\C-x\C-q" 'toggle-read-only)
   (define-key sr-virtual-mode-map "\C-c\C-c" 'sr-virtual-dismiss))
@@ -1277,7 +1282,8 @@ automatically:
   (interactive "P")
   (if arg
       (sr-kill-quick-view)
-    (let ((home (selected-window)))
+    (let ((home (selected-window))
+          (split-width-threshold (* 10 (window-width))))
       (if (buffer-live-p other-window-scroll-buffer)
           (kill-buffer other-window-scroll-buffer))
       (dired-find-file-other-window)

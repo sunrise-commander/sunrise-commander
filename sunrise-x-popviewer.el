@@ -33,7 +33,7 @@
 ;; together, if you're using the Buttons extension remove  it  first  from  your
 ;; .emacs file.
 
-;; This is version 1 $Rev$ of the Sunrise Commander Popviewer Extension.
+;; This is version 1 $Rev$ of the Sunrise Commander PopViewer Extension.
 
 ;; This  piece  of code is still in alpha stage. If you find it useful and think
 ;; you may contribute to it with suggestions of even more code,  please  let  me
