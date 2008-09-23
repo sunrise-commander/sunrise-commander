@@ -1395,19 +1395,22 @@ automatically:
   contain all the necessary data, but also must be  in  a  format  that  can  be
   easily  sorted.  See  the  variable  sr-virtual-listing-switches for the exact
   switches for ls that should be used."
-  (save-excursion
+  (let ((opt (string-to-char option))
+        (beg) (end))
+    (goto-char (point-max))
+    (re-search-backward directory-listing-before-filename-regexp nil t)
+    (end-of-line)
+    (setq end (point))
     (goto-char (point-min))
     (re-search-forward directory-listing-before-filename-regexp nil t)
     (beginning-of-line)
-    (let ((opt (string-to-char option))
-          (beg (point))
-          (end (point-max)))
-      (toggle-read-only -1)
-      (cond ((eq opt ?X) (sort-regexp-fields nil "^.*$" "[/.][^/.]+$" beg end))
+    (setq beg (point))
+    (toggle-read-only -1)
+    (cond ((eq opt ?X) (sort-regexp-fields nil "^.*$" "[/.][^/.]+$" beg end))
             ((eq opt ?t) (sort-regexp-fields t "^.*$" "[0-9]\\{4\\}\\(-[0-9]\\{2\\}\\)\\{2\\} [0-2][0-9]:[0-5][0-9]" beg end))
-            ((eq opt ?S) (sort-numeric-fields 3 beg end) (reverse-region beg end))
-            (t  (sort-regexp-fields nil "^.*$" "/[^/]*$" beg end)))
-      (toggle-read-only 1))))
+            ((eq opt ?S) (sort-numeric-fields 5 beg end) (reverse-region beg end))
+            (t  (sort-fields 8 beg end)))
+    (toggle-read-only 1)))
 
 ;;; ============================================================================
 ;;; Passive & synchronized navigation functions:
