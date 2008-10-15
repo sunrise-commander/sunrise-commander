@@ -1978,13 +1978,10 @@ or (c)ontents? "))
   (sr-switch-to-clean-buffer "*Recent Files*")
   (insert "Recently Visited Files: \n")
   (let ((dired-actual-switches dired-listing-switches))
-    (condition-case nil
-        (dired-insert-directory "/" sr-virtual-listing-switches recentf-list)
-      (error
-         (recentf-cleanup)
-         (sr-switch-to-clean-buffer "*Recent Files*")
-         (insert "Recently Visited Files: \n")
-         (dired-insert-directory "/" sr-virtual-listing-switches recentf-list)))
+    (dolist (file recentf-list)
+      (condition-case nil
+          (insert-directory file sr-virtual-listing-switches nil nil)
+        (error (ignore))))
     (sr-virtual-mode)
     (sr-keep-buffer)))
 
@@ -1998,16 +1995,18 @@ or (c)ontents? "))
     (sr-switch-to-clean-buffer (concat "*" pane-name " Pane History*"))
     (insert (concat "Recent Directories in " pane-name " Pane: \n"))
     (dolist (dir hist)
-      (if (and dir
-               (file-exists-p dir)
-               (not (member dir seen-dirs))
-               (file-directory-p dir))
-          (progn
-            (setq seen-dirs (cons dir seen-dirs))
-            (setq dir (replace-regexp-in-string "\\(.\\)/?$" "\\1" dir))
-            (setq beg (point))
-            (insert-directory dir sr-virtual-listing-switches nil nil)
-            (dired-align-file beg (point)))))
+      (condition-case nil
+          (if (and dir
+                   (file-exists-p dir)
+                   (not (member dir seen-dirs))
+                   (file-directory-p dir))
+              (progn
+                (setq seen-dirs (cons dir seen-dirs))
+                (setq dir (replace-regexp-in-string "\\(.\\)/?$" "\\1" dir))
+                (setq beg (point))
+                (insert-directory dir sr-virtual-listing-switches nil nil)
+                (dired-align-file beg (point))))
+        (error (ignore))))
     (sr-virtual-mode)
     (sr-keep-buffer)))
 
