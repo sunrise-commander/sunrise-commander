@@ -966,11 +966,14 @@ automatically:
   (if (null filename) ;;the file is a virtual directory:
       (sr-keep-buffer)
     (progn ;;the file is a regular file:
-      (sr-quit)
       (condition-case description
-          (find-file filename wildcards)
-        (error (message "%s" (second description))))
-      (exit-recursive-edit))))
+          (progn
+            (find-file filename wildcards)
+            (delete-other-windows)
+            (setq sr-prior-window-configuration (current-window-configuration))
+            (sr-quit)
+            (exit-recursive-edit))
+        (error (message "%s" (second description)))) )))
 
 (defun sr-avfs-dir (filename)
   "Returns the virtual path for accessing the given file through AVFS, or nil if
