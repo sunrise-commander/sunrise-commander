@@ -317,6 +317,9 @@
   "Been coding all night? Enjoy the Sunrise! (or press q to quit)"
   "Message to display when `sr' is started.")
 
+(defvar sr-ti-openterms nil
+  "Stack of currently open terminal buffers")
+
 (defface sr-active-path-face
   '((t (:background "#ace6ac" :foreground "yellow" :bold t :height 120)))
   "Face of the directory path in the active pane"
@@ -2077,19 +2080,29 @@ or (c)ontents? "))
 
 (defun sr-term-extern ()
   "This is the implementation of sr-term for external terminal programs."
-  (let ((dir default-directory))
+  (let ((dir default-directory)
+        (buffer))
     (sr-select-viewer-window)
     (term sr-terminal-program)
-    (term-send-raw-string
-     (concat "cd " (shell-quote-wildcard-pattern dir) ""))))
+    (setq buffer (current-buffer))
+    (if (not (eq buffer (first sr-ti-openterms)))
+        (progn
+          (push (current-buffer) sr-ti-openterms)
+          (term-send-raw-string
+           (concat "cd " (shell-quote-wildcard-pattern dir) ""))))))
 
 (defun sr-term-eshell ()
   "This is the implementation of sr-term when using eshell."
-  (let ((dir default-directory))
+  (let ((dir default-directory)
+        (buffer))
     (sr-select-viewer-window)
     (eshell)
-    (insert (concat "cd " (shell-quote-wildcard-pattern dir)))
-    (eshell-send-input)))
+    (setq buffer (current-buffer))
+    (if (not (eq buffer (first sr-ti-openterms)))
+        (progn
+          (push (current-buffer) sr-ti-openterms)
+          (insert (concat "cd " (shell-quote-wildcard-pattern dir)))
+          (eshell-send-input)))))
 
 (defmacro sr-ti (form)
   "Puts the given form in the context of the selected pane"
@@ -2146,6 +2159,24 @@ or (c)ontents? "))
     (setq new-name (buffer-name))
     (sr-term)
     (message "%s" (concat "Previous terminal renamed to " new-name))))
+
+(defun sr-ti-restore-previous-term ()
+  "Renames back the last open terminal (if any) to the default terminal buffer
+   name after the current one is closed"
+  (let ((found nil)
+        (name (buffer-name)))
+    (while (and sr-ti-openterms
+                (not (buffer-live-p (first sr-ti-openterms))))
+      (pop sr-ti-openterms))
+      (if (and (string= (buffer-name (first sr-ti-openterms)) name)
+               (not (null (first sr-ti-openterms)))
+               (pop sr-ti-openterms)
+               sr-ti-openterms)
+        (progn
+          (rename-uniquely)
+          (set-buffer (first sr-ti-openterms))
+          (rename-buffer name)))))
+(add-hook 'kill-buffer-hook 'sr-ti-restore-previous-term)
 
 (defun sr-clex-file (pane)
   "Returns the currently selected file in the given pane"
