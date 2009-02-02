@@ -418,7 +418,8 @@ substitution may be about to happen."
         C-x C-q ....... put pane in Editable Dired mode (commit with C-c C-c)
         @! ............ fast backup files (but not dirs!), each to [filename].bak
 
-        C-c t ......... open terminal in current directory
+        C-c t ......... open new terminal or switch to already open one
+        C-c T ......... open terminal AND change directory to current
         q ............. quit Sunrise Commander, restore previous window setup
         M-q ........... quit Sunrise Commander, don't restore previous windows
 
@@ -632,6 +633,7 @@ automatically:
 (define-key sr-mode-map "\M-;"                'sr-follow-file-other)
 
 (define-key sr-mode-map "\C-ct"               'sr-term)
+(define-key sr-mode-map "\C-cT"               'sr-term-cd)
 (define-key sr-mode-map "q"                   'keyboard-escape-quit)
 (define-key sr-mode-map "\M-q"                'sunrise-cd)
 (define-key sr-mode-map "h"                   'sr-describe-mode)
@@ -2058,49 +2060,59 @@ or (c)ontents? "))
 ;;; ============================================================================
 ;;; TI (Terminal Integration) and CLEX (Command Line EXpansion) functions:
 
-(defun sr-term ()
-  "Runs  terminal  in  a new buffer (or switches to an existing one) and cd's to
-  the current directory in the active pane"
+(defun sr-term (&optional cd)
+  "Runs  terminal  in  a  new  buffer  (or  switches to an existing one). If the
+  optional parameter  cd  is  provided  and  equal  t  sends  automatically  the
+  appropriate command to change directory to the current one in the active pane"
   ;; Dynamic function -- redefines itself the first time it's executed:
   (interactive)
   (if (string= sr-terminal-program "eshell")
       (progn
         (add-hook 'eshell-mode-hook
                   '(lambda () (sr-define-ti-keys eshell-mode-map)))
-        (defun sr-term ()
+        (defun sr-term (&optional cd)
           (interactive)
-          (sr-term-eshell)))
+          (sr-term-eshell cd)))
     (progn
       (add-hook 'term-mode-hook
                 '(lambda () (sr-define-ti-keys term-mode-map)))
-      (defun sr-term ()
+      (defun sr-term (&optional cd)
         (interactive)
-        (sr-term-extern))))
+        (sr-term-extern cd))))
   (sr-term))
 
-(defun sr-term-extern ()
+(defun sr-term-cd ()
+  "Runs  terminal  in  a new buffer (or switches to an existing one) and cd’s to
+  the current directory in the active pane"
+  (interactive)
+  (sr-term t))
+
+(defun sr-term-extern (&optional cd)
   "This is the implementation of sr-term for external terminal programs."
   (let ((dir default-directory)
         (buffer))
     (sr-select-viewer-window)
     (term sr-terminal-program)
     (setq buffer (current-buffer))
+    (setq cd (or cd (null sr-ti-openterms)))
     (if (not (eq buffer (first sr-ti-openterms)))
-        (progn
-          (push (current-buffer) sr-ti-openterms)
-          (term-send-raw-string
-           (concat "cd " (shell-quote-wildcard-pattern dir) ""))))))
+        (push (current-buffer) sr-ti-openterms))
+    (if cd
+        (term-send-raw-string
+         (concat "cd " (shell-quote-wildcard-pattern dir) "")))))
 
-(defun sr-term-eshell ()
+(defun sr-term-eshell (&optional cd)
   "This is the implementation of sr-term when using eshell."
   (let ((dir default-directory)
         (buffer))
     (sr-select-viewer-window)
     (eshell)
     (setq buffer (current-buffer))
+    (setq cd (or cd (null sr-ti-openterms)))
     (if (not (eq buffer (first sr-ti-openterms)))
+        (push (current-buffer) sr-ti-openterms))
+    (if cd
         (progn
-          (push (current-buffer) sr-ti-openterms)
           (insert (concat "cd " (shell-quote-wildcard-pattern dir)))
           (eshell-send-input)))))
 
