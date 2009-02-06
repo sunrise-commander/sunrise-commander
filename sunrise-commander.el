@@ -536,13 +536,18 @@ automatically:
 (defadvice bookmark-jump
   (around sr-advice-bookmark-jump (str))
   (if (memq major-mode '(sr-mode sr-virtual-mode))
-      (progn
-        (setq sr-dired-directory (bookmark-get-filename str))
-        ad-do-it
-        (setq sr-dired-directory "")
-        (hl-line-mode)
-        (sr-highlight)
-        (sr-keep-buffer))
+      (let ((target (bookmark-get-filename str)))
+        (if (not (eq sr-left-buffer sr-right-buffer))
+            (kill-buffer (current-buffer)))
+        (if (string= target sr-other-directory)
+            (sr-synchronize-panes t)
+          (progn
+            (setq sr-dired-directory target)
+            ad-do-it
+            (setq sr-dired-directory "")
+            (hl-line-mode)
+            (sr-highlight)
+            (sr-keep-buffer))))
     ad-do-it))
 (list 'ad-activate (quote 'bookmark-jump))
 
@@ -1224,7 +1229,10 @@ automatically:
   (setq sr-window-split-style split-type)
   (if sr-running
       (if (equal sr-window-split-style 'top)
-          (delete-window sr-right-window)
+          (progn
+            (if (equal (selected-window) sr-right-window)
+                (sr-select-window 'left))
+            (delete-window sr-right-window))
         (sr-setup-windows))
     (message "Split is now %s." (symbol-name split-type))))
 
@@ -1239,13 +1247,19 @@ automatically:
              (sr-change-window))
       nil))
 
-(defun sr-synchronize-panes ()
-  "Changes the directory in the other pane to that in the current one"
+(defun sr-synchronize-panes (&optional reverse)
+  "Changes  the  directory  in the other pane to that in the current one. If the
+  optional parameter reverse is set to t, performs the opposite operation,  i.e.
+  changes the directory in the current pane to that in the other one."
   (interactive)
   (let ((target default-directory))
     (sr-change-window)
-    (sr-goto-dir target)
-    (sr-change-window)))
+    (if reverse
+        (setq target default-directory)
+      (sr-goto-dir target))
+    (sr-change-window)
+    (if reverse
+        (sr-goto-dir target))))
 
 (defun sr-browse-pane ()
   "Browses the directory in the active pane."
