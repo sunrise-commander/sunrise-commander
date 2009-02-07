@@ -360,9 +360,11 @@ substitution may be about to happen."
         Return ........ visit selected file/directory
         M-Return ...... visit selected file/directory in passive pane
         C-c Return .... visit selected in passive pane (console compatible)
-        o,v ........... quick visit selected file (scroll with C-M-v, C-M-S-v)
         b ............. visit selected file/directory in default browser
-        C-u o, C-u v .. kill quick-viewed buffer (restores normal scrolling)
+        F ............. visit all marked files, each in its own window
+        C-u F ......... visit all marked files in the background
+        o,v ........... quick visit selected file (scroll with C-M-v, C-M-S-v)
+        C-u o, C-u v .. kill quick-visited buffer (restores normal scrolling)
 
         + ............. create new directory
         C ............. copy marked (or current) files and directories
@@ -376,6 +378,8 @@ substitution may be about to happen."
         M-Y............ do relative soft-link (with traditional dired-do-relsymlink)
         M-H............ hard-link selected file/directory to passive pane
         D ............. delete marked (or current) files and directories
+        A ............. search marked files for regular expression
+        Q ............. perform query-replace-regexp on marked files
 
         M-a ........... move to beginning of current directory
         M-e ........... move to end of current directory
@@ -536,9 +540,10 @@ automatically:
 (defadvice bookmark-jump
   (around sr-advice-bookmark-jump (str))
   (if (memq major-mode '(sr-mode sr-virtual-mode))
-      (let ((target (bookmark-get-filename str)))
+      (let ((target (bookmark-get-filename str))
+            (dispose nil))
         (if (not (eq sr-left-buffer sr-right-buffer))
-            (kill-buffer (current-buffer)))
+            (setq dispose (current-buffer)))
         (if (string= target sr-other-directory)
             (sr-synchronize-panes t)
           (progn
@@ -547,7 +552,9 @@ automatically:
             (setq sr-dired-directory "")
             (hl-line-mode)
             (sr-highlight)
-            (sr-keep-buffer))))
+            (sr-keep-buffer)))
+        (if (not (null dispose))
+            (kill-buffer dispose)))
     ad-do-it))
 (list 'ad-activate (quote 'bookmark-jump))
 
@@ -624,6 +631,7 @@ automatically:
 (define-key sr-mode-map ";"                   'sr-follow-file)
 (define-key sr-mode-map "Q"                   'sr-do-query-replace-regexp)
 (define-key sr-mode-map "F"                   'sr-do-find-marked-files)
+(define-key sr-mode-map "A"                   'sr-do-search)
 (define-key sr-mode-map "\C-x\C-f"            'sr-find-file)
 
 (define-key sr-mode-map "\M-n"                'sr-next-line-other) 
@@ -2061,15 +2069,24 @@ or (c)ontents? "))
       (sr-recent-files)))
 (ad-activate 'dired-do-flagged-delete)
 
-(defun sr-do-query-replace-regexp ()
-  "Forces Sunrise to quit before executing dired-do-query-replace-regexp."
-  (interactive)
+(defun sr-dired-do-apply (dired-fun)
+  "Helper function for implementing sr-do-query-replace-regexp and Co."
   (unwind-protect
       (let ((buff (current-buffer)))
         (sr-quit)
         (switch-to-buffer buff)
-        (call-interactively 'dired-do-query-replace-regexp))
+        (call-interactively dired-fun))
     (exit-recursive-edit)))
+
+(defun sr-do-query-replace-regexp ()
+  "Forces Sunrise to quit before executing dired-do-query-replace-regexp."
+  (interactive)
+  (sr-dired-do-apply 'dired-do-query-replace-regexp))
+
+(defun sr-do-search ()
+  "Forces Sunrise to quit before executing dired-do-search."
+  (interactive)
+  (sr-dired-do-apply 'dired-do-search))
 
 ;;; ============================================================================
 ;;; TI (Terminal Integration) and CLEX (Command Line EXpansion) functions:
@@ -2197,7 +2214,7 @@ or (c)ontents? "))
       (if (and (string= (buffer-name (first sr-ti-openterms)) name)
                (not (null (first sr-ti-openterms)))
                (pop sr-ti-openterms)
-               sr-ti-openterms)
+               (buffer-live-p (first sr-ti-openterms)))
         (progn
           (rename-uniquely)
           (set-buffer (first sr-ti-openterms))
