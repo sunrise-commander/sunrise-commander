@@ -510,14 +510,13 @@ automatically:
 
 (defmacro sr-within (dir form)
   "Puts the given form in Sunrise context"
-  (list 'progn
-        (list 'setq 'sr-dired-directory
-              (list 'file-name-as-directory
-                    (list 'abbreviate-file-name dir)))
-        (list 'ad-activate (list 'quote 'dired-find-buffer-nocreate))
-        form
-        (list 'ad-deactivate (list 'quote 'dired-find-buffer-nocreate))
-        (list 'setq 'sr-dired-directory "")))
+  `(progn
+     (setq sr-dired-directory
+           (file-name-as-directory (abbreviate-file-name dir)))
+     (ad-activate 'dired-find-buffer-nocreate)
+     ,form
+     (ad-deactivate 'dired-find-buffer-nocreate)
+     (setq sr-dired-directory "")))
 
 (defun sr-dired-mode ()
   "Sets Sunrise mode in every Dired buffer opened in Sunrise (called in hook)"
@@ -1446,14 +1445,15 @@ automatically:
 ;;; Passive & synchronized navigation functions:
 
 (defmacro sr-in-other (form)
-  "Helper macro for passive & synchronized navigation."
-  (list 'progn
-        (list 'if 'sr-synchronized form)
-        (list 'sr-change-window)
-        (list 'condition-case 'description
-              form
-              (list 'error (list 'message (list 'second 'description))))
-        (list 'sr-change-window)))
+  "Executes the given form in the context of the passive pane. Helper macro for
+   passive & synchronized navigation."
+  `(progn
+     (if sr-synchronized ,form)
+     (sr-change-window)
+     (condition-case description
+         ,form
+       (error (message (second description))))
+     (sr-change-window)))
 
 (defun sr-sync ()
   "Toggles the Sunrise synchronized navigation feature."
@@ -2148,16 +2148,17 @@ or (c)ontents? "))
           (eshell-send-input)))))
 
 (defmacro sr-ti (form)
-  "Puts the given form in the context of the selected pane"
-  (list 'if 'sr-running
-        (list 'progn
-              (list 'sr-select-window 'sr-selected-window)
-              (list 'hl-line-mode 0)
-              (list 'unwind-protect
-                    form
-                    (list 'progn
-                          (list 'hl-line-mode 1)
-                          (list 'sr-select-viewer-window))))))
+  "Puts  the  given  form  in the context of the selected pane. Helper macro for
+   implementing terminal integration in Sunrise."
+  `(if sr-running
+       (progn
+         (sr-select-window sr-selected-window)
+         (hl-line-mode 0)
+         (unwind-protect
+             ,form
+           (progn
+             (hl-line-mode 1)
+             (sr-select-viewer-window))))))
 
 (defun sr-ti-previous-line ()
   "Runs previous-line on active pane from the terminal window."
@@ -2221,35 +2222,42 @@ or (c)ontents? "))
           (rename-buffer name)))))
 (add-hook 'kill-buffer-hook 'sr-ti-restore-previous-term)
 
-(defun sr-clex-file (pane)
-  "Returns the currently selected file in the given pane"
-  (save-window-excursion
-    (if (equal pane 'right)
-        (select-window sr-right-window)
-      (select-window sr-left-window))
-    (condition-case nil
-        (concat (shell-quote-wildcard-pattern (dired-get-filename)) " ")
-      (error ""))))
+(defmacro sr-clex (pane form)
+  "Executes the given form in the context of the given pane. Helper macro for
+   implementing command line expansion in Sunrise."
+  `(save-window-excursion
+     (if (equal ,pane 'right)
+         (select-window sr-right-window)
+       (select-window sr-left-window))
+     (condition-case nil
+         ,form
+       (error ""))))
 
 (defun sr-clex-marked (pane)
   "Returns a string containing the list of marked files in the given pane."
-  (save-window-excursion
-    (if (equal pane 'right)
-        (select-window sr-right-window)
-      (select-window sr-left-window))
-    (condition-case nil
-        (mapconcat 'shell-quote-wildcard-pattern (dired-get-marked-files) " ")
-      (error ""))))
+  (sr-clex
+   pane
+   (mapconcat 'shell-quote-wildcard-pattern (dired-get-marked-files) " ")))
+
+(defun sr-clex-file (pane)
+  "Returns the currently selected file in the given pane."
+  (sr-clex
+   pane
+   (concat (shell-quote-wildcard-pattern (dired-get-filename)) " ")))
+
+(defun sr-clex-marked-nodir (pane)
+  "Returns  a list containing the names of all the currently marked files in the
+  given pane, without the directory prepended."
+  (sr-clex
+   pane
+   (mapconcat 'shell-quote-wildcard-pattern
+              (dired-get-marked-files 'no-dir) " ")))
 
 (defun sr-clex-dir (pane)
   "Returns the current directory in the given pane."
-  (save-window-excursion
-    (if (equal pane 'right)
-        (select-window sr-right-window)
-      (select-window sr-left-window))
-    (condition-case nil
-        (concat (shell-quote-wildcard-pattern default-directory) " ")
-      (error ""))))
+  (sr-clex
+   pane
+   (concat (shell-quote-wildcard-pattern default-directory) " ")))
 
 (defun sr-clex-start ()
   "Starts a new CLEX operation. Registers sr-clex-commit as a local
@@ -2267,7 +2275,7 @@ or (c)ontents? "))
             (setq sr-clex-on t)
             (setq sr-clex-hotchar-overlay (make-overlay (point) (1- (point))))
             (overlay-put sr-clex-hotchar-overlay 'face 'sr-clex-hotchar-face)
-            (message "Sunrise: CLEX is now ON for keys: m f d M F D %%"))))))
+            (message "Sunrise: CLEX is now ON for keys: m f n d M F N D %%"))))))
 
 (defun sr-clex-commit (&optional beg end range)
   "Commits the current CLEX operation (if any). This function is added to the
@@ -2280,12 +2288,14 @@ or (c)ontents? "))
         (let ((xchar (char-before))
               (expansion))
           (setq expansion
-                (cond ((eq xchar ?m) (sr-clex-marked 'left))
-                      ((eq xchar ?f) (sr-clex-file   'left))
-                      ((eq xchar ?d) (sr-clex-dir    'left))
-                      ((eq xchar ?M) (sr-clex-marked 'right))
-                      ((eq xchar ?F) (sr-clex-file   'right))
-                      ((eq xchar ?D) (sr-clex-dir    'right))
+                (cond ((eq xchar ?m) (sr-clex-marked       'left))
+                      ((eq xchar ?f) (sr-clex-file         'left))
+                      ((eq xchar ?n) (sr-clex-marked-nodir 'left))
+                      ((eq xchar ?d) (sr-clex-dir          'left))
+                      ((eq xchar ?M) (sr-clex-marked       'right))
+                      ((eq xchar ?F) (sr-clex-file         'right))
+                      ((eq xchar ?N) (sr-clex-marked-nodir 'right))
+                      ((eq xchar ?D) (sr-clex-dir          'right))
                       (t nil)))
           (if expansion
               (progn
