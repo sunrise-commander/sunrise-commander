@@ -560,7 +560,8 @@ automatically:
             (sr-keep-buffer)))
         (if (not (null dispose))
             (kill-buffer dispose)))
-    ad-do-it))
+    ad-do-it)
+  (setq sr-this-directory default-directory))
 (list 'ad-activate (quote 'bookmark-jump))
 
 ;; Tweaks the target directory guessing mechanism:
