@@ -92,8 +92,10 @@
 ;; performed in term-line-mode:
 ;;     %f - expands to the currently selected file in the left pane
 ;;     %F - expands to the currently selected file in the right pane
-;;     %m - expands to the list of all marked files in the left pane
-;;     %M - expands to the list of all marked files in the right pane
+;;     %m - expands to the list of paths of all marked files in the left pane 
+;;     %M - expands to the list of paths of all marked files in the right pane
+;;     %n - expands to the list of names of all marked files in the left pane 
+;;     %N - expands to the list of names of all marked files in the right pane
 ;;     %d - expands to the current directory in the left pane
 ;;     %D - expands to the current directory in the right pane
 
@@ -397,6 +399,8 @@ substitution may be about to happen."
         M-t ........... transpose panes
         M-o ........... synchronize panes
         C-c C-s ....... change panes layout (vertical/horizontal/top-only)
+        { ............. enlarges the right pane by 5 columns
+        } ............. enlarges the left pane by 5 columns
         C-c C-z ....... enable/disable synchronized navigation
 
         C-= ........... smart compare files (ediff)
@@ -464,8 +468,10 @@ automatically:
 
        %f - expands to the currently selected file in the left pane
        %F - expands to the currently selected file in the right pane
-       %m - expands to the list of all marked files in the left pane
-       %M - expands to the list of all marked files in the right pane
+       %m - expands to the list of paths of all marked files in the left pane
+       %M - expands to the list of paths of all marked files in the right pane
+       %n - expands to the list of names of all marked files in the left pane
+       %N - expands to the list of names of all marked files in the right pane
        %d - expands to the current directory in the left pane
        %D - expands to the current directory in the right pane
        %% - inserts a single % sign.
@@ -593,6 +599,8 @@ automatically:
 (define-key sr-mode-map "\M-e"                'sr-end-of-buffer)
 (define-key sr-mode-map "\C-c\C-s"            'sr-split-toggle)
 (define-key sr-mode-map "\M-t"                'sr-transpose-panes)
+(define-key sr-mode-map "}"                   'sr-enlarge-left-pane)
+(define-key sr-mode-map "{"                   'sr-enlarge-right-pane)
 (define-key sr-mode-map "\M-o"                'sr-synchronize-panes)
 (define-key sr-mode-map "\C-o"                'sr-omit-mode)
 (define-key sr-mode-map "b"                   'sr-browse-file)
@@ -933,6 +941,25 @@ automatically:
   (bury-buffer (buffer-name sr-left-buffer))
   (bury-buffer (buffer-name sr-right-buffer)))
 
+(defun sr-resize-panes (&optional reverse)
+  "Enlarges (or shrinks, if reverse is t) the left pane by 5 columns."
+  (if (not (equal sr-window-split-style 'top))
+      (let* ((reverse (or reverse (equal sr-selected-window 'right)))
+             (direction (or (and reverse -1) 1)))
+        (save-selected-window
+          (select-window sr-left-window)
+          (enlarge-window-horizontally (* 5 direction))))))
+
+(defun sr-enlarge-left-pane ()
+  "Enlarges the left pane by 5 columns each time."
+  (interactive)
+  (sr-resize-panes))
+
+(defun sr-enlarge-right-pane ()
+  "Enlarges the right pane by 5 columns each time."
+  (interactive)
+  (sr-resize-panes t))
+
 ;;; ============================================================================
 ;;; File system navigation functions:
 
@@ -1183,10 +1210,11 @@ automatically:
 (defun sr-change-window()
   "Change to the other sr buffer"
   (interactive)
-  (if (not (equal sr-window-split-style 'top))
-      (progn
+  (if (and (window-live-p sr-left-window)
+           (window-live-p sr-right-window))
+      (let ((here sr-this-directory))
         (setq sr-this-directory sr-other-directory)
-        (setq sr-other-directory default-directory)
+        (setq sr-other-directory here)
         (if (equal (selected-window) sr-right-window)
             (sr-select-window 'left)
           (sr-select-window 'right)))))
