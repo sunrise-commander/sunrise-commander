@@ -1,4 +1,4 @@
-;; sunrise-commander.el  ---  Two-pane file manager for Emacs based on Dired and
+; sunrise-commander.el  ---  Two-pane file manager for Emacs based on Dired and
 ;; inspired by MC.
 
 ;; Copyright (C) 2007 2008 José Alfredo Romero L. (j0s3l0)
@@ -280,11 +280,17 @@
 (defvar sr-left-buffer nil
   "Dired buffer for the left window.")
 
+(defvar sr-left-window nil
+  "The left window of dired.")
+
 (defvar sr-right-directory "~/"
   "Dired directory for the right window.  See variable `dired-directory'.")
 
 (defvar sr-right-buffer nil
   "Dired buffer for the right window.")
+
+(defvar sr-right-window nil
+  "The right window of dired.")
 
 (defvar sr-this-directory "~/"
   "Dired directory in the active pane. This isn't necessarily the same as
@@ -293,18 +299,15 @@
 (defvar sr-other-directory "~/"
   "Dired directory in the passive pane")
 
+(defvar sr-selected-window 'left
+  "The window to select when sr starts up.")
+
 (defvar sr-checkpoint-registry
   (acons "~" (list sr-left-directory sr-right-directory) nil)
   "Registry of currently defined checkpoints")
 
-(defvar sr-left-window nil
-  "The left window of dired.")
-
-(defvar sr-right-window nil
-  "The right window of dired.")
-
-(defvar sr-selected-window 'left
-  "The window to select when sr starts up.")
+(defvar sr-ti-openterms nil
+  "Stack of currently open terminal buffers")
 
 (defvar sr-ediff-on nil
   "Flag that indicates whether an ediff is being done by Sunrise")
@@ -318,9 +321,6 @@
 (defvar sr-start-message
   "Been coding all night? Enjoy the Sunrise! (or press q to quit)"
   "Message to display when `sr' is started.")
-
-(defvar sr-ti-openterms nil
-  "Stack of currently open terminal buffers")
 
 (defface sr-active-path-face
   '((t (:background "#ace6ac" :foreground "yellow" :bold t :height 120)))
@@ -502,8 +502,8 @@ automatically:
   (make-local-variable 'truncate-lines)
   (setq truncate-lines nil)
 
+  (defvar sr-virtual-buffer t)
   (define-key sr-virtual-mode-map "g" nil)
-  (define-key sr-virtual-mode-map "\C-x\C-q" 'toggle-read-only)
   (define-key sr-virtual-mode-map "\C-c\C-c" 'sr-virtual-dismiss))
 
 (defun sr-virtual-dismiss ()
@@ -511,8 +511,8 @@ automatically:
   (interactive)
   (if (equal major-mode 'sr-virtual-mode)
       (progn
-        (sr-unhide-attributes)
-        (sr-goto-dir default-directory))))
+        (kill-buffer)
+        (sr-goto-dir sr-this-directory))))
 
 (defmacro sr-within (dir form)
   "Puts the given form in Sunrise context"
@@ -526,8 +526,7 @@ automatically:
 
 (defun sr-dired-mode ()
   "Sets Sunrise mode in every Dired buffer opened in Sunrise (called in hook)"
-  (if (string= (expand-file-name sr-dired-directory)
-               (expand-file-name default-directory))
+  (if (sr-equal-dirs dired-directory default-directory)
       (let ((dired-listing-switches dired-listing-switches))
         (if (null (string-match "^/ftp:" default-directory))
             (setq dired-listing-switches sr-listing-switches))
@@ -538,7 +537,7 @@ automatically:
 ;; This is a hack to avoid some dired mode quirks:
 (defadvice dired-find-buffer-nocreate
   (before sr-advice-findbuffer (dirname &optional mode))
-  (if (string= sr-dired-directory dirname)
+  (if (sr-equal-dirs sr-dired-directory dirname)
       (setq mode 'sr-mode)))
 
 ;; Handles panes opened from bookmarks in Sunrise:
@@ -549,7 +548,7 @@ automatically:
             (dispose nil))
         (if (not (eq sr-left-buffer sr-right-buffer))
             (setq dispose (current-buffer)))
-        (if (string= target sr-other-directory)
+        (if (sr-equal-dirs target sr-other-directory)
             (sr-synchronize-panes t)
           (progn
             (setq sr-dired-directory target)
@@ -944,9 +943,9 @@ automatically:
 
 (defun sr-resize-panes (&optional reverse)
   "Enlarges (or shrinks, if reverse is t) the left pane by 5 columns."
-  (if (not (equal sr-window-split-style 'top))
-      (let* ((reverse (or reverse (equal sr-selected-window 'right)))
-             (direction (or (and reverse -1) 1)))
+  (if (and (window-live-p sr-left-window)
+           (window-live-p sr-right-window))
+      (let ((direction (or (and reverse -1) 1)))
         (save-selected-window
           (select-window sr-left-window)
           (enlarge-window-horizontally (* 5 direction))))))
@@ -1035,8 +1034,11 @@ automatically:
         (setq dir (replace-regexp-in-string sr-avfs-root "" dir)))
 
   ;; Detect spontaneous windows changes (using the mouse):
-  (if (not (string= sr-this-directory default-directory))
-      (setq sr-other-directory sr-this-directory))
+  (if (and (not (sr-equal-dirs sr-this-directory default-directory))
+           (sr-equal-dirs sr-other-directory default-directory))
+      (progn
+        (setq sr-other-directory sr-this-directory)
+        (sr-force-passive-highlight)))
   (if (eq (selected-window) sr-left-window)
       (sr-select-window 'left)
     (sr-select-window 'right))
@@ -1044,7 +1046,7 @@ automatically:
   (hl-line-mode 0)
   (sr-within dir
              (if (or (not dired-directory)
-                     (string= sr-other-directory default-directory))
+                     (sr-equal-dirs sr-other-directory sr-this-directory))
                  (dired dir)
                (find-alternate-file dir)))
   (setq sr-this-directory default-directory)
@@ -1547,19 +1549,37 @@ automatically:
 (defun sr-editable-pane ()
   "Puts the current pane in Editable Dired mode (wdired)"
   (interactive)
-  (let ((subdir-alist dired-subdir-alist))
-    (dired-mode)
-    (setq dired-subdir-alist subdir-alist)
-    (wdired-change-to-wdired-mode)))
-
-;; Puts the pane back in Sunrise mode after being edited with wdired:
-(defadvice wdired-finish-edit
-  (after sr-advice-wdired-finish-edit ())
-  (if sr-running
+  (wdired-change-to-wdired-mode)
+  (if (boundp 'sr-virtual-buffer)
       (progn
-        (sr-mode)
-        (sr-force-passive-highlight))))
+        (set (make-local-variable 'sr-virtual-buffer) t)
+        (ad-activate 'revert-buffer))))
+
+;; restores the pane's original mode after being edited with wdired:
+(defadvice wdired-finish-edit
+  (around sr-advice-wdired-finish-edit ())
+  (if sr-running
+      (let ((was-virtual (boundp 'sr-virtual-buffer)))
+        ad-do-it
+        (if was-virtual
+            (progn
+              (ad-deactivate 'revert-buffer)
+              (sr-virtual-mode)
+              (sr-force-passive-highlight))
+          (progn
+            (kill-buffer)
+            (sr-goto-dir sr-this-directory))))
+    ad-do-it))
 (ad-activate 'wdired-finish-edit)
+
+;; inhibits reverting virtual buffers being edited with wdired:
+(defadvice revert-buffer
+  (around sr-advice-revert-buffer ())
+  (if (and (boundp 'sr-virtual-buffer)
+           (equal major-mode 'dired-mode)
+           sr-running)
+      (ignore)
+    ad-do-it))
 
 (defun sr-do-copy ()
   "Copies recursively selected files and directories from one pane to the other"
@@ -1573,7 +1593,7 @@ automatically:
            (target (or vtarget sr-other-directory))
            )
       (if (> files-count 0)
-          (if (string= default-directory sr-other-directory)
+          (if (sr-equal-dirs default-directory sr-other-directory)
               (dired-do-copy)
             (if (y-or-n-p (concat "Copy " files-count-str " files to " target "? "))
                 (progn
@@ -1603,7 +1623,7 @@ automatically:
            (files-count-str (int-to-string files-count))
           )
       (if (> files-count 0)
-          (if (string= default-directory sr-other-directory)
+          (if (sr-equal-dirs default-directory sr-other-directory)
               (dired-do-rename)
             (if (y-or-n-p (concat "Move " files-count-str
                                   " files to " sr-other-directory "? "))
@@ -1624,7 +1644,7 @@ automatically:
   "Creates  symbolic  links  in  the  passive pane to all the currently selected
   files and directories in the active one."
   (interactive)
-  (if (string= default-directory sr-other-directory)
+  (if (sr-equal-dirs default-directory sr-other-directory)
       (dired-do-symlink)
     (sr-link #'make-symbolic-link "Symlink" dired-keep-marker-symlink)))
 
@@ -1632,7 +1652,7 @@ automatically:
   "Creates  relative  symbolic  links  in  the passive pane to all the currently
   selected files and directories in the active one."
   (interactive)
-  (if (string= default-directory sr-other-directory)
+  (if (sr-equal-dirs default-directory sr-other-directory)
       (dired-do-relsymlink)
     (sr-link #'dired-make-relative-symlink
              "RelSymLink"
@@ -1957,7 +1977,7 @@ or (c)ontents? "))
         (other nil))
     (if (not this)
         (setq this (car (dired-get-marked-files t))))
-    (if (string= default-directory sr-other-directory)
+    (if (sr-equal-dirs default-directory sr-other-directory)
         (setq other (sr-pop-mark))
       (progn
         (sr-change-window)
@@ -2378,6 +2398,10 @@ or (c)ontents? "))
   (interactive)
   (describe-mode)
   (sr-scrollable-viewer (get-buffer "*Help*")))
+
+(defun sr-equal-dirs (dir1 dir2)
+  "Determines whether two directory paths represent the same directory."
+  (string= (expand-file-name dir1) (expand-file-name dir2)))
 
 ;;; ============================================================================
 ;;; Font-Lock colors & styles:
