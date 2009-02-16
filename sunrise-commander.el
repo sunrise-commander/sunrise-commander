@@ -502,7 +502,6 @@ automatically:
   (make-local-variable 'truncate-lines)
   (setq truncate-lines nil)
 
-  (defvar sr-virtual-buffer t)
   (define-key sr-virtual-mode-map "g" nil)
   (define-key sr-virtual-mode-map "\C-c\C-c" 'sr-virtual-dismiss))
 
@@ -1549,11 +1548,12 @@ automatically:
 (defun sr-editable-pane ()
   "Puts the current pane in Editable Dired mode (wdired)"
   (interactive)
-  (wdired-change-to-wdired-mode)
-  (if (boundp 'sr-virtual-buffer)
-      (progn
-        (set (make-local-variable 'sr-virtual-buffer) t)
-        (ad-activate 'revert-buffer))))
+  (let ((was-virtual (equal major-mode 'sr-virtual-mode)))
+    (wdired-change-to-wdired-mode)
+    (if was-virtual
+        (progn
+          (set (make-local-variable 'sr-virtual-buffer) t)
+          (ad-activate 'revert-buffer)))))
 
 ;; restores the pane's original mode after being edited with wdired:
 (defadvice wdired-finish-edit
