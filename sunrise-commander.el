@@ -315,6 +315,9 @@
 (defvar sr-clex-on nil
   "Flag that indicates that a CLEX operation is taking place")
 
+(defvar sr-virtual-buffer nil
+  "Local flag that indicates the current buffer was originally in VIRTUAL mode")
+
 (defvar sr-dired-directory ""
   "Directory inside which sr-mode is currently active")
 
@@ -399,8 +402,8 @@ substitution may be about to happen."
         M-t ........... transpose panes
         M-o ........... synchronize panes
         C-c C-s ....... change panes layout (vertical/horizontal/top-only)
-        { ............. enlarges the right pane by 5 columns
-        } ............. enlarges the left pane by 5 columns
+        [ ............. enlarges the right pane by 5 columns
+        ] ............. enlarges the left pane by 5 columns
         C-c C-z ....... enable/disable synchronized navigation
 
         C-= ........... smart compare files (ediff)
@@ -598,8 +601,8 @@ automatically:
 (define-key sr-mode-map "\M-e"                'sr-end-of-buffer)
 (define-key sr-mode-map "\C-c\C-s"            'sr-split-toggle)
 (define-key sr-mode-map "\M-t"                'sr-transpose-panes)
-(define-key sr-mode-map "}"                   'sr-enlarge-left-pane)
-(define-key sr-mode-map "{"                   'sr-enlarge-right-pane)
+(define-key sr-mode-map "]"                   'sr-enlarge-left-pane)
+(define-key sr-mode-map "["                   'sr-enlarge-right-pane)
 (define-key sr-mode-map "\M-o"                'sr-synchronize-panes)
 (define-key sr-mode-map "\C-o"                'sr-omit-mode)
 (define-key sr-mode-map "b"                   'sr-browse-file)
@@ -1034,7 +1037,8 @@ automatically:
 
   ;; Detect spontaneous windows changes (using the mouse):
   (if (and (not (sr-equal-dirs sr-this-directory default-directory))
-           (sr-equal-dirs sr-other-directory default-directory))
+           (sr-equal-dirs sr-other-directory default-directory)
+           (not (local-variable-p 'sr-virtual-buffer)))
       (progn
         (setq sr-other-directory sr-this-directory)
         (sr-force-passive-highlight)))
@@ -1559,7 +1563,7 @@ automatically:
 (defadvice wdired-finish-edit
   (around sr-advice-wdired-finish-edit ())
   (if sr-running
-      (let ((was-virtual (boundp 'sr-virtual-buffer)))
+      (let ((was-virtual (local-variable-p 'sr-virtual-buffer)))
         ad-do-it
         (if was-virtual
             (progn
@@ -1575,7 +1579,7 @@ automatically:
 ;; inhibits reverting virtual buffers being edited with wdired:
 (defadvice revert-buffer
   (around sr-advice-revert-buffer ())
-  (if (and (boundp 'sr-virtual-buffer)
+  (if (and (local-variable-p 'sr-virtual-buffer)
            (equal major-mode 'dired-mode)
            sr-running)
       (ignore)
