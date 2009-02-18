@@ -1,7 +1,7 @@
 ;; sunrise-commander.el  ---  Two-pane file manager for Emacs based on Dired and
 ;; inspired by MC.
 
-;; Copyright (C) 2007 2008 José Alfredo Romero L. (j0s3l0)
+;; Copyright (C) 2007 2008 2009 José Alfredo Romero L. (j0s3l0)
 
 ;; Author: José Alfredo Romero L. <joseito@poczta.onet.pl>
 ;; Keywords: Sunrise Commander Emacs File Manager Midnight Norton Orthodox
@@ -527,7 +527,8 @@ automatically:
 
 (defun sr-dired-mode ()
   "Sets Sunrise mode in every Dired buffer opened in Sunrise (called in hook)"
-  (if (sr-equal-dirs dired-directory default-directory)
+  (if (and (sr-equal-dirs dired-directory default-directory)
+           (not (equal major-mode 'sr-mode)))
       (let ((dired-listing-switches dired-listing-switches))
         (if (null (string-match "^/ftp:" default-directory))
             (setq dired-listing-switches sr-listing-switches))
@@ -1054,9 +1055,8 @@ automatically:
   (setq sr-this-directory default-directory)
   (sr-keep-buffer)
   (sr-history-push default-directory)
-  (sr-highlight)
   (sr-beginning-of-buffer)
-  (hl-line-mode 1))
+  (sr-omit-mode 1))
 
 (defun sr-dired-prev-subdir ()
   "Go to the previous subdirectory."
@@ -1328,14 +1328,18 @@ automatically:
 (defun sr-revert-buffer ()
   "Refreshes the current pane"
   (interactive)
-  (revert-buffer)
-  (sr-force-passive-highlight))
+  (let ((omit (or dired-omit-mode -1)))
+    (revert-buffer)
+    (sr-omit-mode omit)))
 
-(defun sr-omit-mode ()
+(defun sr-omit-mode (&optional force)
   "Toggles dired-omit-mode"
   (interactive)
-  (dired-omit-mode)
-  (sr-highlight))
+  (if force
+      (dired-omit-mode force)
+    (dired-omit-mode))
+  (sr-force-passive-highlight)
+  (hl-line-mode 1))
 
 (defun sr-quick-view (&optional arg)
   "Opens  the  selected file on the viewer window without selecting it. Kills
@@ -2398,12 +2402,11 @@ or (c)ontents? "))
       (setq sr-left-buffer (current-buffer))
     (setq sr-right-buffer (current-buffer))))
 
-(defmacro sr-scrollable-viewer (buffer)
+(defun sr-scrollable-viewer (buffer)
   "Sets the other-window-scroll-buffer variable to the given buffer (or nil)."
-  `(progn
-     (setq other-window-scroll-buffer ,buffer)
-     (if ,buffer
-         (message "QUICK VIEW: Press C-M-v, S-C-M-v to scroll up/down and C-u v (or C-u o) to dismiss"))))
+  (setq other-window-scroll-buffer buffer)
+  (if buffer
+      (message "QUICK VIEW: Press C-M-v, S-C-M-v to scroll up/down and C-u v (or C-u o) to dismiss")))
 
 (defun sr-describe-mode ()
   "Calls describe-mode and makes the resulting buffer C-M-v scrollable."
