@@ -1,4 +1,4 @@
-; sunrise-commander.el  ---  Two-pane file manager for Emacs based on Dired and
+;; sunrise-commander.el  ---  Two-pane file manager for Emacs based on Dired and
 ;; inspired by MC.
 
 ;; Copyright (C) 2007 2008 José Alfredo Romero L. (j0s3l0)
@@ -505,7 +505,6 @@ automatically:
   (make-local-variable 'truncate-lines)
   (setq truncate-lines nil)
 
-  (define-key sr-virtual-mode-map "g" nil)
   (define-key sr-virtual-mode-map "\C-c\C-c" 'sr-virtual-dismiss))
 
 (defun sr-virtual-dismiss ()
@@ -1410,8 +1409,7 @@ automatically:
         (message "Sunrise: continuing long lines"))
     (progn
       (setq truncate-partial-width-windows (sr-truncate-v t))
-      (message "Sunrise: truncating long lines")))
-  (sr-revert-buffer))
+      (message "Sunrise: truncating long lines"))))
 
 (defun sr-truncate-p nil
   "Returns  whether  truncate-partial-width-widows  is  set to truncate the long
@@ -1550,40 +1548,50 @@ automatically:
 ;;; File manipulation functions:
 
 (defun sr-editable-pane ()
-  "Puts the current pane in Editable Dired mode (wdired)"
+  "Puts the current pane in Editable Dired mode (WDired)."
   (interactive)
   (let ((was-virtual (equal major-mode 'sr-virtual-mode)))
     (wdired-change-to-wdired-mode)
     (if was-virtual
-        (progn
-          (set (make-local-variable 'sr-virtual-buffer) t)
-          (ad-activate 'revert-buffer)))))
+        (set (make-local-variable 'sr-virtual-buffer) t))))
 
-;; restores the pane's original mode after being edited with wdired:
-(defadvice wdired-finish-edit
-  (around sr-advice-wdired-finish-edit ())
-  (if sr-running
-      (let ((was-virtual (local-variable-p 'sr-virtual-buffer)))
-        ad-do-it
-        (if was-virtual
-            (progn
-              (ad-deactivate 'revert-buffer)
-              (sr-virtual-mode)
-              (sr-force-passive-highlight))
-          (progn
-            (kill-buffer)
-            (sr-goto-dir sr-this-directory))))
-    ad-do-it))
-(ad-activate 'wdired-finish-edit)
+(defun sr-readonly-pane (as-virtual)
+  "Puts the current pane back in Sunrise mode."
+  (if as-virtual
+      (progn
+        (sr-virtual-mode)
+        (sr-force-passive-highlight))
+    (progn
+      (kill-buffer)
+      (sr-goto-dir sr-this-directory)
+      (if (sr-equal-dirs sr-this-directory sr-other-directory)
+          (sr-synchronize-panes)))))
 
-;; inhibits reverting virtual buffers being edited with wdired:
+(defun sr-terminate-wdired (fun)
+  "Restores the current pane's original mode after being edited with WDired."
+  (ad-add-advice
+   fun
+   (ad-make-advice
+    (intern (concat "sr-advice-" (symbol-name fun))) nil t
+    `(advice
+      lambda ()
+      (if sr-running
+          (let ((was-virtual (local-variable-p 'sr-virtual-buffer)))
+            ad-do-it
+            (sr-readonly-pane was-virtual))
+        ad-do-it)))
+   'around 'last)
+  (ad-activate fun nil))
+(sr-terminate-wdired 'wdired-finish-edit)
+(sr-terminate-wdired 'wdired-abort-changes)
+
+;; inhibits reverting sunrise virtual buffers:
 (defadvice revert-buffer
   (around sr-advice-revert-buffer ())
-  (if (and (local-variable-p 'sr-virtual-buffer)
-           (equal major-mode 'dired-mode)
-           sr-running)
-      (ignore)
+  (unless (or (equal major-mode 'sr-virtual-mode)
+              (local-variable-p 'sr-virtual-buffer))
     ad-do-it))
+(ad-activate 'revert-buffer)
 
 (defun sr-do-copy ()
   "Copies recursively selected files and directories from one pane to the other"
