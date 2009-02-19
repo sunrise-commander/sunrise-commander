@@ -715,8 +715,12 @@ automatically:
           (setq sr-prior-window-configuration (current-window-configuration))
           (sr-setup-windows)
           (if filename
-              (sr-focus-filename (replace-regexp-in-string ".*/" "" filename)))
-          (message "%s" sr-start-message)
+              (condition-case description
+                  (progn
+                    (sr-focus-filename (replace-regexp-in-string ".*/" "" filename))
+                    (message "%s" sr-start-message))
+                (error (message "%s" (second description))))
+            (message "%s" sr-start-message))
           (recursive-edit))
         (sr-quit))
     (progn
