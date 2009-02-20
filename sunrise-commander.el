@@ -1365,7 +1365,8 @@ automatically:
       (dired-omit-mode))
     (if hidden-attrs
         (sr-hide-attributes))
-    (sr-force-passive-highlight)))
+    (sr-force-passive-highlight))
+  (message ""))
 
 (defun sr-quick-view (&optional arg)
   "Opens  the  selected file on the viewer window without selecting it. Kills
@@ -1412,7 +1413,8 @@ automatically:
         (overlay-put overlay 'intangible t)
         (forward-line)
         (setq next (re-search-forward directory-listing-before-filename-regexp nil t)))
-      (put sr-selected-window 'hidden-attrs attr-list))))
+      (put sr-selected-window 'hidden-attrs attr-list)))
+  (message (concat "Sunrise: hiding attributes in " (symbol-name sr-selected-window) " pane")))
 
 (defun sr-unhide-attributes ()
   "Shows the (hidden) attributes of all files in the active pane."
@@ -1420,7 +1422,8 @@ automatically:
     (if (not (null attr-list))
         (progn
           (mapc 'delete-overlay attr-list)
-          (put sr-selected-window 'hidden-attrs nil)))))
+          (put sr-selected-window 'hidden-attrs nil))))
+  (message (concat "Sunrise: displaying attributes in " (symbol-name sr-selected-window) " pane")))
 (add-hook 'dired-after-readin-hook 'sr-unhide-attributes)
 
 (defun sr-toggle-attributes ()
