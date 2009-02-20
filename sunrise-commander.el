@@ -511,7 +511,7 @@ automatically:
   (interactive)
   (if (equal major-mode 'sr-virtual-mode)
       (progn
-        (kill-buffer)
+        (kill-buffer (current-buffer))
         (sr-goto-dir sr-this-directory))))
 
 (defmacro sr-within (dir form)
@@ -562,10 +562,9 @@ automatically:
         (if (sr-equal-dirs target sr-other-directory)
             (sr-synchronize-panes t)
           (let ((hidden-attrs (get sr-selected-window 'hidden-attrs))
-                (omit (or dired-omit-mode -1)))
-            (setq sr-dired-directory target)
+                (omit (or dired-omit-mode -1))
+                (sr-dired-directory target))
             ad-do-it
-            (setq sr-dired-directory "")
             (sr-omit-mode omit)
             (if hidden-attrs
                 (sr-hide-attributes))
@@ -865,27 +864,28 @@ automatically:
           (goto-char (point-min))
           (sr-hide-avfs-root)
           (if window-system
-              (sr-graphical-highlight)))
+              (progn
+                (sr-graphical-highlight)
+                (sr-force-passive-highlight))))
         (hl-line-mode 1))))
 
-(defun sr-graphical-highlight ()
+(defun sr-graphical-highlight (&optional passive)
   "Sets up the graphical path line in the current buffer (fancy fonts and
   clickable path)"
 
-  ;;update the last overlay
-  (if sr-current-window-overlay
-      (overlay-put sr-current-window-overlay 'face 'sr-passive-path-face))
-
-  (let (begin end)
+  (let ((my-face (if passive 'sr-passive-path-face 'sr-active-path-face))
+        (begin) (end))
     ;;determine begining and end
-    (search-forward-regexp "\\S " nil t)
-    (setq begin (1- (point)))
-    (end-of-line)
-    (setq end (1- (point)))
+    (save-excursion
+      (goto-char (point-min))
+      (search-forward-regexp "\\S " nil t)
+      (setq begin (1- (point)))
+      (end-of-line)
+      (setq end (1- (point))))
   
     ;;setup overlay
     (setq sr-current-window-overlay (make-overlay begin end))
-    (overlay-put sr-current-window-overlay 'face 'sr-active-path-face)
+    (overlay-put sr-current-window-overlay 'face my-face)
     (overlay-put sr-current-window-overlay 'window (selected-window))
   
     ;;make path line clickable
@@ -897,6 +897,16 @@ automatically:
                   help-echo "mouse-2: move up")
      nil)
     (toggle-read-only 1)))
+
+(defun sr-force-passive-highlight ()
+  (if (and (window-live-p sr-left-window) (window-live-p sr-right-window))
+      (let (my-window)
+        (if (equal sr-selected-window 'left)
+            (setq my-window sr-right-window)
+          (setq my-window sr-left-window))
+        (save-window-excursion
+          (select-window my-window)
+          (sr-graphical-highlight t)))))
 
 (defun sr-hide-avfs-root ()
   "Hides the AVFS virtual filesystem root (if any) on the path line."
@@ -911,13 +921,6 @@ automatically:
             (overlay-put overlay 'intangible t)
             (setq next (search-forward sr-avfs-root nil t))))
         (goto-char (point-min)))))
-
-(defun sr-force-passive-highlight ()
-  (if (equal sr-window-split-style 'top)
-      (sr-highlight)
-    (progn
-      (sr-change-window)
-      (sr-change-window))))
 
 (defun sr-quit (&optional norestore)
   "Quit Sunrise and restore emacs to previous operation."
@@ -1239,8 +1242,7 @@ automatically:
         (setq sr-other-directory here)
         (if (equal (selected-window) sr-right-window)
             (sr-select-window 'left)
-          (sr-select-window 'right))))
-  (sr-highlight))
+          (sr-select-window 'right)))))
 
 (defun sr-beginning-of-buffer()
   "Go to the first directory/file in dired."
@@ -1372,15 +1374,16 @@ automatically:
   any other buffer opened previously the same  way.  With  optional  argument
   kills the last quick view buffer without opening a new one."
   (interactive "P")
-  (if arg
-      (sr-kill-quick-view)
-    (let ((home (selected-window))
-          (split-width-threshold (* 10 (window-width))))
-      (if (buffer-live-p other-window-scroll-buffer)
-          (kill-buffer other-window-scroll-buffer))
-      (dired-find-file-other-window)
-      (sr-scrollable-viewer (current-buffer))
-      (select-window home))))
+  (sr-save-aspect
+   (if arg
+       (sr-kill-quick-view)
+     (let ((home (selected-window))
+           (split-width-threshold (* 10 (window-width))))
+       (if (buffer-live-p other-window-scroll-buffer)
+           (kill-buffer other-window-scroll-buffer))
+       (dired-find-file-other-window)
+       (sr-scrollable-viewer (current-buffer))
+       (select-window home)))))
 
 (defun sr-kill-quick-view ()
   "Kills the last buffer opened using quick view (if any)."
@@ -1519,7 +1522,8 @@ automatically:
      (condition-case description
          ,form
        (error (message (second description))))
-     (sr-change-window)))
+     (sr-change-window)
+     (sr-force-passive-highlight)))
 
 (defun sr-sync ()
   "Toggles the Sunrise synchronized navigation feature."
@@ -1596,7 +1600,7 @@ automatically:
         (sr-virtual-mode)
         (sr-force-passive-highlight))
     (progn
-      (kill-buffer)
+      (kill-buffer (current-buffer))
       (sr-goto-dir sr-this-directory)
       (if (sr-equal-dirs sr-this-directory sr-other-directory)
           (sr-synchronize-panes)))))
@@ -1856,6 +1860,7 @@ the original one"
         (kill-line)
       (progn
         (toggle-read-only 1)
+        (sr-revert-buffer)
         (sr-change-window)
         (dired-unmark-all-marks)))))
 
@@ -2060,9 +2065,9 @@ or (c)ontents? "))
          (cons
           (concat "-exec ls -d " sr-virtual-listing-switches " \\{\\} \\;")
           "ls -ld")))
-    (apply fun (list default-directory pattern)))
-  (sr-virtual-mode)
-  (sr-keep-buffer))
+    (apply fun (list default-directory pattern))
+    (sr-virtual-mode)
+    (sr-keep-buffer)))
 
 (defun sr-find (pattern)
   "Runs find-dired passing the current directory as first parameter."
@@ -2083,15 +2088,17 @@ or (c)ontents? "))
   "Runs locate with the necessary options to produce a buffer that can be put in
    sunrise virtual mode"
   (interactive)
-  (switch-to-buffer "*Locate*")
-  (let ((locate-prompt-for-command t)
-        (locate-filename-indentation 2)
-        (locate-make-command-line
-         (lambda (arg)
-           (list "locate" arg "| xargs ls -d" sr-virtual-listing-switches))))
-    (call-interactively 'locate))
-  (sr-virtual-mode)
-  (sr-keep-buffer))
+  (sr-save-aspect
+   (progn
+     (switch-to-buffer "*Locate*")
+     (let ((locate-prompt-for-command t)
+           (locate-filename-indentation 2)
+           (locate-make-command-line
+            (lambda (arg)
+              (list "locate" arg "| xargs ls -d" sr-virtual-listing-switches))))
+       (call-interactively 'locate))
+     (sr-virtual-mode)
+     (sr-keep-buffer))))
 
 (defun sr-recent-files ()
   "Displays the history of recent files maintained by recentf in sunrise virtual
@@ -2100,40 +2107,42 @@ or (c)ontents? "))
   (if (not (featurep 'recentf))
       (error "ERROR: Feature recentf not available!"))
 
-  (sr-switch-to-clean-buffer "*Recent Files*")
-  (insert "Recently Visited Files: \n")
-  (let ((dired-actual-switches dired-listing-switches))
-    (dolist (file recentf-list)
-      (condition-case nil
-          (insert-directory file sr-virtual-listing-switches nil nil)
-        (error (ignore))))
-    (sr-virtual-mode)
-    (sr-keep-buffer)))
+  (sr-save-aspect
+   (let ((dired-actual-switches dired-listing-switches))
+     (sr-switch-to-clean-buffer "*Recent Files*")
+     (insert "Recently Visited Files: \n")
+     (dolist (file recentf-list)
+       (condition-case nil
+           (insert-directory file sr-virtual-listing-switches nil nil)
+         (error (ignore))))
+     (sr-virtual-mode)
+     (sr-keep-buffer))))
 
 (defun sr-recent-directories ()
   "Displays the history of directories recently visited in the current pane."
   (interactive)
-  (let ((hist (get sr-selected-window 'history))
-        (dired-actual-switches dired-listing-switches)
-        (pane-name (capitalize (symbol-name sr-selected-window)))
-        (seen-dirs) (beg))
-    (sr-switch-to-clean-buffer (concat "*" pane-name " Pane History*"))
-    (insert (concat "Recent Directories in " pane-name " Pane: \n"))
-    (dolist (dir hist)
-      (condition-case nil
-          (if (and dir
-                   (file-exists-p dir)
-                   (not (member dir seen-dirs))
-                   (file-directory-p dir))
-              (progn
-                (setq seen-dirs (cons dir seen-dirs))
-                (setq dir (replace-regexp-in-string "\\(.\\)/?$" "\\1" dir))
-                (setq beg (point))
-                (insert-directory dir sr-virtual-listing-switches nil nil)
-                (dired-align-file beg (point))))
-        (error (ignore))))
-    (sr-virtual-mode)
-    (sr-keep-buffer)))
+  (sr-save-aspect
+   (let ((hist (get sr-selected-window 'history))
+         (dired-actual-switches dired-listing-switches)
+         (pane-name (capitalize (symbol-name sr-selected-window)))
+         (seen-dirs) (beg))
+     (sr-switch-to-clean-buffer (concat "*" pane-name " Pane History*"))
+     (insert (concat "Recent Directories in " pane-name " Pane: \n"))
+     (dolist (dir hist)
+       (condition-case nil
+           (if (and dir
+                    (file-exists-p dir)
+                    (not (member dir seen-dirs))
+                    (file-directory-p dir))
+               (progn
+                 (setq seen-dirs (cons dir seen-dirs))
+                 (setq dir (replace-regexp-in-string "\\(.\\)/?$" "\\1" dir))
+                 (setq beg (point))
+                 (insert-directory dir sr-virtual-listing-switches nil nil)
+                 (dired-align-file beg (point))))
+         (error (ignore))))
+     (sr-virtual-mode)
+     (sr-keep-buffer))))
 
 (defun sr-switch-to-clean-buffer (name)
   (switch-to-buffer name)
@@ -2146,15 +2155,16 @@ or (c)ontents? "))
 (defun sr-pure-virtual ()
   "Creates a new empty buffer in Sunrise VIRTUAL mode."
   (interactive)
-  (let ((dir (directory-file-name (dired-current-directory)))
-        (buff (generate-new-buffer-name (buffer-name (current-buffer)))))
-    (switch-to-buffer buff)
-    (goto-char (point-min))
-    (insert (concat "  " dir) ":\n")
-    (insert " Pure VIRTUAL buffer: \n")
-    (insert "  drwxrwxrwx 00 0000 0000-00-00 00:00 ./\n")
-    (sr-virtual-mode)
-    (sr-keep-buffer)))
+  (sr-save-aspect
+   (let ((dir (directory-file-name (dired-current-directory)))
+         (buff (generate-new-buffer-name (buffer-name (current-buffer)))))
+     (switch-to-buffer buff)
+     (goto-char (point-min))
+     (insert (concat "  " dir) ":\n")
+     (insert " Pure VIRTUAL buffer: \n")
+     (insert "  drwxrwxrwx 00 0000 0000-00-00 00:00 ./\n")
+     (sr-virtual-mode)
+     (sr-keep-buffer))))
 
 ;; This cleans up the current pane after deletion from the history of recent
 ;; files:
