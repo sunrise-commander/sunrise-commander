@@ -1261,7 +1261,7 @@ automatically:
   "Tries to select the given file name in the current buffer."
   (if (and dired-omit-mode
            (string-match (dired-omit-regexp) filename))
-      (sr-omit-mode))
+      (sr-omit-mode 1))
   (let ((expr filename))
     (if (or (file-directory-p filename) (file-symlink-p filename))
         (progn
@@ -1365,8 +1365,7 @@ automatically:
       (dired-omit-mode))
     (if hidden-attrs
         (sr-hide-attributes))
-    (sr-force-passive-highlight))
-  (message ""))
+    (sr-highlight)))
 
 (defun sr-quick-view (&optional arg)
   "Opens  the  selected file on the viewer window without selecting it. Kills
@@ -1413,8 +1412,7 @@ automatically:
         (overlay-put overlay 'intangible t)
         (forward-line)
         (setq next (re-search-forward directory-listing-before-filename-regexp nil t)))
-      (put sr-selected-window 'hidden-attrs attr-list)))
-  (message (concat "Sunrise: hiding attributes in " (symbol-name sr-selected-window) " pane")))
+      (put sr-selected-window 'hidden-attrs attr-list))))
 
 (defun sr-unhide-attributes ()
   "Shows the (hidden) attributes of all files in the active pane."
@@ -1422,16 +1420,19 @@ automatically:
     (if (not (null attr-list))
         (progn
           (mapc 'delete-overlay attr-list)
-          (put sr-selected-window 'hidden-attrs nil))))
-  (message (concat "Sunrise: displaying attributes in " (symbol-name sr-selected-window) " pane")))
+          (put sr-selected-window 'hidden-attrs nil)))))
 (add-hook 'dired-after-readin-hook 'sr-unhide-attributes)
 
 (defun sr-toggle-attributes ()
   "Hides/Shows the attributes of all files in the active pane."
   (interactive)
   (if (null (get sr-selected-window 'hidden-attrs))
-      (sr-hide-attributes)
-    (sr-unhide-attributes)))
+      (progn
+        (sr-hide-attributes)
+        (message (concat "Sunrise: hiding attributes in " (symbol-name sr-selected-window) " pane")))
+    (progn
+      (sr-unhide-attributes)
+      (message (concat "Sunrise: displaying attributes in " (symbol-name sr-selected-window) " pane")))))
 
 (defun sr-toggle-truncate-lines ()
   "Enables/Disables truncation of long lines in the active pane."
