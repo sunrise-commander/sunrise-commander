@@ -497,7 +497,6 @@ automatically:
   :group 'sunrise
   (set-keymap-parent sr-virtual-mode-map sr-mode-map)
   (sr-highlight)
-  (hl-line-mode 1)
 
   (make-local-variable 'truncate-partial-width-windows)
   (setq truncate-partial-width-windows (sr-truncate-v t))
@@ -524,6 +523,16 @@ automatically:
      ,form
      (ad-deactivate 'dired-find-buffer-nocreate)
      (setq sr-dired-directory "")))
+
+(defmacro sr-save-aspect (form)
+  "Restores hidden attributes and omit mode after a directory transition."
+  `(let ((hidden-attrs (get sr-selected-window 'hidden-attrs))
+         (omit (or dired-omit-mode -1)))
+     (hl-line-mode 0)
+     ,form
+     (if hidden-attrs
+         (sr-hide-attributes))
+     (sr-omit-mode omit)))
 
 (defun sr-dired-mode ()
   "Sets Sunrise mode in every Dired buffer opened in Sunrise (called in hook)"
@@ -552,18 +561,21 @@ automatically:
             (setq dispose (current-buffer)))
         (if (sr-equal-dirs target sr-other-directory)
             (sr-synchronize-panes t)
-          (progn
+          (let ((hidden-attrs (get sr-selected-window 'hidden-attrs))
+                (omit (or dired-omit-mode -1)))
             (setq sr-dired-directory target)
             ad-do-it
             (setq sr-dired-directory "")
-            (hl-line-mode)
+            (sr-omit-mode omit)
+            (if hidden-attrs
+                (sr-hide-attributes))
             (sr-highlight)
             (sr-keep-buffer)))
         (if (not (null dispose))
             (kill-buffer dispose)))
     ad-do-it)
   (setq sr-this-directory default-directory))
-(list 'ad-activate (quote 'bookmark-jump))
+(ad-activate 'bookmark-jump)
 
 ;; Tweaks the target directory guessing mechanism:
 (defadvice dired-dwim-target-directory
@@ -757,7 +769,8 @@ automatically:
   (if (and (file-exists-p directory)
            (file-readable-p directory))
       (if (file-directory-p directory)
-          (sr-goto-dir directory)
+          (let ((dired-omit-mode 1))
+            (sr-goto-dir directory))
         (progn
           (sr-quit)
           (exit-recursive-edit)))))
@@ -835,7 +848,6 @@ automatically:
     (progn
       (select-window sr-right-window)
       (setq sr-selected-window 'right)))
-  (hl-line-mode 1)
   (sr-highlight))
 
 (defun sr-select-viewer-window ()
@@ -848,11 +860,13 @@ automatically:
 (defun sr-highlight()
   "Sets up the path line in the current buffer."
   (if (memq major-mode '(sr-mode sr-virtual-mode))
-      (save-excursion
-        (goto-char (point-min))
-        (sr-hide-avfs-root)
-        (if window-system
-            (sr-graphical-highlight)))))
+      (progn
+        (save-excursion
+          (goto-char (point-min))
+          (sr-hide-avfs-root)
+          (if window-system
+              (sr-graphical-highlight)))
+        (hl-line-mode 1))))
 
 (defun sr-graphical-highlight ()
   "Sets up the graphical path line in the current buffer (fancy fonts and
@@ -1050,17 +1064,16 @@ automatically:
       (sr-select-window 'left)
     (sr-select-window 'right))
 
-  (hl-line-mode 0)
-  (sr-within dir
-             (if (or (not dired-directory)
-                     (sr-equal-dirs sr-other-directory sr-this-directory))
-                 (dired dir)
-               (find-alternate-file dir)))
+  (sr-save-aspect
+   (sr-within dir
+              (if (or (not dired-directory)
+                      (sr-equal-dirs sr-other-directory sr-this-directory))
+                  (dired dir)
+                (find-alternate-file dir))))
   (setq sr-this-directory default-directory)
   (sr-keep-buffer)
   (sr-history-push default-directory)
-  (sr-beginning-of-buffer)
-  (sr-omit-mode 1))
+  (sr-beginning-of-buffer))
 
 (defun sr-dired-prev-subdir ()
   "Go to the previous subdirectory."
@@ -1226,7 +1239,8 @@ automatically:
         (setq sr-other-directory here)
         (if (equal (selected-window) sr-right-window)
             (sr-select-window 'left)
-          (sr-select-window 'right)))))
+          (sr-select-window 'right))))
+  (sr-highlight))
 
 (defun sr-beginning-of-buffer()
   "Go to the first directory/file in dired."
@@ -1245,6 +1259,9 @@ automatically:
 
 (defun sr-focus-filename (filename)
   "Tries to select the given file name in the current buffer."
+  (if (and dired-omit-mode
+           (string-match (dired-omit-regexp) filename))
+      (sr-omit-mode))
   (let ((expr filename))
     (if (or (file-directory-p filename) (file-symlink-p filename))
         (progn
@@ -1332,18 +1349,23 @@ automatically:
 (defun sr-revert-buffer ()
   "Refreshes the current pane"
   (interactive)
-  (let ((omit (or dired-omit-mode -1)))
+  (let ((omit (or dired-omit-mode -1))
+        (attrs (get sr-selected-window 'hidden-attrs)))
     (revert-buffer)
-    (sr-omit-mode omit)))
+    (sr-omit-mode omit)
+    (if attrs
+        (sr-hide-attributes))))
 
 (defun sr-omit-mode (&optional force)
   "Toggles dired-omit-mode"
   (interactive)
-  (if force
-      (dired-omit-mode force)
-    (dired-omit-mode))
-  (sr-force-passive-highlight)
-  (hl-line-mode 1))
+  (let ((hidden-attrs (get sr-selected-window 'hidden-attrs)))
+    (if force
+        (dired-omit-mode force)
+      (dired-omit-mode))
+    (if hidden-attrs
+        (sr-hide-attributes))
+    (sr-force-passive-highlight)))
 
 (defun sr-quick-view (&optional arg)
   "Opens  the  selected file on the viewer window without selecting it. Kills
