@@ -906,7 +906,8 @@ automatically:
           (setq my-window sr-left-window))
         (save-window-excursion
           (select-window my-window)
-          (sr-graphical-highlight t)))))
+          (sr-graphical-highlight t)
+          (hl-line-mode 0)))))
 
 (defun sr-hide-avfs-root ()
   "Hides the AVFS virtual filesystem root (if any) on the path line."
@@ -2262,7 +2263,7 @@ or (c)ontents? "))
          (unwind-protect
              ,form
            (progn
-             (hl-line-mode 1)
+             (sr-highlight)
              (sr-select-viewer-window))))))
 
 (defun sr-ti-previous-line ()
