@@ -732,6 +732,7 @@ automatically:
                     (message "%s" sr-start-message))
                 (error (message "%s" (second description))))
             (message "%s" sr-start-message))
+          (setq sr-this-directory default-directory)
           (recursive-edit))
         (sr-quit))
     (progn
