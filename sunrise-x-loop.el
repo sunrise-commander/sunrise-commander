@@ -53,7 +53,7 @@
 ;; since in these cases the execution of file transfers in the background should
 ;; be managed directly by the FTP client.
 
-;; This is version 1 $Rev$ of the Sunrise Commander Loop Extension.
+;; This is version 2 $Rev$ of the Sunrise Commander Loop Extension.
 
 ;; It  was  written  on GNU Emacs 23 on Linux, and tested on GNU Emacs 22 and 23
 ;; for Linux and on EmacsW32 (version 22) for  Windows.
@@ -91,11 +91,10 @@
   background."
   :group 'sunrise)
 
-(defvar sr-loop-idle-msg "***IDLE***")
 (defvar sr-loop-process nil)
 (defvar sr-loop-timer nil)
 (defvar sr-loop-scope nil)
-(defvar sr-loop-queue-length 0)
+(defvar sr-loop-queue nil)
 
 (if (boundp 'sr-mode-map)
     (progn
@@ -106,7 +105,6 @@
   "Launches   and   initiates  a  new  background  elisp  interpreter.  The  new
   interpreter runs in batch mode and inherits all  functions  from  the  Sunrise
   Commander (sunrise-commander.el) and from this file."
-  (sr-loop-stop)
   (let ((process-connection-type nil)
         (sr-loop (symbol-file 'sr-loop-cmd-loop))
         (emacs (concat invocation-directory invocation-name)))
@@ -121,7 +119,7 @@
     (if sr-loop-debug
         (sr-loop-enqueue '(setq sr-loop-debug t))
       (set-process-filter sr-loop-process 'sr-loop-filter))
-    (setq sr-loop-queue-length 0)))
+    (setq sr-loop-queue nil)))
 
 (defun sr-loop-disable-timer ()
   "Disables  the automatic shutdown timer. This is done every time we send a new
@@ -144,37 +142,48 @@
   "Shuts down the background elisp interpreter and cleans up after it."
   (interactive)
   (sr-loop-disable-timer)
-  (setq sr-loop-queue-length 0)
-  (if sr-loop-process
-      (progn
-        (message "[[Shutting down background interpreter]]")
-        (delete-process sr-loop-process)
-        (setq sr-loop-process nil))))
+  (setq sr-loop-queue nil)
+  (when sr-loop-process
+    (message "[[Shutting down background interpreter]]")
+    (delete-process sr-loop-process)
+    (setq sr-loop-process nil)))
+
+(defun sr-loop-notify (msg)
+  "Notifies  the  user  about  an event, possibly in a more conspicuous way than
+  just (message)ing about it."
+  (if window-system
+      (x-popup-dialog t (list msg '("OK")) t)
+    (message (concat "[[" msg "]]"))))
 
 (defun sr-loop-filter (process output)
   "Process filter used to intercept and manage all the notifications produced by
   the background interpreter."
   (mapc (lambda (line)
-          (cond ((and (string-match "^\\[\\[" line) (< 0 (length line)))
+          (cond ((string-match "^\\[\\[\\*\\([^\]\*]+\\)\\*\\]\\]$" line)
+                 (sr-loop-notify (match-string 1 line)))
+                 
+                ((and (string-match "^\\[\\[" line) (< 0 (length line)))
                  (message "%s" line))
-                ((string= line sr-loop-idle-msg)
-                 (progn
-                   (setq sr-loop-queue-length (1- sr-loop-queue-length))
-                   (if (>= 0 sr-loop-queue-length)
-                       (sr-loop-enable-timer))))
+
+                ((eq ?^ (string-to-char line))
+                 (let ((command (substring line 1)))
+                   (when (string= command (car sr-loop-queue))
+                     (pop sr-loop-queue)
+                     (sr-loop-enable-timer)
+                     (unless sr-loop-queue
+                       (sr-loop-notify "Background job finished!")))))
                 (t nil)))
         (split-string output "\n")))
 
 (defun sr-loop-enqueue (form)
   "Delegates  the  execution of the given form to the background interpreter. If
   no such interpreter is currently running, then launches first a new one."
-  (if (or (null sr-loop-process)
-          (equal 'exit (process-status sr-loop-process)))
-      (sr-loop-start))
   (sr-loop-disable-timer)
-  (setq sr-loop-queue-length (1+ sr-loop-queue-length))
-  (let ((contents (prin1-to-string form)))
-    (process-send-string sr-loop-process contents)
+  (unless sr-loop-process
+    (sr-loop-start))
+  (let ((command (prin1-to-string form)))
+    (setq sr-loop-queue (append sr-loop-queue (list command)))
+    (process-send-string sr-loop-process command)
     (process-send-string sr-loop-process "\n")))
 
 (defun sr-loop-cmd-loop ()
@@ -187,14 +196,13 @@
       (condition-case description
           (progn
             (if sr-loop-debug
-                (message "%s" (concat "[[Executing: "
+                (message "%s" (concat "[[Executing in background: "
                                       (prin1-to-string command) "]]")))
             (eval command)
-            (message "[[Command successfully sent to background]]"))
-        (error (message "%s" (concat "[[ERROR EXECUTING IN BACKGROUND: "
-                                (prin1-to-string description) "]]"))))
-      (setq command nil)
-      (message "%s" sr-loop-idle-msg))))
+            (message "[[Command successfully executed in background]]"))
+        (error (message "%s" (concat "[[*ERROR IN BACKGROUND JOB: "
+                                     (prin1-to-string description) "*]]"))))
+        (message "^%s" (prin1-to-string command)))))
 
 (defun sr-loop-applicable-p ()
   "Determines  whether  a  given  operation  may  be  safely  delegated  to  the
@@ -225,9 +233,9 @@
 ;; This modifies all confirmation request messages inside a loop scope:
 (defadvice y-or-n-p
   (before sr-loop-advice-y-or-n-p (prompt))
-  (if sr-loop-scope
-      (setq prompt (replace-regexp-in-string
-                    "\?" " in the background? (overwrites ALWAYS!)" prompt))))
+  (when sr-loop-scope
+    (setq prompt (replace-regexp-in-string
+                  "\?" " in the background? (overwrites ALWAYS!)" prompt))))
 
 ;; This modifies all queries from dired inside a loop scope:
 (defadvice dired-mark-read-file-name
