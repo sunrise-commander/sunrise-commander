@@ -1348,15 +1348,17 @@ automatically:
   any other buffer opened previously the same  way.  With  optional  argument
   kills the last quick view buffer without opening a new one."
   (interactive "P")
-  (sr-save-aspect
-   (if arg
-       (sr-kill-quick-view)
-     (let ((split-width-threshold (* 10 (window-width))))
-       (if (buffer-live-p other-window-scroll-buffer)
-           (kill-buffer other-window-scroll-buffer))
-       (save-selected-window
-         (dired-find-file-other-window)
-         (sr-scrollable-viewer (current-buffer)))) )))
+  (if arg
+      (sr-kill-quick-view)
+    (let ((split-width-threshold (* 10 (window-width))))
+      (if (buffer-live-p other-window-scroll-buffer)
+          (kill-buffer other-window-scroll-buffer))
+      (save-selected-window
+        (condition-case description
+            (progn
+              (dired-find-file-other-window)
+              (sr-scrollable-viewer (current-buffer)))
+          (error (message "%s" (second description)))))) ))
 
 (defun sr-kill-quick-view ()
   "Kills the last buffer opened using quick view (if any)."
