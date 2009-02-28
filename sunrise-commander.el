@@ -754,6 +754,7 @@ automatically:
                 (error (setq welcome (second description)))))
           (setq sr-this-directory default-directory)
           (message "%s" welcome)
+	  (sr-highlight) ;;<-- W32Emacs needs this
           (recursive-edit))
         (sr-quit))
     (progn
@@ -1645,8 +1646,6 @@ automatically:
               (sr-move-files selected-files default-directory)
               (sr-revert-buffer)
               (sr-change-window)
-              (if (= 0 (dired-do-kill-lines))
-                  (dired-kill-line))
               (message "%s" (concat "Done: "
                                     (int-to-string (length selected-files))
                                     " file(s) dispatched"))))
