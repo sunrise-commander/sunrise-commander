@@ -91,6 +91,12 @@
   background."
   :group 'sunrise)
 
+(defcustom sr-loop-use-popups t
+  "Instructs  Sunrise  Loop  to  display  a  pop‐up  notification every time its
+  internal execution queue is emptied."
+  :group 'sunrise
+  :type 'boolean)
+
 (defvar sr-loop-process nil)
 (defvar sr-loop-timer nil)
 (defvar sr-loop-scope nil)
@@ -151,7 +157,7 @@
 (defun sr-loop-notify (msg)
   "Notifies  the  user  about  an event, possibly in a more conspicuous way than
   just (message)ing about it."
-  (if window-system
+  (if (and window-system sr-loop-use-popups)
       (x-popup-dialog t (list msg '("OK")) t)
     (message (concat "[[" msg "]]"))))
 
