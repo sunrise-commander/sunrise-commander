@@ -1037,7 +1037,8 @@ automatically:
                 (sr-goto-dir vfile)
                 (setq filename nil))))
         (when (eq 'sr-virtual-mode mode)
-          (find-file filename)
+          (sr-save-aspect
+           (sr-alternate-buffer (find-file filename)))
           (sr-history-push filename)
           (set-visited-file-name nil t)
           (setq filename nil))))
@@ -2091,10 +2092,7 @@ or (c)ontents? "))
      (insert (concat "Recent Directories in " pane-name " Pane: \n"))
      (dolist (dir hist)
        (condition-case nil
-           (when (and dir
-                      (file-exists-p dir)
-                      (not (member dir seen-dirs))
-                      (file-directory-p dir))
+           (when (and dir (file-exists-p dir))
              (setq seen-dirs (cons dir seen-dirs))
              (setq dir (replace-regexp-in-string "\\(.\\)/?$" "\\1" dir))
              (setq beg (point))
