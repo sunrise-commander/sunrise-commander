@@ -316,6 +316,10 @@
 (defvar sr-selected-window 'left
   "The window to select when sr starts up.")
 
+(defvar sr-history-registry
+  (acons 'left nil (acons 'right nil nil))
+  "Registry of visited directories for both panes")
+
 (defvar sr-checkpoint-registry
   (acons "~" (list sr-left-directory sr-right-directory) nil)
   "Registry of currently defined checkpoints")
@@ -542,13 +546,14 @@ automatically:
 
 (defmacro sr-alternate-buffer (form)
   "Executes form in a new buffer, after killing the previous one."
-  `(progn
+  `(let ((dispose nil))
      (unless (or (not dired-directory)
                  (equal sr-left-buffer sr-right-buffer))
-       (kill-buffer (current-buffer)))
+       (setq dispose (current-buffer)))
      ,form
      (setq sr-this-directory default-directory)
-     (sr-keep-buffer)))
+     (sr-keep-buffer)
+     (if dispose (kill-buffer dispose))))
 
 (defun sr-dired-mode ()
   "Sets Sunrise mode in every Dired buffer opened in Sunrise (called in hook)."
@@ -586,8 +591,7 @@ automatically:
             (sr-synchronize-panes t)
           (let ((sr-dired-directory target))
             (sr-save-aspect ad-do-it)))
-        (if dispose
-            (kill-buffer dispose))
+        (if dispose (kill-buffer dispose))
         (sr-keep-buffer))
     ad-do-it)
   (setq sr-this-directory default-directory))
@@ -1065,24 +1069,25 @@ automatically:
 (defun sr-goto-dir (dir)
   "Changes the current directory in the active pane to the given one."
   (interactive "DChange directory (file or pattern): ")
-  (if (and sr-avfs-root
-           (null (posix-string-match "#" dir)))
+  (unless (and (eq major-mode 'sr-mode) (sr-equal-dirs dir default-directory))
+    (if (and sr-avfs-root
+             (null (posix-string-match "#" dir)))
         (setq dir (replace-regexp-in-string sr-avfs-root "" dir)))
-
-  ;; Detect spontaneous windows changes (using the mouse):
-  (when (and (not (sr-equal-dirs sr-this-directory default-directory))
-             (sr-equal-dirs sr-other-directory default-directory)
-             (not (local-variable-p 'sr-virtual-buffer)))
-    (setq sr-other-directory sr-this-directory)
-    (sr-force-passive-highlight))
-  (if (eq (selected-window) sr-left-window)
-      (sr-select-window 'left)
-    (sr-select-window 'right))
-
-  (sr-save-aspect
-   (sr-within dir (sr-alternate-buffer (dired dir))))
-  (sr-history-push default-directory)
-  (sr-beginning-of-buffer))
+    
+    ;; Detect spontaneous windows changes (using the mouse):
+    (when (and (not (sr-equal-dirs sr-this-directory default-directory))
+               (sr-equal-dirs sr-other-directory default-directory)
+               (not (local-variable-p 'sr-virtual-buffer)))
+      (setq sr-other-directory sr-this-directory)
+      (sr-force-passive-highlight))
+    (if (eq (selected-window) sr-left-window)
+        (sr-select-window 'left)
+      (sr-select-window 'right))
+    
+    (sr-save-aspect
+     (sr-within dir (sr-alternate-buffer (dired dir))))
+    (sr-history-push default-directory)
+    (sr-beginning-of-buffer)))
 
 (defun sr-dired-prev-subdir ()
   "Go to the previous subdirectory."
@@ -1122,7 +1127,8 @@ automatically:
 (defun sr-history-push (element)
   "Pushes a new path into the history ring of the current pane."
   (unless (null element)
-    (let* ((hist (get sr-selected-window 'history))
+    (let* ((pane (assoc sr-selected-window sr-history-registry))
+           (hist (cdr pane))
            (len (length hist)))
       (if (>= len sr-history-length)
           (nbutlast hist (- len sr-history-length)))
@@ -1130,7 +1136,7 @@ automatically:
           (setq element (replace-regexp-in-string "/?$" "" element)))
       (setq hist (delete element hist))
       (push element hist)
-      (put sr-selected-window 'history hist))))
+      (setcdr pane hist))))
 
 (defun sr-history-next ()
   "Changes the current directory to the next one (if any) in the history list of
@@ -1147,12 +1153,13 @@ automatically:
 (defun sr-history-move (fun)
   "Moves  the current pane backwards and forwards through its history of visited
   directories, depending on the given direction function (wind or unwind)."
-  (let* ((hist (get sr-selected-window 'history))
+  (let* ((pane (assoc sr-selected-window sr-history-registry))
+         (hist (cdr pane))
          (hist (apply fun (list hist)))
          (item (car hist)))
     (if item
         (progn
-          (put sr-selected-window 'history hist)
+          (setcdr pane hist)
           (cond ((file-directory-p item) (sr-goto-dir item))
                 ((file-exists-p item) (sr-find-file item))
                 (t (ignore)))
@@ -2084,16 +2091,15 @@ or (c)ontents? "))
   "Displays the history of directories recently visited in the current pane."
   (interactive)
   (sr-save-aspect
-   (let ((hist (get sr-selected-window 'history))
+   (let ((hist (cdr (assoc sr-selected-window sr-history-registry)))
          (dired-actual-switches dired-listing-switches)
          (pane-name (capitalize (symbol-name sr-selected-window)))
-         (seen-dirs) (beg))
+         (beg))
      (sr-switch-to-clean-buffer (concat "*" pane-name " Pane History*"))
      (insert (concat "Recent Directories in " pane-name " Pane: \n"))
      (dolist (dir hist)
        (condition-case nil
            (when (and dir (file-exists-p dir))
-             (setq seen-dirs (cons dir seen-dirs))
              (setq dir (replace-regexp-in-string "\\(.\\)/?$" "\\1" dir))
              (setq beg (point))
              (insert-directory dir sr-virtual-listing-switches nil nil)
