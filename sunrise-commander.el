@@ -1289,13 +1289,13 @@ automatically:
 
 (defun sr-split-setup(split-type)
   (setq sr-window-split-style split-type)
-  (if sr-running
-      (if (equal sr-window-split-style 'top)
-          (progn
-            (sr-select-window 'left)
-            (delete-window sr-right-window))
-        (sr-setup-windows))
-    (message "Split is now %s." (symbol-name split-type))))
+  (when sr-running
+    (if (equal sr-window-split-style 'top)
+        (progn
+          (sr-select-window 'left)
+          (delete-window sr-right-window))
+      (sr-setup-windows))
+    (message "Sunrise: Split style changed to \"%s\"" (symbol-name split-type))))
 
 (defun sr-transpose-panes ()
   "Changes the order of the panes."
@@ -1581,12 +1581,11 @@ automatically:
       (progn
         (sr-virtual-mode)
         (sr-force-passive-highlight t))
-    (sr-alternate-buffer
-     (if (sr-equal-dirs sr-this-directory sr-other-directory)
-         (switch-to-buffer (if (equal 'left sr-selected-window)
-                               sr-right-buffer
-                             sr-left-buffer))
-       (dired sr-this-directory)))))
+    (if (sr-equal-dirs sr-this-directory sr-other-directory)
+        (switch-to-buffer (if (equal 'left sr-selected-window)
+                              sr-right-buffer
+                            sr-left-buffer))
+      (dired sr-this-directory))))
 
 (defun sr-terminate-wdired (fun)
   "Restores the current pane's original mode after being edited with WDired."
