@@ -2115,13 +2115,17 @@ or (c)ontents? "))
   (interactive)
   (sr-save-aspect
    (let ((dir (directory-file-name (dired-current-directory)))
-         (buff (generate-new-buffer-name (buffer-name (current-buffer)))))
+         (buff (generate-new-buffer-name (buffer-name (current-buffer))))
+         (dispose (current-buffer)))
      (switch-to-buffer buff)
      (goto-char (point-min))
      (insert (concat "  " dir) ":\n")
      (insert " Pure VIRTUAL buffer: \n")
      (insert "  drwxrwxrwx 00 0000 0000-00-00 00:00 ./\n")
-     (sr-virtual-mode))))
+     (sr-virtual-mode)
+     (sr-keep-buffer)
+     (unless (sr-equal-dirs sr-this-directory sr-other-directory)
+       (kill-buffer dispose)))))
 
 ;; This cleans up the current pane after deletion from the history of recent
 ;; files:
