@@ -1,7 +1,7 @@
 ;; sunrise-commander.el  ---  Two-pane file manager for Emacs based on Dired and
 ;; inspired by MC.
 
-;; Copyright (C) 2007 2008 2009 José Alfredo Romero L. (j0s3l0)
+;; Copyright (C) 2007 2008 2009 José Alfredo Romero Latouche (j0s3l0)
 
 ;; Author: José Alfredo Romero L. <joseito@poczta.onet.pl>
 ;; Keywords: Sunrise Commander Emacs File Manager Midnight Norton Orthodox
@@ -305,6 +305,9 @@
 
 (defvar sr-right-window nil
   "The right window of dired.")
+
+(defvar sr-current-frame nil
+  "The frame Sunrise is active on (if any)")
 
 (defvar sr-this-directory "~/"
   "Dired directory in the active pane. This isn't necessarily the same as
@@ -696,7 +699,7 @@ automatically:
 
 (define-key sr-mode-map "\C-ct"               'sr-term)
 (define-key sr-mode-map "\C-cT"               'sr-term-cd)
-(define-key sr-mode-map "q"                   'keyboard-escape-quit)
+(define-key sr-mode-map "q"                   'sr-quit)
 (define-key sr-mode-map "\M-q"                'sunrise-cd)
 (define-key sr-mode-map "h"                   'sr-describe-mode)
 (define-key sr-mode-map "?"                   'sr-summary)
@@ -742,29 +745,29 @@ automatically:
 
   (if (not sr-running)
       (let ((welcome sr-start-message))
-        (catch 'exit
-          (if left-directory
-              (setq sr-left-directory left-directory))
-          (if right-directory
-              (setq sr-right-directory right-directory))
-
-          (setq sr-running t)
-          (setq sr-restore-buffer (current-buffer))
-          (setq sr-prior-window-configuration (current-window-configuration))
-          (sr-setup-windows)
-          (if filename
-              (condition-case description
-                  (sr-focus-filename (replace-regexp-in-string ".*/" "" filename))
-                (error (setq welcome (second description)))))
-          (setq sr-this-directory default-directory)
-          (message "%s" welcome)
-	  (sr-highlight) ;;<-- W32Emacs needs this
-          (recursive-edit))
-        (sr-quit))
-    (progn
+        (if left-directory
+            (setq sr-left-directory left-directory))
+        (if right-directory
+            (setq sr-right-directory right-directory))
+        
+        (setq sr-running t)
+        (setq sr-restore-buffer (current-buffer))
+        (setq sr-prior-window-configuration (current-window-configuration))
+        (sr-setup-windows)
+        (if filename
+            (condition-case description
+                (sr-focus-filename (replace-regexp-in-string ".*/" "" filename))
+              (error (setq welcome (second description)))))
+        (setq sr-this-directory default-directory)
+        (setq sr-current-frame (window-frame (selected-window)))
+        (message "%s" welcome)
+        (sr-highlight)) ;;<-- W32Emacs needs this 
+    (let ((my-frame (window-frame (selected-window))))
       (sr-quit)
       (message "All life leaps out to greet the light...")
-      (exit-recursive-edit))))
+      (unless (eq my-frame (window-frame (selected-window)))
+        (select-frame my-frame)
+        (sunrise left-directory right-directory filename)))))
 
 (eval-and-compile
   (defun sr-symbol (side context)
@@ -783,8 +786,7 @@ automatically:
           (sunrise nil default-directory to-focus)))
     (progn
       (sr-quit t)
-      (message "Hast thou a charm to stay the morning-star in his deep course?")
-      (exit-recursive-edit))))
+      (message "Hast thou a charm to stay the morning-star in his deep course?"))))
 
 (defun sr-dired (directory)
   "Visits the given directory (or file) in sr-mode."
@@ -797,9 +799,7 @@ automatically:
             (sr-goto-dir directory)
             (unless sr-show-file-attributes
               (sr-hide-attributes)))
-        (progn
-          (sr-quit)
-          (exit-recursive-edit)))))
+        (sr-quit))))
 
 ;;; ============================================================================
 ;;; Window management functions:
@@ -961,7 +961,13 @@ automatically:
         ;;themselves
         (sr-bury-panes)
         (toggle-read-only -1)
-        (run-hooks 'sr-quit-hook))))
+        (run-hooks 'sr-quit-hook)
+        (setq sr-current-frame nil))
+    (bury-buffer)))
+
+(add-hook 'delete-frame-functions
+          '(lambda (frame)
+             (if (and sr-running (eq frame sr-current-frame)) (sr-quit))))
 
 (defun sr-save-directories ()
   "Save the current directories in the panes to use the next time sr starts up."
@@ -1055,8 +1061,7 @@ automatically:
             (find-file filename wildcards)
             (delete-other-windows)
             (setq sr-prior-window-configuration (current-window-configuration))
-            (sr-quit)
-            (exit-recursive-edit))
+            (sr-quit))
         (error (message "%s" (second description)))) )))
 
 (defun sr-avfs-dir (filename)
@@ -1229,7 +1234,7 @@ automatically:
       (let ((files (dired-get-marked-files)))
         (unless noselect (sr-quit))
         (dired-simultaneous-find-file files noselect))
-    (unless noselect (exit-recursive-edit))))
+    (unless noselect (sr-quit))))
 
 ;;; ============================================================================
 ;;; graphical interface interaction functions:
@@ -2142,7 +2147,7 @@ or (c)ontents? "))
         (sr-quit)
         (switch-to-buffer buff)
         (call-interactively dired-fun))
-    (exit-recursive-edit)))
+    (sr-quit)))
 
 (defun sr-do-query-replace-regexp ()
   "Forces Sunrise to quit before executing dired-do-query-replace-regexp."
