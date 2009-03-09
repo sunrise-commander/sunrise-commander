@@ -331,7 +331,7 @@
   "Stack of currently open terminal buffers")
 
 (defvar sr-ediff-on nil
-  "Flag that indicates whether an ediff is being done by Sunrise")
+  "Flag that indicates whether an ediff is being currently done")
 
 (defvar sr-clex-on nil
   "Flag that indicates that a CLEX operation is taking place")
@@ -633,6 +633,7 @@ automatically:
 (define-key sr-mode-map "o"                   'sr-quick-view)
 (define-key sr-mode-map "v"                   'sr-quick-view)
 (define-key sr-mode-map "/"                   'sr-goto-dir)
+(define-key sr-mode-map "^"                   'sr-dired-prev-subdir)
 (define-key sr-mode-map "U"                   'sr-dired-prev-subdir)
 (define-key sr-mode-map "\M-y"                'sr-history-prev)
 (define-key sr-mode-map "\M-u"                'sr-history-next)
@@ -694,6 +695,7 @@ automatically:
 (define-key sr-mode-map [A-up]                'sr-prev-line-other)
 (define-key sr-mode-map "\M-\C-m"             'sr-advertised-find-file-other)
 (define-key sr-mode-map "\C-c\C-m"            'sr-advertised-find-file-other)
+(define-key sr-mode-map "\M-^"                'sr-prev-subdir-other)
 (define-key sr-mode-map "\M-U"                'sr-prev-subdir-other)
 (define-key sr-mode-map "\M-;"                'sr-follow-file-other)
 
@@ -956,9 +958,6 @@ automatically:
             (set-window-configuration sr-prior-window-configuration)
             (if (buffer-live-p sr-restore-buffer)
                 (set-buffer sr-restore-buffer))))
-
-        ;;NOTE: never exit the recursive edit here.  functions should do this
-        ;;themselves
         (sr-bury-panes)
         (toggle-read-only -1)
         (run-hooks 'sr-quit-hook)
@@ -1980,21 +1979,19 @@ or (c)ontents? "))
 (defun sr-ediff ()
   "Runs ediff on the two top marked files in both panes."
   (interactive)
-  (let ((form (sr-diff-form 'ediff)))
-    (setq sr-ediff-on t)
-    (sr-save-directories)
-    (eval form)))
+  (eval (sr-diff-form 'ediff)))
+
+(add-hook 'ediff-before-setup-windows-hook
+          (lambda () (setq sr-ediff-on t)))
 
 (add-hook 'ediff-quit-hook
           (lambda ()
-            (if sr-ediff-on
-                (progn
-                  (setq sr-ediff-on nil)
-                  (delete-other-windows)
-                  (if (buffer-live-p sr-restore-buffer)
-                      (switch-to-buffer sr-restore-buffer))
-                  (sr-setup-windows))
-              nil)))
+            (setq sr-ediff-on nil)
+            (when sr-running
+              (if (buffer-live-p sr-restore-buffer)
+                  (switch-to-buffer sr-restore-buffer))
+              (delete-other-windows)
+              (sr-setup-windows))))
 
 (defun sr-diff-form (fun)
   "Determines the arguments to be passed to the diff function and returns the
