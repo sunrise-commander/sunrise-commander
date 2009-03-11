@@ -356,6 +356,11 @@
   "Face of the directory path in the passive pane"
   :group 'sunrise)
 
+(defface sr-editing-path-face
+  '((t (:background "red" :foreground "yellow" :bold t :height 120)))
+  "Face of the directory path in the active pane while in editable pane mode"
+  :group 'sunrise)
+
 (defface sr-highlight-path-face
   '((t (:background "yellow" :foreground "#ace6ac" :bold t :height 120)))
   "Face of the directory path on mouse hover"
@@ -574,7 +579,8 @@ automatically:
   (interactive)
   (if (equal major-mode 'sr-virtual-mode)
       (sr-save-aspect
-       (sr-alternate-buffer (sr-goto-dir sr-this-directory)))))
+       (sr-alternate-buffer (sr-goto-dir sr-this-directory))
+       (sr-revert-buffer))))
 
 ;; This is a hack to avoid some dired mode quirks:
 (defadvice dired-find-buffer-nocreate
@@ -874,7 +880,7 @@ automatically:
     (if (memq (selected-window) (list sr-left-window sr-right-window))
         (other-window 1))))
 
-(defun sr-highlight()
+(defun sr-highlight(&optional face)
   "Sets up the path line in the current buffer."
   (if (memq major-mode '(sr-mode sr-virtual-mode))
       (progn
@@ -883,14 +889,14 @@ automatically:
           (sr-hide-avfs-root)
           (if window-system
               (progn
-                (sr-graphical-highlight)
+                (sr-graphical-highlight face)
                 (sr-force-passive-highlight))))
         (hl-line-mode 1))))
 
-(defun sr-graphical-highlight (&optional passive)
+(defun sr-graphical-highlight (&optional face)
   "Sets up the graphical path line in the current buffer (fancy fonts and
   clickable path)."
-  (let ((my-face (if passive 'sr-passive-path-face 'sr-active-path-face))
+  (let ((my-face (or face 'sr-active-path-face))
         (begin) (end))
     ;;determine begining and end
     (save-excursion
@@ -925,7 +931,7 @@ automatically:
         (save-window-excursion
           (select-window my-window)
           (if revert (sr-revert-buffer))
-          (sr-graphical-highlight t)
+          (sr-graphical-highlight 'sr-passive-path-face)
           (hl-line-mode 0)))))
 
 (defun sr-hide-avfs-root ()
@@ -1573,6 +1579,7 @@ automatically:
 (defun sr-editable-pane ()
   "Puts the current pane in Editable Dired mode (WDired)."
   (interactive)
+  (sr-highlight 'sr-editing-path-face)
   (let* ((was-virtual (equal major-mode 'sr-virtual-mode))
 	 (major-mode 'dired-mode))
     (wdired-change-to-wdired-mode)
@@ -1589,7 +1596,8 @@ automatically:
         (switch-to-buffer (if (equal 'left sr-selected-window)
                               sr-right-buffer
                             sr-left-buffer))
-      (dired sr-this-directory))))
+      (sr-alternate-buffer (dired sr-this-directory))))
+  (sr-revert-buffer))
 
 (defun sr-terminate-wdired (fun)
   "Restores the current pane's original mode after being edited with WDired."
@@ -2139,12 +2147,10 @@ or (c)ontents? "))
 
 (defun sr-dired-do-apply (dired-fun)
   "Helper function for implementing sr-do-query-replace-regexp and Co."
-  (unwind-protect
-      (let ((buff (current-buffer)))
-        (sr-quit)
-        (switch-to-buffer buff)
-        (call-interactively dired-fun))
-    (sr-quit)))
+  (let ((buff (current-buffer)))
+    (sr-quit)
+    (switch-to-buffer buff)
+    (call-interactively dired-fun)))
 
 (defun sr-do-query-replace-regexp ()
   "Forces Sunrise to quit before executing dired-do-query-replace-regexp."
