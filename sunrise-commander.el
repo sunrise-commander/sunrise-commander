@@ -1586,7 +1586,7 @@ automatically:
     (if was-virtual
         (set (make-local-variable 'sr-virtual-buffer) t))))
 
-(defun sr-readonly-pane (as-virtual)
+(defun sr-readonly-pane (as-virtual &optional reuse-buffer)
   "Puts the current pane back in Sunrise mode."
   (if as-virtual
       (progn
@@ -1596,10 +1596,14 @@ automatically:
         (switch-to-buffer (if (equal 'left sr-selected-window)
                               sr-right-buffer
                             sr-left-buffer))
-      (sr-alternate-buffer (dired sr-this-directory))))
+      (if reuse-buffer
+          (progn
+            (dired sr-this-directory)
+            (sr-beginning-of-buffer))
+        (sr-alternate-buffer (dired sr-this-directory)))))
   (sr-revert-buffer))
 
-(defun sr-terminate-wdired (fun)
+(defun sr-terminate-wdired (fun &optional reuse-buffer)
   "Restores the current pane's original mode after being edited with WDired."
   (ad-add-advice
    fun
@@ -1608,16 +1612,16 @@ automatically:
     `(advice
       lambda ()
       (if sr-running
-          (sr-save-aspect
-           (let ((was-virtual (local-variable-p 'sr-virtual-buffer)))
+	  (sr-save-aspect
+	   (let ((was-virtual (local-variable-p 'sr-virtual-buffer)))
 	     (setq major-mode 'wdired-mode)
-             ad-do-it
-             (sr-readonly-pane was-virtual)))
-        ad-do-it)))
+	     ad-do-it
+	     (sr-readonly-pane was-virtual ,reuse-buffer)))
+	ad-do-it)))
    'around 'last)
   (ad-activate fun nil))
 (sr-terminate-wdired 'wdired-finish-edit)
-(sr-terminate-wdired 'wdired-abort-changes)
+(sr-terminate-wdired 'wdired-abort-changes t)
 
 (defun sr-do-copy ()
   "Copies recursively selected files and directories from one pane to the other."
