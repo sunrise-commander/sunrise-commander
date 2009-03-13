@@ -889,16 +889,15 @@ automatically:
 
 (defun sr-highlight(&optional face)
   "Sets up the path line in the current buffer."
-  (if (memq major-mode '(sr-mode sr-virtual-mode))
-      (progn
-        (save-excursion
-          (goto-char (point-min))
-          (sr-hide-avfs-root)
-          (if window-system
-              (progn
-                (sr-graphical-highlight face)
-                (sr-force-passive-highlight))))
-        (hl-line-mode 1))))
+  (when (memq major-mode '(sr-mode sr-virtual-mode))
+    (save-excursion
+      (goto-char (point-min))
+      (sr-hide-avfs-root)
+      (if window-system
+          (progn
+            (sr-graphical-highlight face)
+            (sr-force-passive-highlight))))
+    (hl-line-mode 1)))
 
 (defun sr-graphical-highlight (&optional face)
   "Sets up the graphical path line in the current buffer (fancy fonts and
