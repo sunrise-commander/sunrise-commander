@@ -64,7 +64,7 @@
 
 ;; *  Press  C-x C-q   to put the current pane in Editable Dired mode (allows to
 ;; edit the pane as if it were a regular file -- press C-c C-c  to  commit  your
-;; changes to the filesystem).
+;; changes to the filesystem, or C-c C-k to abort).
 
 ;; *  Sunrise VIRTUAL mode integrates dired-virtual mode to Sunrise, allowing to
 ;; capture find and locate results in regular files and to use them later as  if
@@ -113,7 +113,8 @@
 ;; * etc. ;-)
 
 ;; It  doesn't  even  try to look like MC, so the help window is gone (you're in
-;; emacs, so you know your bindings, right?).
+;; emacs, so you know your bindings, right?), though if you really  miss it just
+;; get and install the sunrise-x-buttons extension.
 
 ;; This is version 3 $Rev$ of the Sunrise Commander.
 
@@ -380,11 +381,11 @@ substitution may be about to happen."
   "Two-pane file manager for Emacs based on Dired and inspired by MC. The
   following keybindings are available:
 
-        / ............. go to directory
+        /, j .......... go to directory
         p, n .......... move cursor up/down
         M-p, M-n ...... move cursor up/down in passive pane
-        U ............. go to parent directory
-        M-U ........... go to parent directory in passive pane
+        ^, J .......... go to parent directory
+        M-^, M-J ...... go to parent directory in passive pane
         Tab ........... switch to other pane
         C-Tab.......... switch to viewer window
         C-c Tab ....... switch to viewer window (console compatible)
@@ -416,6 +417,8 @@ substitution may be about to happen."
         M-e ........... move to end of current directory
         M-y ........... go to previous directory in history
         M-u ........... go to next directory in history
+        C-M-y ......... go to previous directory in history on passive pane
+        C-M-u ......... go to next directory in history on passive pane
 
         g ............. refresh pane
         s ............. change sorting order or files (name/size/time/extension)
@@ -565,7 +568,8 @@ automatically:
 
 (defun sr-dired-mode ()
   "Sets Sunrise mode in every Dired buffer opened in Sunrise (called in hook)."
-  (if (and (sr-equal-dirs dired-directory default-directory)
+  (if (and sr-running
+           (sr-equal-dirs dired-directory default-directory)
            (not (equal major-mode 'sr-mode)))
       (let ((dired-listing-switches dired-listing-switches))
         (if (null (string-match "^/ftp:" default-directory))
@@ -639,8 +643,9 @@ automatically:
 (define-key sr-mode-map "o"                   'sr-quick-view)
 (define-key sr-mode-map "v"                   'sr-quick-view)
 (define-key sr-mode-map "/"                   'sr-goto-dir)
+(define-key sr-mode-map "j"                   'sr-goto-dir)
 (define-key sr-mode-map "^"                   'sr-dired-prev-subdir)
-(define-key sr-mode-map "U"                   'sr-dired-prev-subdir)
+(define-key sr-mode-map "J"                   'sr-dired-prev-subdir)
 (define-key sr-mode-map "\M-y"                'sr-history-prev)
 (define-key sr-mode-map "\M-u"                'sr-history-next)
 (define-key sr-mode-map "\C-c>"               'sr-checkpoint-save)
@@ -702,8 +707,10 @@ automatically:
 (define-key sr-mode-map "\M-\C-m"             'sr-advertised-find-file-other)
 (define-key sr-mode-map "\C-c\C-m"            'sr-advertised-find-file-other)
 (define-key sr-mode-map "\M-^"                'sr-prev-subdir-other)
-(define-key sr-mode-map "\M-U"                'sr-prev-subdir-other)
+(define-key sr-mode-map "\M-J"                'sr-prev-subdir-other)
 (define-key sr-mode-map "\M-;"                'sr-follow-file-other)
+(define-key sr-mode-map "\C-\M-y"             'sr-history-prev-other)
+(define-key sr-mode-map "\C-\M-u"             'sr-history-next-other)
 
 (define-key sr-mode-map "\C-ct"               'sr-term)
 (define-key sr-mode-map "\C-cT"               'sr-term-cd)
@@ -1572,6 +1579,18 @@ automatically:
   (interactive)
   (let ((filename (dired-get-filename nil t)))
     (sr-in-other (sr-follow-file filename))))
+
+(defun sr-history-prev-other ()
+  "Changes  the  current  directory  to the previous one (if any) in the history
+  list of the passive pane."
+  (interactive)
+  (sr-in-other (sr-history-prev)))
+
+(defun sr-history-next-other ()
+  "Changes the current directory to the next one (if any) in the history list of
+  the passive pane."
+  (interactive)
+  (sr-in-other (sr-history-next)))
 
 ;;; ============================================================================
 ;;; File manipulation functions:
