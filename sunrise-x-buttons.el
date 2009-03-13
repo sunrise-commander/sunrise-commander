@@ -62,7 +62,7 @@
 
 (defvar sr-buttons-list
   '(
-    ("GotoDir([F2,]/)"   'sr-goto-dir                "Go to any directory in active pane")
+    ("GotoDir([F2,]j,/)" 'sr-goto-dir                "Go to any directory in active pane")
     ("View([F3,]v,o)"    'sr-quick-view              "View selected file or directory in this window")
     ("Open([F4,]Enter)"  'sr-advertised-find-file    "Visit selected file or directory")
     ("Copy([F5,]C)"      'sr-do-copy                 "Copy selected files to passive pane")
@@ -71,7 +71,7 @@
     ("Delete([F8,]D)"    'dired-do-delete            "Delete selected files from active pane")
     ("Quit([F10,]q)"     'keyboard-escape-quit       "Dismiss Sunrise Commander")
     nil
-    ("DirUp([C-PgUp,]U)" 'sr-dired-prev-subdir       "Go to parent directory in active pane")
+    ("DirUp([C-PgUp,]J)" 'sr-dired-prev-subdir       "Go to parent directory in active pane")
     ("DirBack(M-y)"      'sr-history-prev            "Go to previous directory in history")
     ("DirFrwd(M-u)"      'sr-history-next            "Go to next directory in history")
     ("HardLink(H)"       'sr-do-hardlink             "Make hard link of selected file in passive pane")
