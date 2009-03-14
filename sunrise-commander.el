@@ -490,9 +490,10 @@ opening a terminal in the viewer window (with C-c t):
         M-<up>, M-P ... move cursor up in active pane
         M-<down>, M-N . move cursor down in active pane
         M-Return ...... visit selected file/directory in active pane
-        M-U ........... go to parent directory in active pane
+        M-J ........... go to parent directory in active pane
         M-M ........... mark selected file/directory in active pane
         M-Backspace ... unmark previous file/directory in active pane
+        M-U ........... remove all marks from active pane
         C-Tab ......... switch focus to active pane
 
 In a terminal in line mode the following substitutions are also performed
@@ -708,6 +709,7 @@ automatically:
 (define-key sr-mode-map "\C-c\C-m"            'sr-advertised-find-file-other)
 (define-key sr-mode-map "\M-^"                'sr-prev-subdir-other)
 (define-key sr-mode-map "\M-J"                'sr-prev-subdir-other)
+(define-key sr-mode-map "\M-U"                'sr-unmark-all-marks-other)
 (define-key sr-mode-map "\M-;"                'sr-follow-file-other)
 (define-key sr-mode-map "\C-\M-y"             'sr-history-prev-other)
 (define-key sr-mode-map "\C-\M-u"             'sr-history-next-other)
@@ -1591,6 +1593,11 @@ automatically:
   (interactive)
   (sr-in-other (sr-history-next)))
 
+(defun sr-unmark-all-marks-other ()
+  "Removes all marks from the passive pane"
+  (interactive)
+  (sr-in-other (dired-unmark-all-marks)))
+
 ;;; ============================================================================
 ;;; File manipulation functions:
 
@@ -2286,6 +2293,11 @@ or (c)ontents? "))
   (interactive)
   (sr-ti (sr-dired-prev-subdir)))
 
+(defun sr-ti-unmark-all-marks ()
+  "Removes all marks on active pane from the terminal window."
+  (interactive)
+  (sr-ti (dired-unmark-all-marks)))
+
 (defun sr-ti-change-window ()
   "Switches focus to the currently active pane."
   (interactive)
@@ -2405,7 +2417,8 @@ or (c)ontents? "))
                        ("\M-M"          . sr-ti-mark)
                        ([M-backspace]   . sr-ti-unmark)
                        ("\M-\d"         . sr-ti-unmark)
-                       ("\M-U"          . sr-ti-prev-subdir)
+                       ("\M-J"          . sr-ti-prev-subdir)
+                       ("\M-U"          . sr-ti-unmark-all-marks)
                        ([(control tab)] . sr-ti-change-window)
                        ("\C-c\t"        . sr-ti-change-window)
                        ("\C-ct"         . sr-ti-newterm)
