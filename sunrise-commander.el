@@ -1653,7 +1653,8 @@ automatically:
            (target (or vtarget sr-other-directory))
            )
       (if (> files-count 0)
-          (if (sr-equal-dirs default-directory sr-other-directory)
+          (if (and (not vtarget)
+                   (sr-equal-dirs default-directory sr-other-directory))
               (dired-do-copy)
             (when (y-or-n-p (concat "Copy " files-count-str " files to " target "? "))
               (if vtarget
