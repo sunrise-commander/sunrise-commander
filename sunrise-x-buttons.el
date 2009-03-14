@@ -218,7 +218,7 @@
 
 (defun sr-buttons-mc-keys-p ()
   "Determines whether mc style keybindings have been activated in Sunrise."
-  (< 1 (length (where-is-internal 'sr-goto-dir sr-mode-map))))
+  (< 2 (length (where-is-internal 'sr-goto-dir sr-mode-map))))
 
 (defun sr-buttons-maxtaglen ()
   "Calculates the length of the longest tag in sr-buttons-list."
