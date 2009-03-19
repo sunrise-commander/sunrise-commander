@@ -716,6 +716,7 @@ automatically:
 
 (define-key sr-mode-map "\C-ct"               'sr-term)
 (define-key sr-mode-map "\C-cT"               'sr-term-cd)
+(define-key sr-mode-map "\C-c\C-t"            'sr-term-cd-newterm)
 (define-key sr-mode-map "q"                   'sr-quit)
 (define-key sr-mode-map "\M-q"                'sunrise-cd)
 (define-key sr-mode-map "h"                   'sr-describe-mode)
@@ -2195,7 +2196,7 @@ or (c)ontents? "))
 ;;; ============================================================================
 ;;; TI (Terminal Integration) and CLEX (Command Line EXpansion) functions:
 
-(defun sr-term (&optional cd)
+(defun sr-term (&optional cd newterm)
   "Runs  terminal  in  a  new  buffer  (or  switches to an existing one). If the
   optional parameter  cd  is  provided  and  equal  t  sends  automatically  the
   appropriate command to change directory to the current one in the active pane."
@@ -2205,15 +2206,15 @@ or (c)ontents? "))
       (progn
         (add-hook 'eshell-mode-hook
                   '(lambda () (sr-define-ti-keys eshell-mode-map)))
-        (defun sr-term (&optional cd)
+        (defun sr-term (&optional cd newterm)
           (interactive)
-          (sr-term-eshell cd)))
+          (sr-term-eshell cd newterm)))
     (progn
       (add-hook 'term-mode-hook
                 '(lambda () (sr-define-ti-keys term-mode-map)))
-      (defun sr-term (&optional cd)
+      (defun sr-term (&optional cd newterm)
         (interactive)
-        (sr-term-extern cd))))
+        (sr-term-extern cd newterm))))
   (sr-term))
 
 (defun sr-term-cd ()
@@ -2222,34 +2223,40 @@ or (c)ontents? "))
   (interactive)
   (sr-term t))
 
-(defun sr-term-extern (&optional cd)
-  "This is the implementation of sr-term for external terminal programs."
-  (let ((dir default-directory)
-        (buffer))
-    (sr-select-viewer-window)
-    (term sr-terminal-program)
-    (setq buffer (current-buffer))
-    (setq cd (or cd (null sr-ti-openterms)))
-    (if (not (eq buffer (first sr-ti-openterms)))
-        (push (current-buffer) sr-ti-openterms))
-    (if cd
-        (term-send-raw-string
-         (concat "cd " (shell-quote-wildcard-pattern dir) "")))))
+(defun sr-term-cd-newterm ()
+  "Opens a  NEW terminal (never switches to an existing one) in a new buffer and
+  cd’s to the current directory in the active pane."
+  (interactive)
+  (sr-term t t))
 
-(defun sr-term-eshell (&optional cd)
+(defmacro sr-term-excursion (newterm form)
+  "Helper  macro.  Takes  care  of  the  common mechanics of launching a new (or
+  switching to an existing) terminal from Sunrise."
+  `(let ((buffer))
+     (sr-select-viewer-window)
+     ,form
+     (setq buffer (current-buffer))
+     (setq cd (or cd (null sr-ti-openterms)))
+     (if (not (eq buffer (first sr-ti-openterms)))
+         (push (current-buffer) sr-ti-openterms)
+       (if ,newterm
+           (sr-ti-newterm)))))
+
+(defun sr-term-extern (&optional cd newterm)
+  "This is the implementation of sr-term for external terminal programs."
+  (let ((dir default-directory))
+    (sr-term-excursion newterm (term sr-terminal-program))
+    (when cd
+      (term-send-raw-string
+       (concat "cd " (shell-quote-wildcard-pattern dir) "")))))
+
+(defun sr-term-eshell (&optional cd newterm)
   "This is the implementation of sr-term when using eshell."
-  (let ((dir default-directory)
-        (buffer))
-    (sr-select-viewer-window)
-    (eshell)
-    (setq buffer (current-buffer))
-    (setq cd (or cd (null sr-ti-openterms)))
-    (if (not (eq buffer (first sr-ti-openterms)))
-        (push (current-buffer) sr-ti-openterms))
-    (if cd
-        (progn
-          (insert (concat "cd " (shell-quote-wildcard-pattern dir)))
-          (eshell-send-input)))))
+  (let ((dir default-directory))
+    (sr-term-excursion newterm (eshell))
+    (when cd
+      (insert (concat "cd " (shell-quote-wildcard-pattern dir)))
+      (eshell-send-input))))
 
 (defmacro sr-ti (form)
   "Puts  the  given  form  in the context of the selected pane. Helper macro for
