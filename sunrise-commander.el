@@ -460,6 +460,7 @@ substitution may be about to happen."
 
         C-c t ......... open new terminal or switch to already open one
         C-c T ......... open terminal AND change directory to current
+        C-c C-t ....... open always a new terminal in current directory
         q ............. quit Sunrise Commander, restore previous window setup
         M-q ........... quit Sunrise Commander, don't restore previous windows
 
