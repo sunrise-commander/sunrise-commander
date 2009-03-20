@@ -389,9 +389,9 @@ substitution may be about to happen."
         Tab ........... switch to other pane
         C-Tab.......... switch to viewer window
         C-c Tab ....... switch to viewer window (console compatible)
-        Return ........ visit selected file/directory
-        M-Return ...... visit selected file/directory in passive pane
-        C-c Return .... visit selected in passive pane (console compatible)
+        RET, f ........ visit selected file/directory
+        M-RET, M-f .... visit selected file/directory in passive pane
+        C-c RET ....... visit selected in passive pane (console compatible)
         b ............. visit selected file/directory in default browser
         F ............. visit all marked files, each in its own window
         C-u F ......... visit all marked files in the background
@@ -642,6 +642,7 @@ automatically:
 ;;; Sunrise Commander keybindings:
 
 (define-key sr-mode-map "\C-m"                'sr-advertised-find-file)
+(define-key sr-mode-map "f"                   'sr-advertised-find-file)
 (define-key sr-mode-map "o"                   'sr-quick-view)
 (define-key sr-mode-map "v"                   'sr-quick-view)
 (define-key sr-mode-map "/"                   'sr-goto-dir)
@@ -707,6 +708,7 @@ automatically:
 (define-key sr-mode-map [M-up]                'sr-prev-line-other)
 (define-key sr-mode-map [A-up]                'sr-prev-line-other)
 (define-key sr-mode-map "\M-\C-m"             'sr-advertised-find-file-other)
+(define-key sr-mode-map "\M-f"                'sr-advertised-find-file-other)
 (define-key sr-mode-map "\C-c\C-m"            'sr-advertised-find-file-other)
 (define-key sr-mode-map "\M-^"                'sr-prev-subdir-other)
 (define-key sr-mode-map "\M-J"                'sr-prev-subdir-other)
