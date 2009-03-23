@@ -1053,22 +1053,22 @@ automatically:
   archive and AVFS has been activated, first tries to display it as a  catalogue
   in the VFS, otherwise just visits the file."
   (interactive (find-file-read-args "Find file: " nil))
-  (if sr-avfs-root
-      (let ((mode (assoc-default filename auto-mode-alist 'string-match)))
-        (if (or (eq 'archive-mode mode)
-                (eq 'tar-mode mode)
-                (and (listp mode) (eq 'jka-compr (second mode)))
-                (eq 'avfs-mode mode))
-            (let ((vfile (sr-avfs-dir filename)))
-              (when vfile
-                (sr-goto-dir vfile)
-                (setq filename nil))))
-        (when (eq 'sr-virtual-mode mode)
-          (sr-save-aspect
-           (sr-alternate-buffer (find-file filename)))
-          (sr-history-push filename)
-          (set-visited-file-name nil t)
-          (setq filename nil))))
+  (let ((mode (assoc-default filename auto-mode-alist 'string-match)))
+    (when (and sr-avfs-root
+	       (or (eq 'archive-mode mode)
+		   (eq 'tar-mode mode)
+		   (and (listp mode) (eq 'jka-compr (second mode)))
+		   (eq 'avfs-mode mode)))
+      (let ((vfile (sr-avfs-dir filename)))
+	(when vfile
+	  (sr-goto-dir vfile)
+	  (setq filename nil))))
+    (when (eq 'sr-virtual-mode mode)
+      (sr-save-aspect
+       (sr-alternate-buffer (find-file filename)))
+      (sr-history-push filename)
+      (set-visited-file-name nil t)
+      (setq filename nil)))
 
   (if (null filename) ;;the file is a virtual directory:
       (sr-keep-buffer)
@@ -1357,8 +1357,9 @@ automatically:
   (unless (featurep 'browse-url)
     (error "ERROR: Feature browse-url not available!"))
   (setq file (or file (dired-get-filename)))
-  (message "Browsing \"%s\" in web browser" file)
-  (browse-url (concat "file://" file)))
+  (sr-quit)
+  (browse-url (concat "file://" file))
+  (message "Browsing \"%s\" in web browser" file))
 
 (defun sr-revert-buffer ()
   "Refreshes the current pane."
@@ -2073,10 +2074,11 @@ or (c)ontents? "))
 
 (defun sr-find-apply (fun pattern)
   "Helper function for functions sr-find, sr-find-name and sr-find-grep."
-  (let ((find-ls-option
-         (cons
-          (concat "-exec ls -d " sr-virtual-listing-switches " \\{\\} \\;")
-          "ls -ld")))
+  (let* ((suffix (if (eq 'w32 window-system) " {} ;" " \\{\\} \\;"))
+         (find-ls-option
+          (cons
+           (concat "-exec ls -d " sr-virtual-listing-switches suffix)
+           "ls -ld")))
     (sr-save-aspect
      (apply fun (list default-directory pattern))
      (sr-virtual-mode)
