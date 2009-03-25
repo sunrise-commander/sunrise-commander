@@ -1028,7 +1028,9 @@ automatically:
 ;;; File system navigation functions:
 
 (defun sr-advertised-find-file (&optional filename)
-  "Calls dired-advertised-find-file but also perform additional actions."
+  "Manages the two basic cases of file name: directories are open inside Sunrise
+  itself, while regular files are passed to  sr-find-file.  A  special  case  of
+  directory is when the user presses return, f, or clicks on the path line."
   (interactive)
   (save-excursion
     (if (null filename)
@@ -1050,7 +1052,7 @@ automatically:
 
 (defun sr-find-file (filename &optional wildcards)
   "Determines  the  proper  way  of handling a file. If the file is a compressed
-  archive and AVFS has been activated, first tries to display it as a  catalogue
+  archive and AVFS has been activated, first tries to display it as a  directory
   in the VFS, otherwise just visits the file."
   (interactive (find-file-read-args "Find file: " nil))
   (let ((mode (assoc-default filename auto-mode-alist 'string-match)))
@@ -1616,24 +1618,14 @@ automatically:
     (if was-virtual
         (set (make-local-variable 'sr-virtual-buffer) t))))
 
-(defun sr-readonly-pane (as-virtual &optional reuse-buffer)
+(defun sr-readonly-pane (as-virtual)
   "Puts the current pane back in Sunrise mode."
-  (if as-virtual
-      (progn
-        (sr-virtual-mode)
-        (sr-force-passive-highlight t))
-    (if (sr-equal-dirs sr-this-directory sr-other-directory)
-        (switch-to-buffer (if (equal 'left sr-selected-window)
-                              sr-right-buffer
-                            sr-left-buffer))
-      (if reuse-buffer
-          (progn
-            (dired sr-this-directory)
-            (sr-beginning-of-buffer))
-        (sr-alternate-buffer (dired sr-this-directory)))))
+  (when as-virtual
+    (sr-virtual-mode)
+    (sr-force-passive-highlight t))
   (sr-revert-buffer))
 
-(defun sr-terminate-wdired (fun &optional reuse-buffer)
+(defun sr-terminate-wdired (fun)
   "Restores the current pane's original mode after being edited with WDired."
   (ad-add-advice
    fun
@@ -1643,15 +1635,17 @@ automatically:
       lambda ()
       (if sr-running
 	  (sr-save-aspect
-	   (let ((was-virtual (local-variable-p 'sr-virtual-buffer)))
+	   (let ((was-virtual (local-variable-p 'sr-virtual-buffer))
+                 (saved-point (point)))
 	     (setq major-mode 'wdired-mode)
 	     ad-do-it
-	     (sr-readonly-pane was-virtual ,reuse-buffer)))
+	     (sr-readonly-pane was-virtual)
+             (goto-char saved-point)))
 	ad-do-it)))
    'around 'last)
   (ad-activate fun nil))
 (sr-terminate-wdired 'wdired-finish-edit)
-(sr-terminate-wdired 'wdired-abort-changes t)
+(sr-terminate-wdired 'wdired-abort-changes)
 
 (defun sr-do-copy ()
   "Copies recursively selected files and directories from one pane to the other."
@@ -2167,7 +2161,7 @@ or (c)ontents? "))
      (goto-char (point-min))
      (insert (concat "  " dir) ":\n")
      (insert " Pure VIRTUAL buffer: \n")
-     (insert "  drwxrwxrwx 00 0000 0000-00-00 00:00 ./\n")
+     (insert "  drwxrwxrwx 0 ? ? 0000 0000-00-00 00:00 ./\n")
      (sr-virtual-mode)
      (sr-keep-buffer)
      (unless (sr-equal-dirs sr-this-directory sr-other-directory)
