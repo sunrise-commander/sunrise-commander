@@ -1700,7 +1700,8 @@ automatically:
                                     (int-to-string (length selected-files))
                                     " file(s) dispatched"))))
 
-        (message "Empty selection. Nothing done.")))))
+        (message "Empty selection. Nothing done."))))
+  (sr-revert-buffer))
 
 (defun sr-do-symlink ()
   "Creates  symbolic  links  in  the  passive pane to all the currently selected
@@ -1747,10 +1748,8 @@ automatically:
                  )
             (sr-copy-directory initial-path name target-dir do-overwrite))
         (let* (
-               (name (sr-file-name-proper (file-name-nondirectory f)))
-               (ext (file-name-extension f))
-               (name-ext (concat name (if ext (concat "." ext) "")))
-               (target-file (concat target-dir name-ext))
+               (name (file-name-nondirectory f))
+               (target-file (concat target-dir name))
                )
           (message "%s" (concat f " => " target-file))
           (if (file-exists-p target-file)
@@ -1790,7 +1789,7 @@ subdirectories")))
           (progn
             (setq f (replace-regexp-in-string "/?$" "/" f))
             (let* (
-                   (name (sr-file-name-proper (file-name-nondirectory f)))
+                   (name (file-name-nondirectory f))
                    (target-subdir target-dir)
                    (initial-path (file-name-directory f))
                    )
@@ -1803,10 +1802,8 @@ subdirectories")))
                       (sr-move-directory initial-path name target-dir do-overwrite))
                 (sr-move-directory initial-path name target-dir do-overwrite))))
         (let* (
-               (name (sr-file-name-proper (file-name-nondirectory f)))
-               (ext (file-name-extension f))
-               (name-ext (concat name (if ext (concat "." ext) "")))
-               (target-file (concat target-dir name-ext))
+               (name (file-name-nondirectory f))
+               (target-file (concat target-dir name))
                )
           (message "%s" (concat f " => " target-file))
           (if (file-exists-p target-file)
@@ -1940,18 +1937,6 @@ the original one."
                 (not (eq (aref str idx) ?/)))
       (setq idx (- idx 1)))
     (if (and (>= idx 0) (eq (aref str idx) ?.)) idx nil)))
-
-(defun sr-file-name-proper (filename)
-  "Takes  as  input  a  filename,  without  directory path. Return the file name
-  proper. That is, the file name without the file extension. If no dot is found,
-  return  filename. Use the native Emacs Lisp function file-name-nondirectory to
-  access the proper file name and the extension of a file path. Use  the  native
-  Emacs Lisp function file-name-directory to access the directory path of a file
-  path."
-  (let ((point-idx (sr-find-last-point filename)))
-    (cond ((eq point-idx nil) filename)
-          ((eq point-idx   0) filename)
-          (t (substring filename 0 point-idx)))))
 
 (defun sr-directory-name-proper (file-path)
   "Takes  as  input  an absolute or relative, forward slash terminated path to a
