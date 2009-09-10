@@ -433,6 +433,9 @@ substitution may be about to happen."
         C-c C-s ....... change panes layout (vertical/horizontal/top-only)
         [ ............. enlarges the right pane by 5 columns
         ] ............. enlarges the left pane by 5 columns
+        } ............. enlarges both panes vertically by 1 row
+        { ............. shrinks both panes vertically by 1 row
+        \\ ............. sets vertical size of both panes back to «normal»
         C-c C-z ....... enable/disable synchronized navigation
 
         C-= ........... smart compare files (ediff)
@@ -661,6 +664,9 @@ automatically:
 (define-key sr-mode-map "\M-t"                'sr-transpose-panes)
 (define-key sr-mode-map "]"                   'sr-enlarge-left-pane)
 (define-key sr-mode-map "["                   'sr-enlarge-right-pane)
+(define-key sr-mode-map "}"                   'sr-enlarge-panes)
+(define-key sr-mode-map "{"                   'sr-shrink-panes)
+(define-key sr-mode-map "\\"                  'sr-normalsize-panes)
 (define-key sr-mode-map "\M-o"                'sr-synchronize-panes)
 (define-key sr-mode-map "\C-o"                'sr-omit-mode)
 (define-key sr-mode-map "b"                   'sr-browse-file)
@@ -1023,6 +1029,24 @@ automatically:
   "Enlarges the right pane by 5 columns."
   (interactive)
   (sr-resize-panes t))
+
+(defun sr-enlarge-panes ()
+  "Enlarges both panes vertically."
+  (interactive)
+  (setq sr-windows-locked nil)
+  (shrink-window -1))
+
+(defun sr-shrink-panes ()
+  "Shinks both panes vertically."
+  (interactive)
+  (setq sr-windows-locked nil)
+  (shrink-window 1))
+
+(defun sr-normalsize-panes ()
+  "Resets vertical size of both panes to normal."
+  (interactive)
+  (setq sr-windows-locked t)
+  (sr-revert-buffer))
 
 ;;; ============================================================================
 ;;; File system navigation functions:
