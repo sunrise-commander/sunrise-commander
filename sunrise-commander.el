@@ -347,6 +347,9 @@
   "Been coding all night? Enjoy the Sunrise! (or press q to quit)"
   "Message to display when `sr' is started.")
 
+(defvar sr-panes-height nil
+  "Current hight of the pane windows. Initial value is 2/3 the viewport height")
+
 (defface sr-active-path-face
   '((t (:background "#ace6ac" :foreground "yellow" :bold t :height 120)))
   "Face of the directory path in the active pane"
@@ -676,6 +679,8 @@ automatically:
 (define-key sr-mode-map "\M-l"                'sr-toggle-truncate-lines)
 (define-key sr-mode-map "s"                   'sr-interactive-sort)
 (define-key sr-mode-map "\C-c\C-z"            'sr-sync)
+(define-key sr-mode-map "\C-e"                'sr-scroll-up)
+(define-key sr-mode-map "\C-y"                'sr-scroll-down)
 
 (define-key sr-mode-map "C"                   'sr-do-copy)
 (define-key sr-mode-map "R"                   'sr-do-rename)
@@ -849,7 +854,9 @@ automatically:
   (delete-other-windows)
 
   ;;now create the viewer window
-  (split-window (selected-window) (* 2 (/ (window-height) 3)))
+  (unless sr-panes-height
+    (setq sr-panes-height (* 2 (/ (window-height) 3))))
+  (split-window (selected-window) sr-panes-height)
 
   (cond
    ((equal sr-window-split-style 'horizontal) (split-window-horizontally))
@@ -879,8 +886,7 @@ automatically:
       (save-selected-window
         (select-window sr-left-window)
         (let* ((my-style-factor (if (equal sr-window-split-style 'horizontal) 2 1))
-               (my-pane-height (* my-style-factor (/ (frame-height) 3)))
-               (my-delta (- my-pane-height (window-height))))
+               (my-delta (- sr-panes-height (window-height))))
           (enlarge-window my-delta)))))
 
 ;; This keeps the size of the Sunrise panes constant:
@@ -1033,18 +1039,25 @@ automatically:
 (defun sr-enlarge-panes ()
   "Enlarges both panes vertically."
   (interactive)
-  (setq sr-windows-locked nil)
-  (shrink-window -1))
+  (if (< 10 (- (frame-height) (window-height)))
+      (progn
+        (setq sr-windows-locked nil)
+        (shrink-window -1)
+        (setq sr-panes-height (window-height)))))
 
 (defun sr-shrink-panes ()
   "Shinks both panes vertically."
   (interactive)
-  (setq sr-windows-locked nil)
-  (shrink-window 1))
+  (if (< 10 (window-height))
+      (progn
+        (setq sr-windows-locked nil)
+        (shrink-window 1)
+        (setq sr-panes-height (window-height)))))
 
 (defun sr-normalsize-panes ()
   "Resets vertical size of both panes to normal."
   (interactive)
+  (setq sr-panes-height (* 2 (/ (frame-height) 3)))
   (setq sr-windows-locked t)
   (sr-revert-buffer))
 
@@ -1541,6 +1554,24 @@ automatically:
           ((eq opt ?S) (sort-numeric-fields 5 beg end) (reverse-region beg end))
           (t  (sort-fields 8 beg end)))
     (toggle-read-only 1)))
+
+(defun sr-scroll-up ()
+  "Scrolls the current pane or (if active) the viewer pane 1 line up."
+  (interactive)
+  (if (buffer-live-p other-window-scroll-buffer)
+      (save-selected-window
+        (sr-select-viewer-window)
+        (scroll-up 1))
+    (scroll-up 1)))
+
+(defun sr-scroll-down ()
+  "Scrolls the current pane or (if active) the viewer pane 1 line down."
+  (interactive)
+  (if (buffer-live-p other-window-scroll-buffer)
+      (save-selected-window
+        (sr-select-viewer-window)
+        (scroll-down 1))
+    (scroll-down 1)))
 
 ;;; ============================================================================
 ;;; Passive & synchronized navigation functions:
@@ -2460,7 +2491,7 @@ or (c)ontents? "))
   "Sets the other-window-scroll-buffer variable to the given buffer (or nil)."
   (setq other-window-scroll-buffer buffer)
   (if buffer
-      (message "QUICK VIEW: Press C-M-v, S-C-M-v to scroll up/down and C-u v (or C-u o) to dismiss")))
+      (message "QUICK VIEW: Press C-e/C-y to scroll, C-M-v/S-C-M-v to page, and C-u v (or C-u o) to dismiss")))
 
 (defun sr-describe-mode ()
   "Calls describe-mode and makes the resulting buffer C-M-v scrollable."
