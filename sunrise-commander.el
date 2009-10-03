@@ -644,6 +644,16 @@ automatically:
     ad-do-it))
 (ad-activate 'revert-buffer)
 
+;; selects the correct (selected) pane when switching from other windows:
+(defadvice other-window
+  (around sr-advice-other-window (count &optional all-frames))
+  (let ((from-window (selected-window)))
+    ad-do-it
+    (unless (member from-window (list sr-left-window sr-right-window))
+      (if (member (selected-window) (list sr-left-window sr-right-window))
+          (sr-select-window sr-selected-window)))))
+(ad-activate 'other-window)
+
 ;;; ============================================================================
 ;;; Sunrise Commander keybindings:
 
