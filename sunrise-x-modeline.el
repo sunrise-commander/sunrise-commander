@@ -38,6 +38,18 @@
 ;; It  was  written  on GNU Emacs 23 on Linux, and tested on GNU Emacs 22 and 23
 ;; for Linux and on EmacsW32 (version 22) for  Windows.
 
+;;; Installation and Usage:
+
+;; 1) Put this file somewhere in your emacs load-path.
+
+;; 2)  Add  a  (require  ’sunrise‐x‐modeline)  expression  to  your  .emacs file
+;; somewhere after the (require ’sunrise‐commander) one.
+
+;; 3) Evaluate the new expression, or reload your .emacs file, or restart emacs.
+
+;; 4) Enjoy ;-)
+
+;;; Code:
 
 (require 'sunrise-commander)
 (require 'easymenu)
