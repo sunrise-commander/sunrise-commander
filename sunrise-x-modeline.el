@@ -54,10 +54,10 @@
 (require 'sunrise-commander)
 (require 'easymenu)
 
-(defconst sr-modeline-norm-mark " * ") ;; ☼
-(defconst sr-modeline-sync-mark " = ") ;; ⚓
-(defconst sr-modeline-edit-mark " ! ") ;; ⚡
-(defconst sr-modeline-virt-mark " @ ") ;; ☯
+(defconst sr-modeline-norm-mark " * ") ;; 
+(defconst sr-modeline-sync-mark " & ") ;; 
+(defconst sr-modeline-edit-mark " ! ") ;; 
+(defconst sr-modeline-virt-mark " @ ") ;; 
 
 ;;; ============================================================================
 ;;; Core functions:
