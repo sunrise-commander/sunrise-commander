@@ -62,11 +62,6 @@
 
 (remove-hook 'window-size-change-functions 'sr-lock-window)
 
-(eval-when-compile
-  (defun sr-symbol (name context)
-    "Helper function for macro sr-setup-pane."
-    (intern (concat "sr-" name "-" (symbol-name context)))))
-
 (defun sr-setup-windows()
   "Setup the Sunrise window configuration (two windows in sr-mode.)"
 
@@ -78,9 +73,9 @@
    (t (error "ERROR: Don't know how to split this window: %s" sr-window-split-style)))
 
   ;;setup sunrise on both panes
-  (sr-setup-pane "left")
+  (sr-setup-pane left)
   (other-window 1)
-  (sr-setup-pane "right")
+  (sr-setup-pane right)
 
   ;;select the correct window
   (sr-select-window sr-selected-window)
