@@ -350,6 +350,9 @@
 (defvar sr-panes-height nil
   "Current hight of the pane windows. Initial value is 2/3 the viewport height")
 
+(defconst sr-side-lookup (list '(left . right) '(right . left))
+  "Trivial alist used by the Sunrise Commander to lookup its own passive side.")
+
 (defface sr-active-path-face
   '((t (:background "#ace6ac" :foreground "yellow" :bold t :height 120)))
   "Face of the directory path in the active pane"
@@ -816,6 +819,15 @@ automatically:
     "Synthesizes Sunrise symbols (sr-left-buffer, sr-right-window, etc.)"
     (intern (concat "sr-" (symbol-name side) "-" (symbol-name context)))))
 
+(defun sr-other (&optional context)
+  "Without  any  arguments  returns  the  symbol that corresponds to the current
+  passive side of the manager ('left or 'right). If the  optional  argument  has
+  value 'buffer or 'window returns the current passive buffer / window."
+  (let ((side (cdr (assoc sr-selected-window sr-side-lookup))))
+    (or
+     (and (null context) side)
+     (symbol-value (sr-symbol side context)))))
+
 (defun sunrise-cd ()
   "Run Sunrise but give it the current directory to use."
   (interactive)
@@ -959,14 +971,11 @@ automatically:
   "Sets  up  the graphical path line in the passive pane. With optional argument
   'revert' executes sr-revert-buffer on the passive buffer."
   (if (and (window-live-p sr-left-window) (window-live-p sr-right-window))
-      (let ((my-window (if (equal sr-selected-window 'left)
-                           sr-right-window
-                         sr-left-window)))
-        (save-window-excursion
-          (select-window my-window)
-          (if revert (sr-revert-buffer))
-          (sr-graphical-highlight 'sr-passive-path-face)
-          (hl-line-mode 0)))))
+      (save-window-excursion
+        (select-window (sr-other 'window))
+        (if revert (sr-revert-buffer))
+        (sr-graphical-highlight 'sr-passive-path-face)
+        (hl-line-mode 0))))
 
 (defun sr-hide-avfs-root ()
   "Hides the AVFS virtual filesystem root (if any) on the path line."
@@ -1312,9 +1321,7 @@ automatically:
       (let ((here sr-this-directory))
         (setq sr-this-directory sr-other-directory)
         (setq sr-other-directory here)
-        (if (equal (selected-window) sr-right-window)
-            (sr-select-window 'left)
-          (sr-select-window 'right)))))
+        (sr-select-window (sr-other)))))
 
 (defun sr-beginning-of-buffer()
   "Go to the first directory/file in dired."
@@ -1715,58 +1722,61 @@ automatically:
 (defun sr-do-copy ()
   "Copies recursively selected files and directories from one pane to the other."
   (interactive)
-  (save-excursion
-    (let* (
-           (selected-files (dired-get-marked-files nil))
-           (files-count (length selected-files))
-           (files-count-str (int-to-string files-count))
-           (vtarget (sr-virtual-target))
-           (target (or vtarget sr-other-directory))
-           )
-      (if (> files-count 0)
-          (if (and (not vtarget)
-                   (sr-equal-dirs default-directory sr-other-directory))
-              (dired-do-copy)
-            (when (y-or-n-p (concat "Copy " files-count-str " files to " target "? "))
-              (if vtarget
-                  (sr-copy-virtual)
-                (progn
-                  (dired-unmark-all-marks)
-                  (sr-change-window)
-                  (sr-copy-files selected-files default-directory)
-                  (sr-revert-buffer)
-                  (sr-change-window)))
-              (message "%s" (concat "Done: "
-                                    (int-to-string (length selected-files))
-                                    " file(s) dispatched"))))
-        (message "Empty selection. Nothing done.")))))
+  (let* (
+         (selected-files (dired-get-marked-files nil))
+         (files-count (length selected-files))
+         (files-count-str (int-to-string files-count))
+         (vtarget (sr-virtual-target))
+         (target (or vtarget sr-other-directory))
+         )
+    (if (> files-count 0)
+        (if (and (not vtarget) (sr-equal-dirs default-directory sr-other-directory))
+            (dired-do-copy)
+          (when (y-or-n-p (concat "Copy " files-count-str " files to " target "? "))
+            (if vtarget
+                (sr-copy-virtual)
+              (let ((names (mapcar #'file-name-nondirectory selected-files))
+                    (inhibit-read-only t))
+                (with-current-buffer (sr-other 'buffer)
+                  (sr-copy-files selected-files target)
+                  (sr-force-passive-highlight t)
+                  (dired-mark-remembered
+                   (mapcar (lambda (x) (cons (expand-file-name x) ?C)) names)))
+                (save-selected-window
+                  (select-window (sr-other 'window))
+                  (sr-focus-filename (car names)))))
+            (dired-unmark-all-marks)
+            (message "%s" (concat "Done: " files-count-str " file(s) dispatched"))))
+      (message "Empty selection. Nothing done."))))
 
 (defun sr-do-rename ()
   "Moves recursively selected files and directories from one pane to the other."
   (interactive)
   (if (sr-virtual-target)
       (error "Cannot move files to a VIRTUAL buffer, try (C)opying instead."))
-  (save-excursion
-    (let* (
-           (selected-files (dired-get-marked-files nil))
-           (files-count (length selected-files))
-           (files-count-str (int-to-string files-count))
-          )
-      (if (> files-count 0)
-          (if (sr-equal-dirs default-directory sr-other-directory)
-              (dired-do-rename)
-            (when (y-or-n-p (concat "Move " files-count-str
-                                  " files to " sr-other-directory "? "))
-              (sr-change-window)
-              (sr-move-files selected-files default-directory)
-              (sr-revert-buffer)
-              (sr-change-window)
-              (message "%s" (concat "Done: "
-                                    (int-to-string (length selected-files))
-                                    " file(s) dispatched"))))
-
-        (message "Empty selection. Nothing done."))))
-  (sr-revert-buffer))
+  (let* (
+         (selected-files (dired-get-marked-files nil))
+         (files-count (length selected-files))
+         (files-count-str (int-to-string files-count))
+         (target sr-other-directory)
+         )
+    (if (> files-count 0)
+        (if (sr-equal-dirs default-directory sr-other-directory)
+            (dired-do-rename)
+          (when (y-or-n-p (concat "Move " files-count-str " files to " target "? "))
+            (let ((names (mapcar #'file-name-nondirectory selected-files))
+                  (inhibit-read-only t))
+              (with-current-buffer (sr-other 'buffer)
+                (sr-move-files selected-files default-directory)
+                (revert-buffer)
+                (dired-mark-remembered
+                 (mapcar (lambda (x) (cons (expand-file-name x) ?R)) names)))
+              (save-selected-window
+                (select-window (sr-other 'window))
+                (sr-focus-filename (car names))))
+            (message "%s" (concat "Done: " files-count-str " file(s) dispatched"))
+            (sr-revert-buffer)))
+      (message "Empty selection. Nothing done."))))
 
 (defun sr-do-symlink ()
   "Creates  symbolic  links  in  the  passive pane to all the currently selected
@@ -1803,7 +1813,7 @@ automatically:
 (defun sr-copy-files (file-path-list target-dir &optional do-overwrite)
   "Copies all files in file-path-list (list of full paths) to target dir."
   (setq target-dir (replace-regexp-in-string "/?$" "/" target-dir))
-  (mapcar
+  (mapc
    (function
     (lambda (f)
       (if (file-directory-p f)
@@ -1902,9 +1912,7 @@ the original one."
   "If the passive pane is in VIRTUAL mode returns its name as a string,
    otherwise returns nil."
   (save-window-excursion
-    (if (equal sr-selected-window 'left)
-        (switch-to-buffer sr-right-buffer)
-      (switch-to-buffer sr-left-buffer))
+    (switch-to-buffer (sr-other 'buffer))
     (if (equal major-mode 'sr-virtual-mode)
         (or (buffer-file-name) "Sunrise VIRTUAL buffer")
       nil)))
@@ -1935,8 +1943,7 @@ the original one."
       (progn
         (toggle-read-only 1)
         (sr-revert-buffer)
-        (sr-change-window)
-        (dired-unmark-all-marks)))))
+        (sr-change-window)))))
 
 (defun ask-overwrite (file-name)
   "Asks whether to overwrite a given file."
