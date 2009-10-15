@@ -1943,7 +1943,8 @@ the original one."
       (progn
         (toggle-read-only 1)
         (sr-revert-buffer)
-        (sr-change-window)))))
+        (sr-change-window)
+        (dired-unmark-all-marks)))))
 
 (defun ask-overwrite (file-name)
   "Asks whether to overwrite a given file."
