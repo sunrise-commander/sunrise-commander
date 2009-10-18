@@ -266,6 +266,12 @@
   :type 'hook
   :options '(auto-insert))
 
+(defcustom sr-refresh-hook nil
+  "List of functions to be called every time a pane is refreshed"
+  :group 'sunrise
+  :type 'hook
+  :options '(auto-insert))
+
 (defcustom sr-quit-hook nil
   "List of functions to be called after the Sunrise panes are hidden"
   :group 'sunrise
@@ -938,7 +944,8 @@ automatically:
       (if window-system
           (progn
             (sr-graphical-highlight face)
-            (sr-force-passive-highlight))))
+            (sr-force-passive-highlight)))
+      (run-hooks 'sr-refresh-hook))
     (hl-line-mode 1)))
 
 (defun sr-graphical-highlight (&optional face)
@@ -1613,7 +1620,9 @@ automatically:
   (setq sr-synchronized (not sr-synchronized))
   (mapc 'sr-mark-sync (list sr-left-buffer sr-right-buffer))
   (message (concat "Sync navigation is now "
-                   (if sr-synchronized "ON" "OFF"))))
+                   (if sr-synchronized "ON" "OFF")))
+  (run-hooks 'sr-refresh-hook)
+  (sr-in-other (run-hooks 'sr-refresh-hook)))
 
 (defun sr-mark-sync (&optional buffer)
   "Changes  the  pretty  name  of  the sr major mode to 'Sunrise SYNC-LOCK' when
@@ -1690,7 +1699,8 @@ automatically:
 	 (major-mode 'dired-mode))
     (wdired-change-to-wdired-mode)
     (if was-virtual
-        (set (make-local-variable 'sr-virtual-buffer) t))))
+        (set (make-local-variable 'sr-virtual-buffer) t)))
+  (run-hooks 'sr-refresh-hook))
 
 (defun sr-readonly-pane (as-virtual)
   "Puts the current pane back in Sunrise mode."
