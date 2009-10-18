@@ -33,7 +33,7 @@
 ;; The  extension  is  provided  as a minor mode, so you can enable / disable it
 ;; totally by issuing the command (M-x) sr-modeline.
 
-;; This is version 1 $Rev$ of the Sunrise Commander Modeline Extension.
+;; This is version 2 $Rev$ of the Sunrise Commander Modeline Extension.
 
 ;; It  was  written  on GNU Emacs 23 on Linux, and tested on GNU Emacs 22 and 23
 ;; for Linux and on EmacsW32 (version 22) for  Windows.
@@ -54,10 +54,10 @@
 (require 'sunrise-commander)
 (require 'easymenu)
 
-(defconst sr-modeline-norm-mark " * ") ;; ☼
-(defconst sr-modeline-sync-mark " & ") ;; ⚓
-(defconst sr-modeline-edit-mark " ! ") ;; ⚡
-(defconst sr-modeline-virt-mark " @ ") ;; ☯
+(defconst sr-modeline-norm-mark " ☼ ") ;; *
+(defconst sr-modeline-sync-mark " ⚓ ") ;; &
+(defconst sr-modeline-edit-mark " ⚡ ") ;; !
+(defconst sr-modeline-virt-mark " ☯ ") ;; @
 
 ;;; ============================================================================
 ;;; Core functions:
@@ -140,46 +140,26 @@
 ;;; ============================================================================
 ;;; Private interface:
 
-(defvar sr-modeline-advices nil)
-
-(defun sr-modeline-instrument (function &optional in-other)
-  "Creates and appends (but does not activate) a new 'after' advice to the given
-  function for mode line format maintenance. If the optional parameter  in-other
-  is  not  nil, enforces explicit execution of the advice in both sunrise panes,
-  not just in the current one."
- (when (fboundp function)
-    (ad-add-advice
-     function
-     (ad-make-advice
-      (intern (concat "sr-modeline-advice-" (symbol-name function))) nil t
-      `(advice lambda()
-               (setq sr-modeline t)
-               (sr-modeline-setup)
-               ,(if in-other `(sr-in-other (sr-modeline-setup)))))
-     'after 'last)
-    (setq sr-modeline-advices
-          (append sr-modeline-advices (list function)))))
- 
-(sr-modeline-instrument 'sr-highlight)
-(sr-modeline-instrument 'sr-sync t)
-(sr-modeline-instrument 'sr-editable-pane)
+(defun sr-modeline-refresh ()
+  (setq sr-modeline t)
+  (sr-modeline-setup))
 
 (defun sr-modeline-engage ()
   "Activates and enforces the navigation mode line format."
-  (mapc 'ad-activate sr-modeline-advices) 
+  (add-hook 'sr-refresh-hook 'sr-modeline-refresh)  
   (sr-modeline-setup)
   (sr-in-other (sr-modeline-setup)))
 
 (defun sr-modeline-disengage ()
   "De-activates the navigation mode line format, enforcing the default one."
-  (mapc 'ad-deactivate sr-modeline-advices)
-  (setq mode-line-format default-mode-line-format)
-  (sr-in-other (setq mode-line-format default-mode-line-format)))
+  (remove-hook 'sr-refresh-hook 'sr-modeline-refresh)
+  (setq mode-line-format (default-value 'mode-line-format))
+  (sr-in-other (setq mode-line-format (default-value 'mode-line-format))))
 
 (defun sr-modeline-toggle ()
   "Toggles the usage and enforcement of the navigation mode line format."
   (interactive)
-  (if (eq mode-line-format default-mode-line-format)
+  (if (eq mode-line-format (default-value 'mode-line-format))
       (sr-modeline-engage)
     (sr-modeline-disengage)))
 
