@@ -575,7 +575,9 @@ automatically:
      ,form
      (setq sr-this-directory default-directory)
      (sr-keep-buffer)
-     (if dispose (kill-buffer dispose))))
+     (when dispose
+       (bury-buffer dispose)
+       (kill-buffer dispose))))
 
 (defun sr-dired-mode ()
   "Sets Sunrise mode in every Dired buffer opened in Sunrise (called in hook)."
