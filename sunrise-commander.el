@@ -570,7 +570,8 @@ automatically:
      ,@body
      (if hidden-attrs
          (sr-hide-attributes))
-     (sr-omit-mode omit)))
+     (sr-omit-mode omit)
+     (sr-restore-point-if-same-buffer)))
 
 (defmacro sr-alternate-buffer (form)
   "Executes form in a new buffer, after killing the previous one."
@@ -840,12 +841,11 @@ automatically:
   "Run Sunrise but give it the current directory to use."
   (interactive)
   (if (not sr-running)
-      (let((to-focus (buffer-file-name))
-           (to-kill (symbol-value (sr-symbol sr-selected-window 'buffer))))
-        (if (buffer-live-p to-kill) (kill-buffer to-kill))
-        (if (equal sr-selected-window 'left)
-            (sunrise default-directory nil to-focus)
-          (sunrise nil default-directory to-focus)))
+      (let ((target-dir default-directory)
+            (target-file (sr-directory-name-proper (buffer-file-name))))
+        (sunrise)
+        (sr-goto-dir target-dir)
+        (sr-focus-filename target-file))
     (progn
       (sr-quit t)
       (message "Hast thou a charm to stay the morning-star in his deep course?"))))
@@ -912,6 +912,7 @@ automatically:
   (if (and sr-running
            sr-windows-locked
            (not sr-ediff-on)
+           (not (equal sr-window-split-style 'vertical))
            (window-live-p sr-left-window))
       (save-selected-window
         (select-window sr-left-window)
@@ -2538,6 +2539,18 @@ or (c)ontents? "))
   (interactive)
   (dired-why)
   (message "C-opy, R-ename, D-elete, v-iew, q-uit, U-p, m-ark, u-nmark, h-elp"))
+
+(defun sr-restore-point-if-same-buffer ()
+  "Puts  the point in the same place of the same buffer, if it's being displayed
+  simultaneously in both panes."
+  (let ((this-win)(other-win)(point))
+    (when (and (eq sr-left-buffer sr-right-buffer)
+               (window-live-p (setq other-win (sr-other 'window))))
+      (setq this-win (selected-window))
+      (setq point (point))
+      (select-window other-win)
+      (goto-char point)
+      (select-window this-win))))
 
 ;;; ============================================================================
 ;;; Font-Lock colors & styles:
