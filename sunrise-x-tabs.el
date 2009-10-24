@@ -288,7 +288,7 @@
     nil))
 
 (defsubst sr-tabs-empty-p (line)
-  (or (null line) (empty-string-p line)))
+  (or (null line) (string= "" line)))
 
 (defsubst sr-tabs-empty-mask (line)
   (or (and (null line) "") line))
@@ -411,7 +411,7 @@
 "
   nil nil sr-tabs-mode-map
   (unless (memq major-mode '(sr-mode sr-virtual-mode))
-    (setq sr-modeline nil)
+    (setq sr-tabs-mode nil)
     (error "Sorry, this mode can be used only within the Sunrise Commander."))
   (if sr-tabs-mode
       (sr-tabs-engage)
