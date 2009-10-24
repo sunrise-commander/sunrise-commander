@@ -54,10 +54,10 @@
 (require 'sunrise-commander)
 (require 'easymenu)
 
-(defconst sr-modeline-norm-mark " ☼ ") ;; *
-(defconst sr-modeline-sync-mark " ⚓ ") ;; &
-(defconst sr-modeline-edit-mark " ⚡ ") ;; !
-(defconst sr-modeline-virt-mark " ☯ ") ;; @
+(defconst sr-modeline-norm-mark " * ") ;; ☼
+(defconst sr-modeline-sync-mark " & ") ;; ⚓
+(defconst sr-modeline-edit-mark " ! ") ;; ⚡
+(defconst sr-modeline-virt-mark " @ ") ;; ☯
 
 ;;; ============================================================================
 ;;; Core functions:
@@ -168,13 +168,6 @@
 
 (defvar sr-modeline-map (make-sparse-keymap))
 (define-key sr-modeline-map "\C-cm" 'sr-modeline-toggle)
-(easy-menu-define sr-modeline-menu sr-modeline-map "Sunrise Mode Line"
-  '("Sunrise"
-    ["Toggle navigation mode line" sr-modeline-toggle t]
-    ["Turn off navigation mode line" sr-modeline t]
-    ["Navigation mode line help" (lambda ()
-                                   (interactive)
-                                   (describe-function 'sr-modeline))] ))
 
 (define-minor-mode sr-modeline
   "Navigable  mode  line  for  the  Sunrise Commander. This is a minor mode that
@@ -190,9 +183,22 @@
     (error "Sorry, this mode can be used only within the Sunrise Commander."))
   (sr-modeline-toggle))
 
+(defvar sr-modeline-menu
+  (easy-menu-create-menu
+   "Mode Line"
+   '(["Toggle navigation mode line" sr-modeline-toggle t]
+     ["Turn off navigation mode line" sr-modeline t]
+     ["Navigation mode line help" (lambda ()
+                                    (interactive)
+                                    (describe-function 'sr-modeline))] )))
 (defun sr-modeline-popup-menu ()
   (interactive)
   (popup-menu sr-modeline-menu))
+
+(defun sr-modeline-menu-init ()
+  (define-key sr-modeline-map
+    (vector 'menu-bar (easy-menu-intern "Sunrise"))
+    (easy-menu-binding sr-modeline-menu "Sunrise")))
 
 ;;; ============================================================================
 ;;; Bootstrap:
@@ -201,6 +207,7 @@
   "Bootstraps  the  navigation  mode  line on the first execution of the Sunrise
   Commander, after module installation."
   (sr-modeline t)
+  (sr-modeline-menu-init)
   (remove-hook 'sr-start-hook 'sr-modeline-start-once)
   (unintern 'sr-modeline-start-once))
 (add-hook 'sr-start-hook 'sr-modeline-start-once)
