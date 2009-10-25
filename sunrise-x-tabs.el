@@ -203,10 +203,11 @@
   to the next buffer tabbed in the active pane, unless there are no more  tabbed
   buffers to fall back, in which case just removes the tab."
   (interactive)
-  (let ((to-kill (current-buffer)))
+  (let ((to-kill (current-buffer)) (stack))
     (sr-tabs-kill)
+    (setq stack (cdr (assoc sr-selected-window sr-tabs)))
     (sr-tabs-next)
-    (unless (eq to-kill (current-buffer))
+    (unless (or (null stack) (eq to-kill (current-buffer)))
       (kill-buffer to-kill))))
 
 ;;; ============================================================================
