@@ -1523,14 +1523,14 @@ automatically:
 (defun sr-truncate-p nil
   "Returns  whether  truncate-partial-width-widows  is  set to truncate the long
   lines in the current pane. Used by sr-toggle-truncate-lines."
-  (if (equal "23.0.60" (substring emacs-version 0 -2))
+  (if (numberp truncate-partial-width-windows)
       (< 0 truncate-partial-width-windows)
     truncate-partial-width-windows))
 
 (defun sr-truncate-v (active)
   "Returns the right value to set for truncate-partial-width-widows depending on
   the emacs version being used. Used by sr-toggle-truncate-lines."
-  (or (and (equal "23.0.60" (substring emacs-version 0 -2))
+  (or (and (equal "23" (substring emacs-version 0 2))
            (or (and active 3000) 0))
       active))
 
