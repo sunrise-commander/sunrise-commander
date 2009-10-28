@@ -845,7 +845,8 @@ automatically:
             (target-file (sr-directory-name-proper (buffer-file-name))))
         (sunrise)
         (sr-goto-dir target-dir)
-        (sr-focus-filename target-file))
+        (if target-file
+            (sr-focus-filename target-file)))
     (progn
       (sr-quit t)
       (message "Hast thou a charm to stay the morning-star in his deep course?"))))
@@ -2028,11 +2029,12 @@ the original one."
   "Takes  as  input  an absolute or relative, forward slash terminated path to a
   directory.  Return the proper name of the directory, without initial path. The
   remaining part of file-path can be accessed by the function parent-directory."
-  (let (
-        (file-path-1 (substring file-path 0 (- (length file-path) 1)))
-        (lastchar (substring file-path (- (length file-path) 1)))
-        )
-    (concat (file-name-nondirectory file-path-1) lastchar)))
+  (if file-path
+      (let (
+            (file-path-1 (substring file-path 0 (- (length file-path) 1)))
+            (lastchar (substring file-path (- (length file-path) 1)))
+            )
+        (concat (file-name-nondirectory file-path-1) lastchar))))
 
 ;;; ============================================================================
 ;;; Directory and file comparison functions:
@@ -2046,9 +2048,9 @@ the original one."
   "Prompts for the criterion to use for comparing two directories."
   (let (
         (resp -1)
-        (prompt "Compare by (d)ate, (s)ize, date_(a)nd_size or (c)ontents? ")
+        (prompt "Compare by (d)ate, (s)ize, date_(a)nd_size, (n)ame or (c)ontents? ")
        )
-    (while (not (memq resp '(?d ?D ?s ?S ?a ?A ?c ?C)))
+    (while (not (memq resp '(?d ?D ?s ?S ?a ?A ?n ?N ?c ?C)))
       (setq resp (read-event prompt))
       (setq prompt "Please select: Compare by (d)ate, (s)ize, date_(a)nd_size \
 or (c)ontents? "))
@@ -2058,6 +2060,8 @@ or (c)ontents? "))
            (list 'not (list '= 'mtime1 'mtime2)))
           ((eq resp ?S)
            (list 'not (list '= 'size1 'size2)))
+          ((eq resp ?N)
+           nil)
           ((eq resp ?C)
            (list 'not (list 'string=
                             (list 'sr-md5 'file1)
