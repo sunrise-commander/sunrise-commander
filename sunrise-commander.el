@@ -447,7 +447,7 @@ substitution may be about to happen."
         ] ............. enlarges the left pane by 5 columns
         } ............. enlarges both panes vertically by 1 row
         { ............. shrinks both panes vertically by 1 row
-        \\ ............. sets vertical size of both panes back to «normal»
+        \\ ............. sets size of all windows back to «normal»
         C-c C-z ....... enable/disable synchronized navigation
 
         C-= ........... smart compare files (ediff)
@@ -691,7 +691,7 @@ automatically:
 (define-key sr-mode-map "["                   'sr-enlarge-right-pane)
 (define-key sr-mode-map "}"                   'sr-enlarge-panes)
 (define-key sr-mode-map "{"                   'sr-shrink-panes)
-(define-key sr-mode-map "\\"                  'sr-normalsize-panes)
+(define-key sr-mode-map "\\"                  'sr-restore-panes)
 (define-key sr-mode-map "\M-o"                'sr-synchronize-panes)
 (define-key sr-mode-map "\C-o"                'sr-omit-mode)
 (define-key sr-mode-map "b"                   'sr-browse-file)
@@ -883,6 +883,8 @@ automatically:
   ;;get rid of all windows except one (not any of the panes!)
   (sr-select-viewer-window)
   (delete-other-windows)
+  (if (buffer-live-p other-window-scroll-buffer)
+      (switch-to-buffer other-window-scroll-buffer))
 
   ;;now create the viewer window
   (unless sr-panes-height
@@ -910,6 +912,8 @@ automatically:
 
 (defun sr-lock-window (frame)
   "Resize the left Sunrise pane to have the \"right\" size."
+  (if (> window-min-height (- (frame-height) (window-height sr-left-window)))
+      (setq sr-windows-locked nil))
   (if (and sr-running
            sr-windows-locked
            (not sr-ediff-on)
@@ -1059,35 +1063,41 @@ automatically:
 (defun sr-enlarge-left-pane ()
   "Enlarges the left pane by 5 columns."
   (interactive)
-  (sr-resize-panes))
+  (if (< (1+ window-min-width) (window-width sr-right-window))
+      (sr-resize-panes)))
 
 (defun sr-enlarge-right-pane ()
   "Enlarges the right pane by 5 columns."
   (interactive)
-  (sr-resize-panes t))
+  (if (< (1+ window-min-width) (window-width sr-left-window))
+      (sr-resize-panes t)))
 
 (defun sr-enlarge-panes ()
   "Enlarges both panes vertically."
   (interactive)
-  (if (< 10 (- (frame-height) (window-height)))
-      (progn
+  (if (< (1+ window-min-height) (- (frame-height) (window-height)))
+      (let ((locked sr-windows-locked))
         (setq sr-windows-locked nil)
         (shrink-window -1)
-        (setq sr-panes-height (window-height)))))
+        (setq sr-panes-height (window-height))
+        (setq sr-windows-locked locked))))
 
 (defun sr-shrink-panes ()
   "Shinks both panes vertically."
   (interactive)
-  (if (< 10 (window-height))
-      (progn
+  (if (< (1+ window-min-height) (window-height))
+      (let ((locked sr-windows-locked))
         (setq sr-windows-locked nil)
         (shrink-window 1)
-        (setq sr-panes-height (window-height)))))
+        (setq sr-panes-height (window-height))
+        (setq sr-windows-locked locked))))
 
-(defun sr-normalsize-panes ()
-  "Resets vertical size of both panes to normal."
+(defun sr-restore-panes ()
+  "Resets the sizes of all windows to normal."
   (interactive)
-  (setq sr-panes-height (* 2 (/ (frame-height) 3)))
+  (setq sr-windows-locked nil
+        sr-panes-height nil)
+  (sr-setup-windows)
   (setq sr-windows-locked t)
   (sr-revert-buffer))
 
