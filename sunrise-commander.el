@@ -446,7 +446,11 @@ substitution may be about to happen."
         [ ............. enlarges the right pane by 5 columns
         ] ............. enlarges the left pane by 5 columns
         } ............. enlarges both panes vertically by 1 row
+        C-} ........... enlarges both panes vertically as much as it can
+        C-c } ......... enlarges both panes vertically as much as it can
         { ............. shrinks both panes vertically by 1 row
+        C-{ ........... shrinks both panes vertically as much as it can
+        C-c { ......... shrinks both panes vertically as much as it can
         \\ ............. sets size of all windows back to «normal»
         C-c C-z ....... enable/disable synchronized navigation
 
@@ -691,7 +695,9 @@ automatically:
 (define-key sr-mode-map "["                   'sr-enlarge-right-pane)
 (define-key sr-mode-map "}"                   'sr-enlarge-panes)
 (define-key sr-mode-map "{"                   'sr-shrink-panes)
-(define-key sr-mode-map "\\"                  'sr-restore-panes)
+(define-key sr-mode-map "\\"                  'sr-lock-panes)
+(define-key sr-mode-map "\C-c}"               'sr-max-lock-panes)
+(define-key sr-mode-map "\C-c{"               'sr-min-lock-panes)
 (define-key sr-mode-map "\M-o"                'sr-synchronize-panes)
 (define-key sr-mode-map "\C-o"                'sr-omit-mode)
 (define-key sr-mode-map "b"                   'sr-browse-file)
@@ -771,7 +777,9 @@ automatically:
       (define-key sr-mode-map [(control tab)]       'sr-select-viewer-window)
       (define-key sr-mode-map [(control backspace)] 'sr-toggle-attributes)
       (define-key sr-mode-map [(control ?\=)]       'sr-ediff)
-      (define-key sr-mode-map [(control meta ?\=)]  'sr-compare-dirs)))
+      (define-key sr-mode-map [(control meta ?\=)]  'sr-compare-dirs)
+      (define-key sr-mode-map [(control })]         'sr-max-lock-panes)
+      (define-key sr-mode-map [(control {)]         'sr-min-lock-panes)))
 
 (defun sunrise-mc-keys ()
   "Binds the function keys F2 to F10 the traditional MC way."
@@ -888,7 +896,7 @@ automatically:
 
   ;;now create the viewer window
   (unless sr-panes-height
-    (setq sr-panes-height (* 2 (/ (window-height) 3))))
+    (setq sr-panes-height (sr-get-panes-size)))
   (split-window (selected-window) sr-panes-height)
 
   (cond
@@ -990,7 +998,8 @@ automatically:
         (select-window (sr-other 'window))
         (if revert (sr-revert-buffer))
         (sr-graphical-highlight 'sr-passive-path-face)
-        (hl-line-mode 0))))
+        (unless (eq sr-left-buffer sr-right-buffer)
+          (hl-line-mode 0)))))
 
 (defun sr-hide-avfs-root ()
   "Hides the AVFS virtual filesystem root (if any) on the path line."
@@ -1072,10 +1081,17 @@ automatically:
   (if (< (1+ window-min-width) (window-width sr-left-window))
       (sr-resize-panes t)))
 
+(defun sr-get-panes-size (&optional size)
+  "Tells what the maximal, minimal and normal sizes of the panes should be."
+  (let ((frame (frame-height)))
+    (cond ((eq size 'max) (max (- frame window-min-height 1) 5))
+          ((eq size 'min) (min (1+ window-min-height) 5))
+          (t  (/ (* 2 (frame-height)) 3)))))
+
 (defun sr-enlarge-panes ()
   "Enlarges both panes vertically."
   (interactive)
-  (if (< (1+ window-min-height) (- (frame-height) (window-height)))
+  (if (> (sr-get-panes-size 'max) (window-height))
       (let ((locked sr-windows-locked))
         (setq sr-windows-locked nil)
         (shrink-window -1)
@@ -1085,21 +1101,23 @@ automatically:
 (defun sr-shrink-panes ()
   "Shinks both panes vertically."
   (interactive)
-  (if (< (1+ window-min-height) (window-height))
+  (if (< (sr-get-panes-size 'min) (window-height))
       (let ((locked sr-windows-locked))
         (setq sr-windows-locked nil)
         (shrink-window 1)
         (setq sr-panes-height (window-height))
         (setq sr-windows-locked locked))))
 
-(defun sr-restore-panes ()
-  "Resets the sizes of all windows to normal."
+(defun sr-lock-panes (&optional height)
+  "Resizes and locks the panes at some vertical position.  The optional argument
+  determines the height to lock the panes at. Valid values are  'min  and  'max;
+  given any other value locks the pane at normal position."
   (interactive)
-  (setq sr-windows-locked nil
-        sr-panes-height nil)
+  (setq sr-panes-height (sr-get-panes-size height))
   (sr-setup-windows)
-  (setq sr-windows-locked t)
-  (sr-revert-buffer))
+  (setq sr-windows-locked t))
+(defun sr-max-lock-panes () (interactive) (sr-lock-panes 'max))
+(defun sr-min-lock-panes () (interactive) (sr-lock-panes 'min))
 
 ;;; ============================================================================
 ;;; File system navigation functions:
