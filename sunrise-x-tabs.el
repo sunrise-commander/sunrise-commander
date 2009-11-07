@@ -424,9 +424,10 @@
 (defun sr-tabs-menu-init ()
   "Initializes the Sunrise Tabs extension menu."
   (unless (fboundp 'easy-menu-binding) ;;<-- not available in emacs 22
-    (define-key sr-tabs-mode-map
-      (vector 'menu-bar (easy-menu-intern "Sunrise"))
-      (easy-menu-binding sr-tabs-menu "Sunrise"))))
+    (defsubst easy-menu-binding (menu &optional item-name) (ignore)))
+  (define-key sr-tabs-mode-map
+    (vector 'menu-bar (easy-menu-intern "Sunrise"))
+    (easy-menu-binding sr-tabs-menu "Sunrise")))
 
 (defun sr-tabs-start-once ()
   "Bootstraps  the  tabs  mode  on the first execution of the Sunrise Commander,
