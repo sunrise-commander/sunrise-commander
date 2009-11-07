@@ -196,9 +196,11 @@
   (popup-menu sr-modeline-menu))
 
 (defun sr-modeline-menu-init ()
-  (define-key sr-modeline-map
-    (vector 'menu-bar (easy-menu-intern "Sunrise"))
-    (easy-menu-binding sr-modeline-menu "Sunrise")))
+  (unless (fboundp 'easy-menu-binding) ;;<-- not available in emacs 22
+    (define-key sr-modeline-map
+      (vector 'menu-bar (easy-menu-intern "Sunrise"))
+      (easy-menu-binding sr-modeline-menu "Sunrise"))))
+
 
 ;;; ============================================================================
 ;;; Bootstrap:
