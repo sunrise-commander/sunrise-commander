@@ -1208,15 +1208,17 @@ automatically:
     (sr-history-push default-directory)
     (sr-beginning-of-buffer)))
 
-(defun sr-dired-prev-subdir ()
-  "Go to the previous subdirectory."
-  (interactive)
-  (if (not (string= default-directory "/"))
-      (let ((here (sr-directory-name-proper (expand-file-name default-directory))))
-        (setq here (replace-regexp-in-string "#.*/?$" "" here))
-        (sr-goto-dir (expand-file-name "../"))
-        (sr-focus-filename here))
-    (error "ERROR: Already at root")))
+(defun sr-dired-prev-subdir (&optional count)
+  "Go to the parent directory, or [count] subdirectories upwards."
+  (interactive "P")
+  (unless (sr-equal-dirs default-directory "/")
+    (let* ((count (or count 1))
+           (to-dir (replace-regexp-in-string "x" "../" (make-string count ?x)))
+           (from-dir (expand-file-name (substring to-dir 1)))
+           (from-dir (sr-directory-name-proper from-dir))
+           (from-dir (replace-regexp-in-string "#.*/?$" "" from-dir)))
+      (sr-goto-dir (expand-file-name to-dir))
+      (sr-focus-filename from-dir))))
 
 (defun sr-follow-file (&optional target-path)
   "Go to the same directory where the selected file is. Very useful inside
