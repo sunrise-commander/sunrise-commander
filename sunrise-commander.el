@@ -2286,6 +2286,11 @@ or (c)ontents? ")
     (sr-revert-buffer)))
 (ad-activate 'find-dired-sentinel)
 
+(eval-and-compile
+  (unless (featurep 'locate)
+    (defun locate-prompt-for-search-string ()
+      (error "ERROR: Feature locate not available!"))))
+
 (defun sr-locate (search-string &optional filter arg)
   "Runs locate and displays results in sunrise virtual mode."
   (interactive (list (locate-prompt-for-search-string) nil current-prefix-arg))
@@ -2294,8 +2299,8 @@ or (c)ontents? ")
    (sr-select-window sr-selected-window)
    (switch-to-buffer (create-file-buffer "*Sunrise Locate*"))
    (cd "/")
-   (insert-string (concat "  " default-directory ":"))(newline)
-   (insert-string (concat " Results of: locate " search-string))(newline)
+   (insert (concat "  " default-directory ":"))(newline)
+   (insert (concat " Results of: locate " search-string))(newline)
    (mapc (lambda (file)
            (setq file (concat default-directory
                               (replace-regexp-in-string "/$" "" file)))
