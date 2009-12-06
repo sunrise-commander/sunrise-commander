@@ -811,7 +811,7 @@ automatically:
   (define-key sr-mode-map [(f5)]            'sr-do-copy)
   (define-key sr-mode-map [(f6)]            'sr-do-rename)
   (define-key sr-mode-map [(f7)]            'dired-create-directory)
-  (define-key sr-mode-map [(f8)]            'dired-do-delete)
+  (define-key sr-mode-map [(f8)]            'sr-do-delete)
   (define-key sr-mode-map [(f10)]           'keyboard-escape-quit)
   (define-key sr-mode-map [(insert)]        'dired-mark)
   (define-key sr-mode-map [(control prior)] 'sr-dired-prev-subdir))
