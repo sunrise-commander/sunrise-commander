@@ -224,14 +224,15 @@
     (if label
         (sr-tabs-redefine-label key new-name))))
 
-(defun sr-tabs-transpose ()
+(defun sr-tabs-transpose (&optional interactive)
   "Swaps the sets of tabs from one pane to the other."
-  (interactive)
+  (interactive "p")
   (setq sr-tabs (mapc (lambda (x)
                         (if (eq 'left (car x))
                             (setcar x 'right)
                           (setcar x 'left))) sr-tabs))
-  (unless sr-tabs-follow-panes
+  (when (or interactive
+            (not sr-tabs-follow-panes))
     (sr-in-other (sr-tabs-refresh))
     (sr-tabs-refresh)))
 
