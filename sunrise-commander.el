@@ -422,6 +422,7 @@ substitution may be about to happen."
         S ............. soft-link selected file/directory to passive pane
         Y ............. do relative soft-link of selected file in passive pane
         H ............. hard-link selected file to passive pane
+        K ............. clone marked (or current) files and directories
         M-C ........... copy (using traditional dired-do-copy)
         M-R ........... rename (using traditional dired-do-rename)
         M-D ........... delete (using traditional dired-do-delete)
@@ -1448,6 +1449,8 @@ automatically:
 (defun sr-split-toggle()
   "Changes sunrise windows layout from horizontal to vertical to top and so on."
   (interactive)
+  (if (<= sr-panes-height (* 4 window-min-height))
+      (setq sr-panes-height nil))
   (cond
    ((equal sr-window-split-style 'horizontal) (sr-split-setup 'vertical))
    ((equal sr-window-split-style 'vertical)   (sr-split-setup 'top))
@@ -1885,9 +1888,8 @@ automatically:
                 (revert-buffer)
                 (dired-mark-remembered
                  (mapcar (lambda (x) (cons (expand-file-name x) ?R)) names)))
-              (save-selected-window
-                (select-window (sr-other 'window))
-                (sr-focus-filename (car names))))
+              (if (window-live-p (sr-other 'window))
+                  (sr-in-other (sr-focus-filename (car names)))))
             (message "%s" (concat "Done: " files-count-str " file(s) dispatched"))
             (sr-revert-buffer)))
       (message "Empty selection. Nothing done."))))
@@ -1919,7 +1921,7 @@ automatically:
 
 (defun sr-do-clone (&optional mode)
   "Clones recursively all selected items into the passive pane."
-  (interactive "cClone selected items as: (D)irectories only, (C)copies,\
+  (interactive "cClone selected items as: (D)irectories only, (C)opies,\
  (H)ardlinks, (S)ymlinks, (R)elative symlinks? ")
 
   (if (sr-virtual-target)
@@ -1954,13 +1956,14 @@ automatically:
   (let ((names (mapcar #'file-name-nondirectory items))
         (inhibit-read-only t))
     (with-current-buffer (sr-other 'buffer)
-      (sr-clone-files items target clone-op)
-      (sr-force-passive-highlight t)
-      (dired-mark-remembered
-       (mapcar (lambda (x) (cons (expand-file-name x) mark-char)) names)))
-    (save-selected-window
-      (select-window (sr-other 'window))
-      (sr-focus-filename (car names)))))
+      (sr-clone-files items target clone-op))
+    (if (window-live-p (sr-other 'window))
+        (sr-in-other
+         (progn
+           (sr-revert-buffer)
+           (dired-mark-remembered
+            (mapcar (lambda (x) (cons (expand-file-name x) mark-char)) names))
+           (sr-focus-filename (car names)))))))
 
 (defun sr-clone-files (file-paths target-dir clone-op &optional do-overwrite)
   "Clones  all  files  in  file-paths  (list  of full paths) to target dir using
