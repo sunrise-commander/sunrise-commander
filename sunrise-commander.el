@@ -922,25 +922,26 @@ automatically:
   ;;now create the viewer window
   (unless sr-panes-height
     (setq sr-panes-height (sr-get-panes-size)))
+  (if (and (<= sr-panes-height (* 2 window-min-height))
+           (equal sr-window-split-style 'vertical))
+      (setq sr-panes-height (* 2 window-min-height)))
   (split-window (selected-window) sr-panes-height)
 
   (cond
    ((equal sr-window-split-style 'horizontal) (split-window-horizontally))
    ((equal sr-window-split-style 'vertical)   (split-window-vertically))
-   ((equal sr-window-split-style 'top)        (split-window-vertically))
+   ((equal sr-window-split-style 'top)        (ignore))
    (t (error "ERROR: Don't know how to split this window: %s" sr-window-split-style)))
 
-  ;;setup sunrise on both panes
+  ;;setup sunrise on all visible panes
   (sr-setup-pane left)
-  (other-window 1)
-  (sr-setup-pane right)
+  (unless (equal sr-window-split-style 'top)
+    (other-window 1)
+    (sr-setup-pane right))
 
   ;;select the correct window
   (sr-select-window sr-selected-window)
-
-  (if (equal sr-window-split-style 'top)
-      (delete-window sr-right-window)
-    (sr-force-passive-highlight))
+  (sr-force-passive-highlight)
   (run-hooks 'sr-start-hook))
 
 (defun sr-lock-window (frame)
@@ -1130,22 +1131,40 @@ automatically:
 (defun sr-enlarge-panes ()
   "Enlarges both panes vertically."
   (interactive)
-  (if (> (sr-get-panes-size 'max) (window-height))
-      (let ((locked sr-windows-locked))
-        (setq sr-windows-locked nil)
-        (shrink-window -1)
-        (setq sr-panes-height (window-height))
-        (setq sr-windows-locked locked))))
+  (let ((sr-windows-locked nil)
+        (max (sr-get-panes-size 'max))
+        (ratio 1)
+        delta)
+    (save-selected-window
+      (when (eq sr-window-split-style 'vertical)
+        (select-window sr-right-window)
+        (setq ratio 2)
+        (setq delta (- max (window-height)))
+        (if (> (/ max ratio) (window-height))
+            (shrink-window (if (< 2 delta) -2 -1))))
+      (select-window sr-left-window)
+      (if (> (/ max ratio) (window-height))
+          (shrink-window -1))
+      (setq sr-panes-height (* (window-height) ratio)))))
 
 (defun sr-shrink-panes ()
   "Shinks both panes vertically."
   (interactive)
-  (if (< (sr-get-panes-size 'min) (window-height))
-      (let ((locked sr-windows-locked))
-        (setq sr-windows-locked nil)
-        (shrink-window 1)
-        (setq sr-panes-height (window-height))
-        (setq sr-windows-locked locked))))
+  (let ((sr-windows-locked nil)
+        (min (sr-get-panes-size 'min))
+        (ratio 1)
+        delta)
+    (save-selected-window
+      (when (eq sr-window-split-style 'vertical)
+        (select-window sr-right-window)
+        (setq ratio 2)
+        (setq delta (- (window-height) min))
+        (if (< min (window-height))
+            (shrink-window (if (< 2 delta) 2 1))))
+      (select-window sr-left-window)
+      (if (< min (window-height))
+          (shrink-window 1))
+      (setq sr-panes-height (* (window-height) ratio)))))
 
 (defun sr-lock-panes (&optional height)
   "Resizes and locks the panes at some vertical position.  The optional argument
@@ -1449,23 +1468,23 @@ automatically:
 (defun sr-split-toggle()
   "Changes sunrise windows layout from horizontal to vertical to top and so on."
   (interactive)
-  (if (<= sr-panes-height (* 4 window-min-height))
-      (setq sr-panes-height nil))
   (cond
    ((equal sr-window-split-style 'horizontal) (sr-split-setup 'vertical))
-   ((equal sr-window-split-style 'vertical)   (sr-split-setup 'top))
-   ((equal sr-window-split-style 'top)        (sr-split-setup 'horizontal))
-   (t                                         (sr-split-setup 'horizontal))))
+   ((equal sr-window-split-style 'vertical) (sr-split-setup 'top))
+   ((equal sr-window-split-style 'top) (progn
+                                         (sr-split-setup 'horizontal)
+                                         (sr-in-other (sr-revert-buffer))))
+   (t (sr-split-setup 'horizontal))))
 
 (defun sr-split-setup(split-type)
   (setq sr-window-split-style split-type)
   (when sr-running
-    (if (equal sr-window-split-style 'top)
-        (progn
-          (sr-select-window 'left)
-          (delete-window sr-right-window))
-      (sr-setup-windows))
-    (message "Sunrise: Split style changed to \"%s\"" (symbol-name split-type))))
+    (when (equal sr-window-split-style 'top)
+      (sr-select-window 'left)
+      (delete-window sr-right-window)
+      (setq sr-panes-height (window-height)))
+    (sr-setup-windows))
+  (message "Sunrise: Split style changed to \"%s\"" (symbol-name split-type)))
 
 (defun sr-transpose-panes ()
   "Changes the order of the panes."
