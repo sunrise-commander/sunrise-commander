@@ -28,10 +28,10 @@
 ;; Kevin  Burton's  mc.el,  but  none of them was what I was looking for (though
 ;; mc.el was near the ideal).
 
-;; A  lot  of  this code has been shamelessly copied from Kevin's mc.el and only
-;; slightly modified. Another part of it - the code for recursive  file  copying
-;; and  renaming - was adapted from the dired extensions written by Kurt Nørmark
-;; for LAML (http://www.cs.aau.dk/~normark/scheme/distribution/laml/).
+;; A  lot  of  this code was once adapted from Kevin's mc.el, but it has evolved
+;; quite a bit since then. Another part (the code for file copying and renaming)
+;; derives originally from the dired extensions written by Kurt Nørmark for LAML
+;; (http://www.cs.aau.dk/~normark/scheme/distribution/laml/).
 
 ;; I have added to the mix several useful functions:
 
@@ -58,7 +58,7 @@
 
 ;; * Press C-c t to open a terminal into the current pane's directory.
 
-;; * Press M-t to swap the panes.
+;; * Press M-t to swap (transpose) the panes.
 
 ;; * Press C-c C-s to change the layout of the panes (horizontal/vertical/top)
 
@@ -98,6 +98,17 @@
 ;;     %N - expands to the list of names of all marked files in the right pane
 ;;     %d - expands to the current directory in the left pane
 ;;     %D - expands to the current directory in the right pane
+
+;; *  Cloning  of  complete directory trees: press K to clone the selected files
+;; and directories into the passive pane. Cloning is a  more  general  operation
+;; than  copying, in which all directories are recursively created with the same
+;; names and structures at the destination, while  what  happens  to  the  files
+;; within them depends on the option you choose:
+;;   - "(D)irectories only" ignores all files, copies only directories,
+;;   - "(C)opies" performs a regular recursive copy of all files and dirs,
+;;   - "(H)ardlinks" makes every new file a (hard) link to the original one
+;;   - "(S)ymlinks" creates absolute symbolic links for all files in the tree,
+;;   - "(R)elative symlinks” creates relative symbolic links.
 
 ;; * Passive navigation: the usual navigation keys (n, p, Return, U, ;) combined
 ;; with Meta allow to move across the passive pane without  actually  having  to
@@ -422,13 +433,13 @@ substitution may be about to happen."
         S ............. soft-link selected file/directory to passive pane
         Y ............. do relative soft-link of selected file in passive pane
         H ............. hard-link selected file to passive pane
-        K ............. clone marked (or current) files and directories
+        K ............. clone selected files and directories into passive pane
         M-C ........... copy (using traditional dired-do-copy)
         M-R ........... rename (using traditional dired-do-rename)
         M-D ........... delete (using traditional dired-do-delete)
         M-S............ soft-link (using traditional dired-do-symlink)
         M-Y............ do relative soft-link (with traditional dired-do-relsymlink)
-        M-H............ hard-link selected file/directory to passive pane
+        M-H............ hard-link selected file/directory (with dired-do-hardlink)
         A ............. search marked files for regular expression
         Q ............. perform query-replace-regexp on marked files
 
