@@ -46,8 +46,6 @@
 
 ;;; Code:
 
-(defalias 'sr-checkpoint-handler 'ignore)
-
 (defvar sr-checkpoint-registry
   (acons "~" (list sr-left-directory sr-right-directory) nil)
   "Registry of currently defined checkpoints")
@@ -76,5 +74,9 @@
     (if (equal sr-selected-window 'right)
         (setq dirs-list (reverse dirs-list)))
     (mapc '(lambda (x) (sr-goto-dir x) (sr-change-window)) dirs-list)))
+
+(defun sr-checkpoint-handler (arg)
+  "Empty method to keep compatilibity with new checkpoints interface."
+  (ignore))
 
 (provide 'sunrise-x-old-checkpoints)

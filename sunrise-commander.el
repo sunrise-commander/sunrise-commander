@@ -1424,7 +1424,7 @@ automatically:
 (defun sr-require-checkpoints-extension (&optional noerror)
   "Bootstrap  code for checkpoint support. Just tries to require the appropriate
   checkpoints extension depending on the version of bookmarks.el being used."
-  (require 'bookmark)
+  (require 'bookmark nil t)
   (let* ((feature
           (cond ((fboundp 'bookmark-make-record) 'sunrise-x-checkpoints)
                 (t 'sunrise-x-old-checkpoints)))
@@ -1442,8 +1442,8 @@ automatically:
      (sr-require-checkpoints-extension)
      (call-interactively ',function-name)))
 
-(sr-checkpoint-command sr-checkpoint-save)
-(sr-checkpoint-command sr-checkpoint-restore)
+(sr-checkpoint-command sr-checkpoint-save    (arg))
+(sr-checkpoint-command sr-checkpoint-restore (arg))
 (sr-checkpoint-command sr-checkpoint-handler (arg))
 (sr-require-checkpoints-extension t)
 

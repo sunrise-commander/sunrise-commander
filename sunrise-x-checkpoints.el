@@ -49,17 +49,18 @@
 ;;; Code:
 
 (defalias 'sr-checkpoint-save    'sr-checkpoint-bookmark)
-(defalias 'sr-checkpoint-restore 'bookmark-jump)
 
-(defun sr-checkpoint-bookmark ()
+(defun sr-checkpoint-bookmark (arg)
   "Creates a new checkpoint bookmark to save the location of both panes."
-  (interactive)
-  (unless (fboundp 'bookmark-make-record-default)
-    (error "Sunrise: your bookmarks.el don't support checkpoints.\
- Try upgrading to a newer version or use extension sunrise-x-old-checkpoints."))
+  (interactive "p")
   (let ((bookmark-make-record-function 'sr-make-checkpoint-record))
     (sr-save-directories)
     (call-interactively 'bookmark-set)))
+
+(defun sr-checkpoint-restore (arg)
+  "Calls interactively bookmark-jump."
+  (interactive "p")
+  (call-interactively 'bookmark-jump))
 
 (defun sr-make-checkpoint-record ()
   "Generates a the bookmark record for a new checkpoint."
