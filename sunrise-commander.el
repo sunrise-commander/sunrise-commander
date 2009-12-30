@@ -2054,23 +2054,15 @@ automatically:
   "Clones directory d in in-dir to to-dir, and recursively, all files too.
 indir/d => to-dir/d using clone-op to clone all files."
   (setq d (replace-regexp-in-string "/?$" "/" d))
-  (if (not (sr-overlapping-paths-p (concat in-dir d) to-dir))
-      (progn
-        (if (string= "" d)
-            (setq to-dir (concat to-dir (sr-directory-name-proper in-dir))))
-        ;; if directory in-dir/d does not exist:
-        (if (not (file-exists-p (concat to-dir d)))
-            (make-directory (concat to-dir d))) ; makes d in to-dir
-        (let* (
-               (files-in-d (append (sr-list-of-files (concat in-dir d))
-                                   (sr-list-of-directories (concat in-dir d))))
-               (file-paths-in-d
-                (mapcar (lambda (f) (concat in-dir d f)) files-in-d))
-               )
-          (sr-clone-files
-           file-paths-in-d (concat to-dir d) clone-op do-overwrite)))
-    (error "ERROR: You cannot clone a directory into itself or any of its \
-subdirectories")))
+  (if (string= "" d)
+      (setq to-dir (concat to-dir (sr-directory-name-proper in-dir))))
+  (let* ((files-in-d (append (sr-list-of-files (concat in-dir d))
+                             (sr-list-of-directories (concat in-dir d))))
+         (file-paths-in-d
+          (mapcar (lambda (f) (concat in-dir d f)) files-in-d)))
+    (unless (file-exists-p (concat to-dir d))
+      (make-directory (concat to-dir d)))
+    (sr-clone-files file-paths-in-d (concat to-dir d) clone-op do-overwrite)))
 
 (defun sr-move-files (file-path-list target-dir &optional do-overwrite)
   "Moves all files in file-path-list (list of full paths) to target dir."
