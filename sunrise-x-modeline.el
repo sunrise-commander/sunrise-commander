@@ -53,6 +53,7 @@
 
 (require 'sunrise-commander)
 (require 'easymenu)
+(eval-when-compile (require 'cl))
 
 (defconst sr-modeline-norm-mark " * ") ;; ☼
 (defconst sr-modeline-sync-mark " & ") ;; ⚓
@@ -140,6 +141,8 @@
 ;;; ============================================================================
 ;;; Private interface:
 
+(defvar sr-modeline)
+
 (defun sr-modeline-refresh ()
   (setq sr-modeline t)
   (sr-modeline-setup))
@@ -201,7 +204,6 @@
   (define-key sr-modeline-map
     (vector 'menu-bar (easy-menu-intern "Sunrise"))
     (easy-menu-binding sr-modeline-menu "Sunrise")))
-
 
 ;;; ============================================================================
 ;;; Bootstrap:

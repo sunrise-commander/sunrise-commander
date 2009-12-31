@@ -48,6 +48,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'sunrise-commander))
+
 (defalias 'sr-checkpoint-save    'sr-checkpoint-bookmark)
 
 (defun sr-checkpoint-bookmark (arg)

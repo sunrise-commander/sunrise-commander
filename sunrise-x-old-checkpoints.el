@@ -46,8 +46,9 @@
 
 ;;; Code:
 
-(defvar sr-checkpoint-registry
-  (acons "~" (list sr-left-directory sr-right-directory) nil)
+(eval-when-compile (require 'sunrise-commander))
+
+(defvar sr-checkpoint-registry '(("~" "~/" "~/"))
   "Registry of currently defined checkpoints")
 
 (defun sr-checkpoint-save (name)

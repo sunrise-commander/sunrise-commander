@@ -1,4 +1,4 @@
-;; sunrise-x-mirror.el  --- Extension to the Sunrise Commander File Manager that
+;;; sunrise-x-mirror.el --- Extension to the Sunrise Commander File Manager that
 ;; allows to access compressed archives in read/write mode.
 
 ;; Copyright (C) 2008 José Alfredo Romero L.
@@ -117,7 +117,7 @@
 
 (defvar sr-mirror-home nil
   "Root directory of all mirror areas. This is set automatically by the function
-  sr-mirror enable and reset by sr-mirror-disable to keep the mirror home  path,
+  sr-mirror-enable and reset by sr-mirror-disable to keep the mirror home  path,
   as  well  as  to  indicate  mirroring  support  is on/off. Do not mess with it
   directly - if you need to change the name of your mirror home dir then  modify
   sr-mirror-enable.")
@@ -132,7 +132,6 @@
       (ignore)
     (progn
       (setq sr-mirror-home (concat sr-avfs-root "#mirror#/"))
-      (ad-activate 'sr-copy-files)
       (ad-activate 'make-directory)
       (ad-activate 'save-buffer))))
 
@@ -143,7 +142,6 @@
   (if sr-mirror-home
       (progn
         (setq sr-mirror-home nil)
-        (ad-deactivate 'sr-copy-files)
         (ad-deactivate 'make-directory)
         (ad-deactivate 'save-buffer))))
 
@@ -325,14 +323,17 @@
 
 ;; This redirects all sr-copy operations to the right path under the overlay
 ;; directory:
-(defadvice sr-copy-files
-  (around sr-mirror-advice-sr-copy-files
-          (file-path-list target-dir &optional do-overwrite))
-  (let ((orig target-dir))
-    (setq target-dir (sr-mirror-overlay-redir target-dir t))
-    (if (> (length target-dir) (length orig))
-        (make-directory target-dir))
-    ad-do-it))
+(defadvice sr-clone-files
+  (around sr-mirror-advice-sr-clone-files
+          (file-path-list target-dir clone-op &optional do-overwrite))
+  (if (null sr-mirror-home)
+      ad-do-it
+    (let ((orig target-dir))
+      (setq target-dir (sr-mirror-overlay-redir target-dir t))
+      (if (> (length target-dir) (length orig))
+          (make-directory target-dir))
+      ad-do-it)))
+(ad-activate 'sr-clone-files)
 
 ;; This redirects directory creation operations to the right path under the
 ;; overlay directory:
