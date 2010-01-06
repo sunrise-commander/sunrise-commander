@@ -1,7 +1,7 @@
 ;;; sunrise-x-checkpoints.el ---  Checkpoint bookmarks for the Sunrise Commander
 ;;; File Manager
 
-;; Copyright (C) 2009 José Alfredo Romero Latouche (j0s3l0)
+;; Copyright (C) 2009-2010 José Alfredo Romero Latouche.
 
 ;; Author: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Keywords: Sunrise Commander Emacs File Manager Checkpoints Bookmarks

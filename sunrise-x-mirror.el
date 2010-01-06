@@ -1,9 +1,9 @@
 ;;; sunrise-x-mirror.el --- Extension to the Sunrise Commander File Manager that
 ;; allows to access compressed archives in read/write mode.
 
-;; Copyright (C) 2008 José Alfredo Romero L.
+;; Copyright (C) 2008-2010 José Alfredo Romero Latouche.
 
-;; Author: José Alfredo Romero L. <joseito@poczta.onet.pl>
+;; Author: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Keywords: Sunrise Commander Emacs File Manager Extension Archives Read/Write
 
 ;; This program is free software: you can redistribute it and/or modify it under

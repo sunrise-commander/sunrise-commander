@@ -1,9 +1,9 @@
 ;;; sunrise-commander.el  --  Two-pane file manager for Emacs based on Dired and
 ;;  inspired by MC.
 
-;; Copyright (C) 2007 2008 2009 José Alfredo Romero Latouche (j0s3l0)
+;; Copyright (C) 2007-2010 José Alfredo Romero Latouche.
 
-;; Author: José Alfredo Romero L. <joseito@poczta.onet.pl>
+;; Author: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Keywords: Sunrise Commander Emacs File Manager Midnight Norton Orthodox
 
 ;; This program is free software: you can redistribute it and/or modify it under

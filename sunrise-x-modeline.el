@@ -1,7 +1,7 @@
 ;;  sunrise-x-modeline.el --- Navigable mode line for the Sunrise Commander File
 ;;  Manager.
 
-;; Copyright (C) 2009 José Alfredo Romero Latouche (j0s3l0)
+;; Copyright (C) 2009-2010 José Alfredo Romero Latouche.
 
 ;; Author: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Keywords: Sunrise Commander Emacs File Manager Path Mode Line
@@ -55,10 +55,10 @@
 (require 'easymenu)
 (eval-when-compile (require 'cl))
 
-(defconst sr-modeline-norm-mark " * ") ;; ☼
-(defconst sr-modeline-sync-mark " & ") ;; ⚓
-(defconst sr-modeline-edit-mark " ! ") ;; ⚡
-(defconst sr-modeline-virt-mark " @ ") ;; ☯
+(defconst sr-modeline-norm-mark " ☼ ") ;; * 
+(defconst sr-modeline-sync-mark " ⚓ ") ;; &
+(defconst sr-modeline-edit-mark " ⚡ ") ;; !
+(defconst sr-modeline-virt-mark " ☯ ") ;; @
 
 ;;; ============================================================================
 ;;; Core functions:
