@@ -1023,16 +1023,16 @@ automatically:
 (defun sr-hide-avfs-root ()
   "Hides the AVFS virtual filesystem root (if any) on the path line."
   (if sr-avfs-root
-      (let ((next (search-forward (concat sr-avfs-root "/") nil t))
-            (len (length sr-avfs-root))
-            (overlay))
+      (let ((start nil) (end nil) (overlay nil)
+            (next (search-forward sr-avfs-root nil t)))
+        (if next (setq start (- next (length sr-avfs-root))))
         (while next
-          (progn
-            (setq overlay (make-overlay (- next len) next))
-            (overlay-put overlay 'invisible t)
-            (overlay-put overlay 'intangible t)
-            (setq next (search-forward sr-avfs-root nil t))))
-        (goto-char (point-min)))))
+          (setq end (point)
+                next (search-forward sr-avfs-root nil t)))
+        (when end
+          (setq overlay (make-overlay start end))
+          (overlay-put overlay 'invisible t)
+          (overlay-put overlay 'intangible t)))))
 
 (defun sr-highlight-broken-links ()
   "Marks broken symlinks with an exclamation mark and a special face."
