@@ -939,7 +939,11 @@ automatically:
   (sr-select-viewer-window)
   (delete-other-windows)
   (if (buffer-live-p other-window-scroll-buffer)
-      (switch-to-buffer other-window-scroll-buffer))
+      (switch-to-buffer other-window-scroll-buffer)
+    (let ((start (current-buffer)))
+      (while (and start (memq major-mode '(sr-mode sr-virtual-mode)))
+        (bury-buffer)
+        (if (eq start (current-buffer)) (setq start nil)))))
 
   ;;now create the viewer window
   (unless sr-panes-height
@@ -1450,10 +1454,11 @@ automatically:
      (sr-require-checkpoints-extension)
      (call-interactively ',function-name)))
 
-(sr-checkpoint-command sr-checkpoint-save    (arg))
-(sr-checkpoint-command sr-checkpoint-restore (arg))
-(sr-checkpoint-command sr-checkpoint-handler (arg))
-(sr-require-checkpoints-extension t)
+(sr-checkpoint-command sr-checkpoint-save    (&optional arg))
+(sr-checkpoint-command sr-checkpoint-restore (&optional arg))
+(sr-checkpoint-command sr-checkpoint-handler (&optional arg))
+(eval-after-load 'sunrise-commander
+  (sr-require-checkpoints-extension t))
 
 (defun sr-do-find-marked-files (&optional noselect)
   "Sunrise replacement for dired-do-marked-files."
