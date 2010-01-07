@@ -48,18 +48,18 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'sunrise-commander))
+(eval-when-compile (require 'bookmark)
+                   (require 'cl)
+                   (require 'sunrise-commander))
 
-(defalias 'sr-checkpoint-save    'sr-checkpoint-bookmark)
-
-(defun sr-checkpoint-bookmark (arg)
+(defun sr-checkpoint-save (&optional arg)
   "Creates a new checkpoint bookmark to save the location of both panes."
   (interactive "p")
+  (sr-save-directories)
   (let ((bookmark-make-record-function 'sr-make-checkpoint-record))
-    (sr-save-directories)
     (call-interactively 'bookmark-set)))
 
-(defun sr-checkpoint-restore (arg)
+(defun sr-checkpoint-restore (&optional arg)
   "Calls interactively bookmark-jump."
   (interactive "p")
   (call-interactively 'bookmark-jump))
@@ -71,9 +71,8 @@
     (sr-directories . (,sr-left-directory ,sr-right-directory))
     (handler . sr-checkpoint-handler)))
 
-(defun sr-checkpoint-handler (bookmark)
+(defun sr-checkpoint-handler (&optional bookmark)
   "Handler for checkpoint bookmarks."
-  (print bookmark)
   (or sr-running (sunrise))
   (sr-select-window 'left)
   (let ((dirs (cdr (assq 'sr-directories (cdr bookmark)))) (missing))
