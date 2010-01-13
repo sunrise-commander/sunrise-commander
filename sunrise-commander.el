@@ -246,6 +246,7 @@
 
 (defcustom sr-avfs-handlers-alist '(("\\.[jwesh]ar$" . "#uzip/")
                                     ("\\.xpi$"       . "#uzip/")
+                                    ("\\.iso$"       . "#iso9660/")
                                     ("."             . "#/"))
   "List of AVFS handlers to manage specific file extensions."
   :group 'sunrise
@@ -1273,8 +1274,13 @@ automatically:
   "Returns the virtual path for accessing the given file through AVFS, or nil if
    AVFS cannot manage this kind of file."
   (let* ((handler (assoc-default filename sr-avfs-handlers-alist 'string-match))
-          (vdir (concat sr-avfs-root filename handler)))
-     (if (file-directory-p vdir) vdir nil)))
+         (vdir (concat sr-avfs-root filename handler))
+         (is-mounted (file-directory-p vdir)))
+    (unless (or is-mounted (equal "#/" handler))
+      (condition-case nil
+          (with-temp-buffer (cd vdir)) ;; forces AVFS to create vdir.
+        (error (sit-for 1))))
+    (if (file-directory-p vdir) vdir nil)))
 
 (defun sr-goto-dir (dir)
   "Changes the current directory in the active pane to the given one."
