@@ -369,6 +369,9 @@
 (defvar sr-panes-height nil
   "Current hight of the pane windows. Initial value is 2/3 the viewport height")
 
+(defvar sr-current-path-face 'sr-active-path-face
+  "Default face of the directory path (can be overridden buffer-locally)")
+
 (defconst sr-side-lookup (list '(left . right) '(right . left))
   "Trivial alist used by the Sunrise Commander to lookup its own passive side.")
 
@@ -591,9 +594,13 @@ automatically:
 (defmacro sr-save-aspect (&rest body)
   "Restores hidden attributes and omit mode after a directory transition."
   `(let ((hidden-attrs (get sr-selected-window 'hidden-attrs))
-         (omit (or dired-omit-mode -1)))
+         (omit (or dired-omit-mode -1))
+         (path-face (and (local-variable-p 'sr-current-path-face)
+                         sr-current-path-face)))
      (hl-line-mode 0)
      ,@body
+     (if path-face
+         (set (make-local-variable 'sr-current-path-face) path-face))
      (if hidden-attrs
          (sr-hide-attributes))
      (sr-omit-mode omit)
@@ -1050,7 +1057,7 @@ automatically:
 (defun sr-graphical-highlight (&optional face)
   "Sets up the graphical path line in the current buffer (fancy fonts and
   clickable path)."
-  (let ((my-face (or face 'sr-active-path-face))
+  (let ((my-face (or face sr-current-path-face))
         (begin) (end))
     ;;determine begining and end
     (save-excursion
@@ -1347,8 +1354,9 @@ automatically:
 
     (setq target-file (file-name-nondirectory target-path))
 
-    (if target-dir ;; <-- nil in symlinks to other files in same directory:
-        (sr-goto-dir target-dir))
+    (when target-dir ;; <-- nil in symlinks to other files in same directory:
+      (setq target-dir (replace-regexp-in-string "/$" "" target-dir))
+      (sr-goto-dir target-dir))
     (sr-focus-filename target-file)))
 
 (defun sr-project-path (&optional order)
