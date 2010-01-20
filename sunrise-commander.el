@@ -1527,10 +1527,8 @@ automatically:
            (setq expr (concat (regexp-quote expr) "$"))))
     (setq expr (concat "[0-9] +" expr))
     (beginning-of-line)
-    (if (null (re-search-forward expr nil t))
-        (if (null (re-search-backward expr nil t))
-            (error (format "ERROR: unable to find %s in %s"
-                           filename default-directory)))))
+    (unless (re-search-forward expr nil t)
+      (re-search-backward expr nil t)))
   (beginning-of-line)
   (re-search-forward directory-listing-before-filename-regexp nil t))
 
@@ -2203,7 +2201,8 @@ indir/d => to-dir/d using clone-op to clone all files."
 
 (defun sr-overlapping-paths-p (dir1 dir2)
   "Determines whether the directory dir2 is located inside the directory dir1."
-  (setq dir1 (expand-file-name dir1) dir2 (expand-file-name dir2))
+  (setq dir1 (expand-file-name (concat dir1 "/"))
+        dir2 (expand-file-name dir2))
   (if (>= (length dir2) (length dir1))
       (equal (substring dir2 0 (length dir1)) dir1)
       nil))
@@ -2866,7 +2865,8 @@ or (c)ontents? ")
 
 (defun sr-equal-dirs (dir1 dir2)
   "Determines whether two directory paths represent the same directory."
-  (string= (expand-file-name dir1) (expand-file-name dir2)))
+  (string= (expand-file-name (concat dir1 "/"))
+           (expand-file-name (concat dir2 "/"))))
 
 (defun sr-summary ()
   "Summarize basic Sunrise commands and show recent dired errors."
