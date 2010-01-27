@@ -619,7 +619,8 @@ automatically:
          (with-current-buffer dispose
            (bury-buffer)
            (set-buffer-modified-p nil)
-           (kill-buffer dispose)))))
+           (unless (kill-buffer dispose)
+             (kill-local-variable 'sr-current-path-face))))))
 
 (defmacro sr-in-other (form)
   "Executes the given form in the context of the passive pane. Helper macro for
@@ -2471,10 +2472,9 @@ or (c)ontents? ")
      (sr-switch-to-clean-buffer "*Recent Files*")
      (insert "Recently Visited Files: \n")
      (dolist (file recentf-list)
-       (if (file-exists-p file)
-           (condition-case nil
-               (insert-directory file sr-virtual-listing-switches nil nil)
-             (error (ignore)))))
+       (condition-case nil
+           (insert-directory file sr-virtual-listing-switches nil nil)
+         (error (ignore))))
      (sr-virtual-mode)
      (sr-keep-buffer))))
 
@@ -2490,7 +2490,7 @@ or (c)ontents? ")
      (insert (concat "Recent Directories in " pane-name " Pane: \n"))
      (dolist (dir hist)
        (condition-case nil
-           (when (and dir (file-exists-p dir))
+           (when dir
              (setq dir (replace-regexp-in-string "\\(.\\)/?$" "\\1" dir))
              (setq beg (point))
              (insert-directory dir sr-virtual-listing-switches nil nil)
