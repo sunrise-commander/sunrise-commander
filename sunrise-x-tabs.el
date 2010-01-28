@@ -224,22 +224,20 @@
     (if label
         (sr-tabs-redefine-label key new-name))))
 
-(defun sr-tabs-transpose (&optional interactive)
+(defun sr-tabs-transpose ()
   "Swaps the sets of tabs from one pane to the other."
-  (interactive "p")
+  (interactive)
   (setq sr-tabs (mapc (lambda (x)
                         (if (eq 'left (car x))
                             (setcar x 'right)
                           (setcar x 'left))) sr-tabs))
-  (when (or interactive
-            (not sr-tabs-follow-panes))
-    (sr-in-other (sr-tabs-refresh))
-    (sr-tabs-refresh)))
+  (sr-in-other (sr-tabs-refresh))
+  (sr-tabs-refresh))
 
 ;; This synchronizes the tabs with the panes if so required (see variable
 ;; sr-tabs-follow-panes). Activated in method sr-tabs-engage.
 (defadvice sr-transpose-panes
-  (before sr-advice-sr-transpose-panes ())
+  (after sr-advice-sr-transpose-panes ())
   (if sr-tabs-follow-panes (sr-tabs-transpose)))
 
 ;;; ============================================================================
