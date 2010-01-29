@@ -162,7 +162,7 @@
   "Displays the buttons buffer in the viewer window. If no buttons buffer exists
   yet, then creates one."
   (apply 'require '(cus-edit))
-  (sr-select-viewer-window)
+  (sr-select-viewer-window t)
   (switch-to-buffer sr-buttons-buffer-name)
   (setq truncate-lines t)
   (setq line-spacing 5)
