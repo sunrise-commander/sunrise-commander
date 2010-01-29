@@ -88,8 +88,8 @@
   (interactive)
   (find-file-other-frame (dired-get-file-for-visit)))
 
-(defun sr-select-viewer-window ()
-  "Tries to select a window that is not a sr pane"
+(defun sr-select-viewer-window (&optional force-setup)
+  "Tries to select a window that is not a sr pane."
   (interactive)
   (make-frame)
   (other-frame 1))
