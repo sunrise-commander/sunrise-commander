@@ -1230,8 +1230,16 @@ automatically:
   (setq sr-panes-height (sr-get-panes-size height))
   (sr-setup-windows)
   (setq sr-windows-locked t))
-(defun sr-max-lock-panes () (interactive) (sr-lock-panes 'max))
-(defun sr-min-lock-panes () (interactive) (sr-lock-panes 'min))
+
+(defmacro sr-save-width (form)
+  "Restores the width of the panes after a windows setup."
+  `(let ((saved-width (window-width sr-left-window)) (delta))
+     ,form
+     (setq delta (- saved-width (window-width sr-left-window)))
+     (bw-adjust-window sr-left-window delta t)))
+ 
+(defun sr-max-lock-panes () (interactive) (sr-save-width (sr-lock-panes 'max)))
+(defun sr-min-lock-panes () (interactive) (sr-save-width (sr-lock-panes 'min)))
 
 ;;; ============================================================================
 ;;; File system navigation functions:
