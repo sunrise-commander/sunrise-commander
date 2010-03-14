@@ -859,6 +859,8 @@ automatically:
 (define-key sr-mode-map "\M-q"                'sunrise-cd)
 (define-key sr-mode-map "h"                   'sr-describe-mode)
 (define-key sr-mode-map "?"                   'sr-summary)
+(define-key sr-mode-map "k"                   'dired-do-kill-lines)
+(define-key sr-mode-map [backspace]           'dired-unmark-backward)
 
 (define-key sr-mode-map [mouse-2]             (lambda ()
                                                 (interactive)
