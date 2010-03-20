@@ -1632,8 +1632,12 @@ automatically:
   (unless (featurep 'browse-url)
     (error "ERROR: Feature browse-url not available!"))
   (setq file (or file (dired-get-filename)))
-  (sr-quit)
-  (browse-url (concat "file://" file))
+  (save-selected-window
+    (sr-select-viewer-window)
+    (let ((buff (current-buffer)))
+      (browse-url (concat "file://" file))
+      (unless (eq buff (current-buffer))
+        (sr-scrollable-viewer (current-buffer)))))
   (message "Browsing \"%s\" in web browser" file))
 
 (defun sr-revert-buffer ()
