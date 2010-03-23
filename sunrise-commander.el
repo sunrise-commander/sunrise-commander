@@ -349,6 +349,9 @@
 (defvar sr-selected-window 'left
   "The window to select when sr starts up.")
 
+(defvar sr-selected-window-width nil
+  "The width the selected window should have on startup.")
+
 (defvar sr-history-registry '((left)(right)) 
   "Registry of visited directories for both panes")
 
@@ -1013,6 +1016,12 @@ automatically:
 
   ;;select the correct window
   (sr-select-window sr-selected-window)
+  (when (and (equal sr-window-split-style 'horizontal)
+             (numberp sr-selected-window-width))
+    (enlarge-window-horizontally
+     (min (- sr-selected-window-width (window-width))
+          (- (frame-width) (window-width) window-min-width)))
+    (setq sr-selected-window-width nil))
   (sr-force-passive-highlight)
   (run-hooks 'sr-start-hook))
 
@@ -1124,6 +1133,8 @@ automatically:
       (progn
         (setq sr-running nil)
         (sr-save-directories)
+        (unless sr-selected-window-width
+          (setq sr-selected-window-width (window-width)))
         (if norestore
             (progn
               (sr-select-viewer-window)
@@ -1165,12 +1176,13 @@ automatically:
 
 (defun sr-resize-panes (&optional reverse)
   "Enlarges (or shrinks, if reverse is t) the left pane by 5 columns."
-  (if (and (window-live-p sr-left-window)
-           (window-live-p sr-right-window))
-      (let ((direction (or (and reverse -1) 1)))
-        (save-selected-window
-          (select-window sr-left-window)
-          (enlarge-window-horizontally (* 5 direction))))))
+  (when (and (window-live-p sr-left-window)
+             (window-live-p sr-right-window))
+    (let ((direction (or (and reverse -1) 1)))
+      (save-selected-window
+        (select-window sr-left-window)
+        (enlarge-window-horizontally (* 5 direction))))
+    (setq sr-selected-window-width nil)))
 
 (defun sr-enlarge-left-pane ()
   "Enlarges the left pane by 5 columns."
@@ -1235,6 +1247,7 @@ automatically:
   given any other value locks the pane at normal position."
   (interactive)
   (setq sr-panes-height (sr-get-panes-size height))
+  (unless height (setq sr-selected-window-width t))
   (sr-setup-windows)
   (setq sr-windows-locked t))
 
@@ -1305,6 +1318,7 @@ automatically:
     (progn ;;the file is a regular file:
       (condition-case description
           (progn
+            (setq sr-selected-window-width (window-width))
             (find-file filename wildcards)
             (delete-other-windows)
             (setq sr-prior-window-configuration (current-window-configuration))
