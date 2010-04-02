@@ -83,6 +83,7 @@
 
 (require 'sunrise-commander)
 (require 'easymenu)
+(eval-when-compile (require 'desktop))
 
 (defcustom sr-tabs-follow-panes t
   "Whether tabs should be swapped too when transposing the Sunrise panes."
@@ -387,8 +388,8 @@
         (setq header-line-format (first line-list))
 
         (when (buffer-live-p other-buffer)
-          (set-buffer other-buffer)
-          (setq header-line-format (second line-list))))))
+          (with-current-buffer other-buffer
+            (setq header-line-format (second line-list)))))))
   (force-window-update))
 
 ;;; ============================================================================
