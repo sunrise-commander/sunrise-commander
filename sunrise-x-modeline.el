@@ -217,4 +217,15 @@
   (unintern 'sr-modeline-start-once))
 (add-hook 'sr-start-hook 'sr-modeline-start-once)
 
+;;; ============================================================================
+;;; Desktop support:
+
+(defun sr-modeline-desktop-restore-buffer (desktop-buffer-file-name
+                                           desktop-buffer-name
+                                           desktop-buffer-misc)
+  "Activates the mode line when restoring sunrise buffers using desktop."
+  (unless (string-match "windows" (symbol-name system-type))
+    (sr-modeline)))
+(add-to-list 'sr-desktop-restore-handlers 'sr-modeline-desktop-restore-buffer)
+
 (provide 'sunrise-x-modeline)
