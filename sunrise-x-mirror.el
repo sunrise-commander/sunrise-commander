@@ -83,7 +83,10 @@
 
 ;; 3) Evaluate the new expression, or reload your .emacs file, or restart emacs.
 
-;; 4)  Run  the Sunrise Commander (M-x sunrise), select (or navigate inside) any
+;; 4)  Customize  the  variable sr-mirror-unionfs-impl and select your preferred
+;; unionfs implementation (either funionfs or unionfs-fuse).
+
+;; 5)  Run  the Sunrise Commander (M-x sunrise), select (or navigate inside) any
 ;; compressed directory in  the  active  pane  and  press  C-c  C-b.  This  will
 ;; automatically  take  you to the mirror area for the selected archive. You can
 ;; make any modifications you want to the contents of the archive,  or  navigate
@@ -94,17 +97,17 @@
 ;; you've  just  been working on. If you don't change the defaults, the original
 ;; will be renamed with a ".bak" extension added.
 
-;; 5)  You  can add support for new archive formats by adding new entries to the
+;; 6)  You  can add support for new archive formats by adding new entries to the
 ;; sr-mirror-pack-commands-alist  custom  variable,  which  contains  a  regular
 ;; expression  to  match against the name of the archive and a string containing
 ;; the shell command to  execute  for  packing  back  the  mirror  area  into  a
 ;; compressed archive.
 
-;; 6)  Once  you've  gained enough confidence using this extension you can reset
+;; 7)  Once  you've  gained enough confidence using this extension you can reset
 ;; the sr-mirror-keep-backups flag to get rid of all the backup copies  produced
 ;; by it.
 
-;; 7) Enjoy ;)
+;; 8) Enjoy ;)
 
 ;;; Code:
 
@@ -468,7 +471,7 @@
 ;; directory:
 (defadvice sr-clone-files
   (around sr-mirror-advice-sr-clone-files
-          (file-path-list target-dir clone-op &optional do-overwrite))
+          (file-path-list target-dir clone-op progress &optional do-overwrite))
   (if (null sr-mirror-home)
       ad-do-it
     (let ((orig target-dir))
