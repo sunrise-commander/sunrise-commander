@@ -550,20 +550,18 @@
                                        desktop-buffer-misc)
   "Restores  all  the  tabs  in  a  Sunrise  (normal  or  VIRTUAL) buffer from a
   description in a desktop file."
-  (let ((label-done nil))
-    (mapc (lambda (side)
-            (let* ((tab-symbol (intern (concat (symbol-name side) "-tab")))
-                   (name (buffer-name))
-                   (label (cdr (assoc tab-symbol desktop-buffer-misc)))
-                   (tab-set (assoc side sr-tabs)))
-              (when label
-                (setcdr tab-set (cons name (cdr tab-set)))
-                (unless label-done
-                  (sr-tabs-make-label name label)
-                  (setq label-done t)))))
-          '(left right))
-    (unless sr-tabs-on
-      (sr-tabs-engage))))
+  (mapc (lambda (side)
+          (let* ((sr-selected-window side)
+                 (tab-symbol (intern (concat (symbol-name side) "-tab")))
+                 (name (buffer-name))
+                 (label (cdr (assq tab-symbol desktop-buffer-misc)))
+                 (tab-set (assq side sr-tabs)))
+            (when label
+              (setcdr tab-set (cons name (cdr tab-set)))
+              (sr-tabs-make-label name label))))
+        '(left right))
+  (unless sr-tabs-on
+    (sr-tabs-engage)))
 
 (defun sr-tabs-reset-state ()
   "Resets  some  environment  variables that control the behavior of tabs in the
