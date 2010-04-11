@@ -1078,9 +1078,8 @@ automatically:
       (goto-char (point-min))
       (sr-hide-avfs-root)
       (sr-highlight-broken-links)
-      (when window-system
-        (sr-graphical-highlight face)
-        (sr-force-passive-highlight))
+      (sr-graphical-highlight face)
+      (sr-force-passive-highlight)
       (run-hooks 'sr-refresh-hook))
     (hl-line-mode 1)))
 
@@ -1720,7 +1719,7 @@ automatically:
   (interactive)
   (if (buffer-live-p sr-backup-buffer)
       (let ((inhibit-read-only t))
-        (kill-region (point-min) (point-max))
+        (erase-buffer)
         (insert-buffer-substring sr-backup-buffer)
         (sr-beginning-of-buffer)
         (sr-highlight)
@@ -2711,7 +2710,7 @@ or (c)ontents? ")
 
 (defun sr-switch-to-clean-buffer (name)
   (sr-alternate-buffer (switch-to-buffer name))
-  (kill-region (point-min) (point-max)))
+  (erase-buffer))
 
 (defun sr-pure-virtual (&optional arg)
   "Creates  a new empty buffer in Sunrise VIRTUAL mode. If the optional argument
