@@ -128,15 +128,14 @@
   accordingly the current directory of the corresponding panel."
   (interactive)
   (let* ((event (caddr (cddadr last-input-event)))
-         (path (car event)) (pos (cdr event)))
-    (unless (eq sr-selected-window (get-text-property 0 'sr-selected-window path))
-      (sr-change-window))
-    (let* ((tail-length (- (length (substring-no-properties path)) pos))
-           (max-length (length default-directory))
-           (target-click (- max-length tail-length))
-           (target-end (string-match "/\\|$" default-directory target-click)))
-      (when (< target-end max-length)
-        (sr-advertised-find-file (substring default-directory 0 target-end))))))
+         (path (car event)) (pos (cdr event)) (slash) (levels))
+    (or (eq sr-selected-window (get-text-property 0 'sr-selected-window path))
+        (sr-change-window))
+    (setq slash (string-match "/" path pos)
+          levels (- (length (split-string (substring path slash) "/")) 2))
+    (if (< 0 levels)
+        (sr-dired-prev-subdir levels)
+      (sr-beginning-of-buffer))))
 
 ;;; ============================================================================
 ;;; Private interface:
