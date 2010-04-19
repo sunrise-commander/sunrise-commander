@@ -3199,7 +3199,8 @@ or (c)ontents? ")
   (when (buffer-live-p sr-backup-buffer)
     (kill-buffer sr-backup-buffer)
     (setq sr-backup-buffer nil)))
-(add-hook 'kill-buffer-hook 'sr-kill-backup-buffer)
+(add-hook 'kill-buffer-hook       'sr-kill-backup-buffer)
+(add-hook 'change-major-mode-hook 'sr-kill-backup-buffer)
 
 (defun sr-scrollable-viewer (buffer)
   "Sets the other-window-scroll-buffer variable to the given buffer (or nil)."

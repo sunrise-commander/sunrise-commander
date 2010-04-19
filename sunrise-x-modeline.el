@@ -1,4 +1,4 @@
-;;  sunrise-x-modeline.el --- Navigable mode line for the Sunrise Commander File
+;;; sunrise-x-modeline.el --- Navigable mode line for the Sunrise Commander File
 ;;  Manager.
 
 ;; Copyright (C) 2009-2010 José Alfredo Romero Latouche.
@@ -56,7 +56,7 @@
 (eval-when-compile (require 'cl))
 
 (defcustom sr-modeline-use-utf8-marks nil
-  ""
+  "Set to t to use fancy marks (using UTF-8 glyphs) in the mode line."
   :group 'sunrise
   :type 'boolean)
 
@@ -77,7 +77,8 @@
 (define-key sr-modeline-path-map [mode-line mouse-2] 'sr-modeline-navigate-path)
 
 (defun sr-modeline-select-mark (mode)
-  ""
+  "Selects the right mark for the given mode depending on whether UTF-8 has been
+  enabled in the mode line."
   (let ((select (if sr-modeline-use-utf8-marks #'cdr #'car)))
     (funcall select
              (cond ((eq mode 'sync) sr-modeline-sync-mark)
@@ -170,12 +171,15 @@
   (setq mode-line-format (default-value 'mode-line-format))
   (sr-in-other (setq mode-line-format (default-value 'mode-line-format))))
 
-(defun sr-modeline-toggle ()
+(defun sr-modeline-toggle (&optional force)
   "Toggles the usage and enforcement of the navigation mode line format."
   (interactive)
-  (if (eq mode-line-format (default-value 'mode-line-format))
-      (sr-modeline-engage)
-    (sr-modeline-disengage)))
+  (cond ((and force (< 0 force)) (sr-modeline-engage))
+        ((and force (> 0 force)) (sr-modeline-disengage))
+        (t
+         (if (eq mode-line-format (default-value 'mode-line-format))
+             (sr-modeline-engage)
+           (sr-modeline-disengage)))))
 
 ;;; ============================================================================
 ;;; User interface:
@@ -195,7 +199,7 @@
   (unless (memq major-mode '(sr-mode sr-virtual-mode))
     (setq sr-modeline nil)
     (error "Sorry, this mode can be used only within the Sunrise Commander."))
-  (sr-modeline-toggle))
+  (sr-modeline-toggle 1))
 
 (defvar sr-modeline-menu
   (easy-menu-create-menu
@@ -235,8 +239,7 @@
                                            desktop-buffer-name
                                            desktop-buffer-misc)
   "Activates the mode line when restoring sunrise buffers using desktop."
-  (unless (string-match "windows" (symbol-name system-type))
-    (sr-modeline)))
+  (run-with-timer 0.1 nil 'sr-modeline-toggle 1))
 (add-to-list 'sr-desktop-restore-handlers 'sr-modeline-desktop-restore-buffer)
 
 (provide 'sunrise-x-modeline)
