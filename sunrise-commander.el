@@ -2870,7 +2870,8 @@ or (c)ontents? ")
 
 (defun sr-term-extern (&optional cd newterm)
   "This is the implementation of sr-term for external terminal programs."
-  (let ((dir (if sr-running sr-this-directory default-directory)))
+  (let ((dir (expand-file-name
+              (if sr-running sr-this-directory default-directory))))
     (sr-term-excursion newterm (term sr-terminal-program))
     (when cd
       (term-send-raw-string
@@ -2878,7 +2879,8 @@ or (c)ontents? ")
 
 (defun sr-term-eshell (&optional cd newterm)
   "This is the implementation of sr-term when using eshell."
-  (let ((dir (if sr-running sr-this-directory default-directory)))
+  (let ((dir (expand-file-name
+              (if sr-running sr-this-directory default-directory))))
     (sr-term-excursion newterm (eshell))
     (when cd
       (insert (concat "cd " (shell-quote-wildcard-pattern dir)))
