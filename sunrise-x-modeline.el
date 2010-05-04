@@ -64,6 +64,7 @@
 (defconst sr-modeline-sync-mark '(" & " . " ⚓ "))
 (defconst sr-modeline-edit-mark '(" ! " . " ⚡ "))
 (defconst sr-modeline-virt-mark '(" @ " . " ☯ "))
+(defconst sr-modeline-tree-mark '(" T " . " ⚘ "))
 
 ;;; ============================================================================
 ;;; Core functions:
@@ -84,6 +85,7 @@
              (cond ((eq mode 'sync) sr-modeline-sync-mark)
                    ((eq mode 'edit) sr-modeline-edit-mark)
                    ((eq mode 'virt) sr-modeline-virt-mark)
+                   ((eq mode 'tree) sr-modeline-tree-mark)
                    (t sr-modeline-norm-mark)))))
 
 (defun sr-modeline-setup ()
@@ -96,7 +98,9 @@
                              (sr-synchronized 'sync)
                              (t 'norm)))))
           ((eq major-mode 'sr-virtual-mode)
-           (setq mark (sr-modeline-select-mark 'virt))))
+           (setq mark (sr-modeline-select-mark 'virt)))
+          ((eq major-mode 'sr-tree-mode)
+           (setq mark (sr-modeline-select-mark 'tree))))
     (if mark (sr-modeline-set mark))))
 
 (defun sr-modeline-set (mark)
@@ -120,6 +124,7 @@
           (cond ((eq mark (sr-modeline-select-mark 'sync)) "Synchronized Navigation")
                 ((eq mark (sr-modeline-select-mark 'edit)) "Editable Pane")
                 ((eq mark (sr-modeline-select-mark 'virt)) "Virtual Directory")
+                ((eq mark (sr-modeline-select-mark 'tree)) "Tree View")
                 (t "Normal")))
     (propertize mark
                 'font 'bold 
@@ -196,7 +201,7 @@
   To totally disable this extension do: M-x sr-modeline <RET>"
 
   nil (sr-modeline-select-mark 'norm) sr-modeline-map
-  (unless (memq major-mode '(sr-mode sr-virtual-mode))
+  (unless (memq major-mode '(sr-mode sr-virtual-mode sr-tree-mode))
     (setq sr-modeline nil)
     (error "Sorry, this mode can be used only within the Sunrise Commander."))
   (sr-modeline-toggle 1))

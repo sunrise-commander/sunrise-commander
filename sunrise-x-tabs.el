@@ -211,7 +211,8 @@
       (unless (eq from-buffer (sr-other 'buffer))
         (kill-buffer from-buffer))
       (sr-revert-buffer)
-      (sr-history-push default-directory))))
+      (sr-history-push default-directory)))
+  (sr-tabs-refresh))
 
 (defun sr-tabs-focus (name side)
   "Gives focus to the tab with the given name in the given pane."
@@ -252,7 +253,7 @@
 ;; This synchronizes the tabs with the panes if so required (see variable
 ;; sr-tabs-follow-panes). Activated in method sr-tabs-engage.
 (defadvice sr-transpose-panes
-  (after sr-advice-sr-transpose-panes ())
+  (after sr-tabs-advice-sr-transpose-panes ())
   (if sr-tabs-follow-panes (sr-tabs-transpose)))
 
 ;;; ============================================================================
@@ -355,7 +356,7 @@
 
 (defun sr-tabs-make-line ()
   "Assembles a new tab line from cached tags and puts it in the line cache."
-  (if (memq major-mode '(sr-mode sr-virtual-mode))
+  (if (memq major-mode '(sr-mode sr-virtual-mode sr-tree-mode))
       (let ((tab-set (cdr (assq sr-selected-window sr-tabs)))
             (tab-line (if (or (cdr (first sr-tabs))
                               (cdr (second sr-tabs))) "" nil))
@@ -511,7 +512,7 @@
         C-x k ......... Kill buffer and move to the next tabbed one (if any).
 "
   nil nil sr-tabs-mode-map
-  (unless (memq major-mode '(sr-mode sr-virtual-mode))
+  (unless (memq major-mode '(sr-mode sr-virtual-mode sr-tree-mode))
     (setq sr-tabs-mode nil)
     (error "Sorry, this mode can be used only within the Sunrise Commander."))
   (if sr-tabs-mode

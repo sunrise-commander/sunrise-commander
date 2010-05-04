@@ -725,7 +725,7 @@ automatically:
 
 (defun sr-viewer-window ()
   "Return an active window that can be used as the viewer."
-  (if (memq major-mode '(sr-mode sr-virtual-mode))
+  (if (memq major-mode '(sr-mode sr-virtual-mode sr-tree-mode))
       (let ((current-window (selected-window)) (target-window))
         (dotimes (times 2)
           (setq current-window (next-window current-window))
@@ -774,7 +774,8 @@ automatically:
 (defadvice revert-buffer
   (around sr-advice-revert-buffer ())
   (unless (or (equal major-mode 'sr-virtual-mode)
-              (local-variable-p 'sr-virtual-buffer))
+              (local-variable-p 'sr-virtual-buffer)
+              (equal major-mode 'sr-tree-mode))
     ad-do-it))
 (ad-activate 'revert-buffer)
 
@@ -880,6 +881,7 @@ automatically:
 (define-key sr-mode-map "\M-p"        'sr-prev-line-other)
 (define-key sr-mode-map [M-up]        'sr-prev-line-other)
 (define-key sr-mode-map [A-up]        'sr-prev-line-other)
+(define-key sr-mode-map "\M-j"        'sr-goto-dir-other)
 (define-key sr-mode-map "\M-\C-m"     'sr-advertised-find-file-other)
 (define-key sr-mode-map "\M-f"        'sr-advertised-find-file-other)
 (define-key sr-mode-map "\C-c\C-m"    'sr-advertised-find-file-other)
@@ -1023,7 +1025,7 @@ automatically:
   (if (buffer-live-p other-window-scroll-buffer)
       (switch-to-buffer other-window-scroll-buffer)
     (let ((start (current-buffer)))
-      (while (and start (memq major-mode '(sr-mode sr-virtual-mode)))
+      (while (and start (memq major-mode '(sr-mode sr-virtual-mode sr-tree-mode)))
         (bury-buffer)
         (if (eq start (current-buffer)) (setq start nil)))))
 
@@ -1078,15 +1080,16 @@ automatically:
 
 (defun sr-highlight(&optional face)
   "Sets up the path line in the current buffer."
-  (when (memq major-mode '(sr-mode sr-virtual-mode))
-    (save-excursion
-      (goto-char (point-min))
-      (sr-hide-avfs-root)
-      (sr-highlight-broken-links)
-      (sr-graphical-highlight face)
-      (sr-force-passive-highlight)
-      (run-hooks 'sr-refresh-hook))
-    (hl-line-mode 1)))
+  (when (memq major-mode '(sr-mode sr-virtual-mode sr-tree-mode))
+    (let ((inhibit-read-only t))
+      (save-excursion
+        (goto-char (point-min))
+        (sr-hide-avfs-root)
+        (sr-highlight-broken-links)
+        (sr-graphical-highlight face)
+        (sr-force-passive-highlight)
+        (run-hooks 'sr-refresh-hook))
+      (hl-line-mode 1))))
 
 (defun sr-hide-avfs-root ()
   "Hides the AVFS virtual filesystem root (if any) on the path line."
@@ -1161,10 +1164,11 @@ automatically:
   (if (and (window-live-p sr-left-window) (window-live-p sr-right-window))
       (save-window-excursion
         (select-window (sr-other 'window))
-        (if revert (sr-revert-buffer))
-        (sr-graphical-highlight 'sr-passive-path-face)
-        (unless (eq sr-left-buffer sr-right-buffer)
-          (hl-line-mode 0)))))
+        (when (memq major-mode '(sr-mode sr-virtual-mode))
+          (if revert (sr-revert-buffer))
+          (sr-graphical-highlight 'sr-passive-path-face)
+          (unless (eq sr-left-buffer sr-right-buffer)
+            (hl-line-mode 0))))))
 
 (defun sr-quit (&optional norestore)
   "Quit Sunrise and restore emacs to previous operation."
@@ -1197,13 +1201,13 @@ automatically:
   "Saves the current directories in the panes to use the next time sr starts up."
   (when (window-live-p sr-left-window)
     (set-buffer (window-buffer sr-left-window))
-    (when (equal major-mode 'sr-mode)
+    (when (memq major-mode '(sr-mode sr-tree-mode))
       (setq sr-left-directory default-directory)
       (setq sr-left-buffer (current-buffer))))
 
   (when (window-live-p sr-right-window)
     (set-buffer (window-buffer sr-right-window))
-    (when (equal major-mode 'sr-mode)
+    (when (memq major-mode '(sr-mode sr-tree-mode))
       (setq sr-right-directory default-directory)
       (setq sr-right-buffer (current-buffer)))))
 
@@ -1972,6 +1976,10 @@ automatically:
   "Move the cursor up in the other pane."
   (interactive)
   (sr-in-other (dired-next-line -1)))
+
+(defun sr-goto-dir-other (dir)
+  (interactive "DChange directory in PASSIVE pane (file or pattern): ")
+  (sr-in-other (sr-goto-dir dir)))
 
 (defun sr-advertised-find-file-other ()
   "Open the file/directory selected in the other pane."
@@ -3128,8 +3136,8 @@ or (c)ontents? ")
             (desktop-restore-file-buffer (car misc-data)
                                          desktop-buffer-name
                                          misc-data))))
-    (when is-virtual
-      (set-visited-file-name nil t))
+    (if is-virtual
+        (set-visited-file-name nil t))
     (mapc (lambda (side)
             (when (cdr (assoc side desktop-buffer-misc))
               (set (sr-symbol side 'buffer) (current-buffer))
@@ -3163,7 +3171,8 @@ or (c)ontents? ")
             (unless (assoc 'sr-running desktop-globals-to-clear)
               (add-to-list 'desktop-globals-to-clear
                            '(sr-running . (sr-reset-state))))
-            (if (memq major-mode '(sr-mode sr-virtual-mode)) (sunrise))))
+            (if (memq major-mode '(sr-mode sr-virtual-mode sr-tree-mode))
+                (sunrise))))
 
 ;;; ============================================================================
 ;;; Miscellaneous functions:

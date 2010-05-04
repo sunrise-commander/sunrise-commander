@@ -68,7 +68,7 @@
     ("Copy([F5,]C)"      'sr-do-copy                 "Copy selected files to passive pane")
     ("Rename([F6,]R)"    'sr-do-rename               "Move selected files to passive pane")
     ("NewDir([F7,]+)"    'dired-create-directory     "Create new directory in active pane")
-    ("Delete([F8,]D)"    'dired-do-delete            "Delete selected files from active pane")
+    ("Delete([F8,]D)"    'sr-do-delete               "Delete selected files from active pane")
     ("Quit([F10,]q)"     'keyboard-escape-quit       "Dismiss Sunrise Commander")
     nil
     ("DirUp([C-PgUp,]J)" 'sr-dired-prev-subdir       "Go to parent directory in active pane")
@@ -248,7 +248,9 @@
   `(lambda (&rest ignore)
      (interactive)
      (sr-select-window sr-selected-window)
-     (run-with-timer 0.01 nil 'call-interactively ,action)))
+     (if (and (eq major-mode 'sr-tree-mode) (fboundp 'sr-tree-button-command))
+         (run-with-timer 0.01 nil 'sr-tree-button-command ,action)
+       (run-with-timer 0.01 nil 'call-interactively ,action))))
 
 (defun sr-buttons-editable-pane ()
   "Calls sr-editable-pane and displays an informative message (used inside the
