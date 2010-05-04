@@ -198,7 +198,9 @@
     (setq fname (file-name-nondirectory path))
     (if (null (assoc-default fname sr-mirror-pack-commands-alist 'string-match))
         (error (concat "Sunrise: sorry, no packer was registered for " fname)))
-    (set (make-local-variable 'sr-current-path-face) 'sr-mirror-path-face)
+    (unless (local-variable-p 'sr-current-path-face)
+      (make-local-variable 'sr-current-path-face))
+    (setq sr-current-path-face 'sr-mirror-path-face)
     (sr-mirror-enable)
     (unless (file-exists-p sr-mirror-home)
       (make-directory sr-mirror-home))
@@ -313,7 +315,7 @@
         (progn
           (dired-delete-file (concat sr-mirror-home mirror) 'always)
           (dired-delete-file (concat sr-mirror-home overlay) 'always)
-          (sr-revert-buffer))
+          (revert-buffer))
       (error (concat "Sunrise: Error unmounting mirror: " err)))))
 
 (defun sr-mirror-toggle ()
@@ -330,7 +332,8 @@
                (error
                   (setq err-msg (second err2))) )) )
     (if (and (not open-ok) (not close-ok))
-        (error err-msg))))
+        (error err-msg)
+      (sr-highlight))))
 
 (defun sr-mirror-repack (mirror)
   "Tries  to repack the given mirror. On success returns a string containing the
@@ -449,7 +452,8 @@
             (sr-mirror-close nil nil t)))
         (unless (or (not (file-directory-p target))
                     (sr-equal-dirs target (dired-current-directory)))
-          (sr-goto-dir target)))))))
+          (sr-goto-dir target)))))
+    (sr-highlight)))
 
 (defun sr-mirror-on-kill-buffer ()
   "Handles those cases of navigation out of a mirror area, in which the function

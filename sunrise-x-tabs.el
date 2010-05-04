@@ -210,7 +210,7 @@
       (set (sr-symbol sr-selected-window 'directory) default-directory)
       (unless (eq from-buffer (sr-other 'buffer))
         (kill-buffer from-buffer))
-      (sr-revert-buffer)
+      (revert-buffer)
       (sr-history-push default-directory)))
   (sr-tabs-refresh))
 

@@ -83,7 +83,7 @@
     ("Other(Tab)"        'sr-change-window           "Switch to passive pane")
     ("Clone(M-o)"        'sr-synchronize-panes       "Make both panes contain the same directory")
     ("Swap(M-t)"         'sr-transpose-panes         "Transpose panes")
-    ("Refresh(g)"        'sr-revert-buffer           "Rescan directory in active pane")
+    ("Refresh(g)"        'revert-buffer              "Rescan directory in active pane")
     ("Align(C-cC-s)"     'sr-split-toggle            "Change panes alignment (vertical/horizontal/top)")
     ("Sort(s)"           'sr-interactive-sort        "Sort interactively entries in active pane")
     ("Mark([Ins,]m)"     'dired-mark                 "Mark selected entry in active pane")

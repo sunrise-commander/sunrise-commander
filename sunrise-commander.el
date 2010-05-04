@@ -592,6 +592,8 @@ automatically:
 "
   :group 'sunrise
   (set-keymap-parent sr-mode-map dired-mode-map)
+  (sr-highlight)
+  (dired-omit-mode dired-omit-mode)
 
   (make-local-variable 'dired-recursive-deletes)
   (setq dired-recursive-deletes 'top)
@@ -604,6 +606,9 @@ automatically:
 
   (make-local-variable 'desktop-save-buffer)
   (setq desktop-save-buffer 'sr-desktop-save-buffer)
+
+  (make-local-variable 'revert-buffer-function)
+  (setq revert-buffer-function 'sr-revert-buffer)
 )
 
 (define-derived-mode sr-virtual-mode dired-virtual-mode "Sunrise VIRTUAL"
@@ -611,6 +616,7 @@ automatically:
   :group 'sunrise
   (set-keymap-parent sr-virtual-mode-map sr-mode-map)
   (sr-highlight)
+  (dired-omit-mode dired-omit-mode)
 
   (make-local-variable 'truncate-partial-width-windows)
   (setq truncate-partial-width-windows (sr-truncate-v t))
@@ -620,6 +626,9 @@ automatically:
 
   (make-local-variable 'desktop-save-buffer)
   (setq desktop-save-buffer 'sr-desktop-save-buffer)
+
+  (make-local-variable 'revert-buffer-function)
+  (setq revert-buffer-function 'sr-revert-buffer)
 
   (define-key sr-virtual-mode-map "\C-c\C-c" 'sr-virtual-dismiss))
 
@@ -634,29 +643,30 @@ automatically:
      (setq sr-dired-directory "")))
 
 (defmacro sr-save-aspect (&rest body)
-  "Restores hidden attributes and omit mode after a directory transition."
-  `(let ((hidden-attrs (get sr-selected-window 'hidden-attrs))
+  "Restores hidden attributes after a directory transition."
+  `(let ((inhibit-read-only t)
          (omit (or dired-omit-mode -1))
-         (path-face (and (local-variable-p 'sr-current-path-face)
-                         sr-current-path-face)))
+         (hidden-attrs (get sr-selected-window 'hidden-attrs))
+         (path-face sr-current-path-face))
      (hl-line-mode 0)
      ,@body
+     (dired-omit-mode omit)
      (if path-face
          (set (make-local-variable 'sr-current-path-face) path-face))
      (if hidden-attrs
          (sr-hide-attributes))
-     (sr-omit-mode omit)
      (sr-restore-point-if-same-buffer)))
 
 (defmacro sr-alternate-buffer (form)
   "Executes form in a new buffer, after killing the previous one."
   `(let ((dispose nil))
-     (unless (or (not dired-directory)
+     (unless (or (not (or dired-directory (eq major-mode 'sr-tree-mode)))
                  (equal sr-left-buffer sr-right-buffer))
        (setq dispose (current-buffer)))
      ,form
      (setq sr-this-directory default-directory)
      (sr-keep-buffer)
+     (sr-highlight)
      (if (buffer-live-p dispose)
          (with-current-buffer dispose
            (bury-buffer)
@@ -702,7 +712,7 @@ automatically:
       (setq sr-this-directory default-directory)
       (if (sr-equal-dirs sr-this-directory sr-other-directory)
           (sr-synchronize-panes t)
-        (sr-revert-buffer))
+        (revert-buffer))
       (sr-keep-buffer)
       (unless (memq last-buf (list (current-buffer) (sr-other 'buffer)))
         (kill-buffer last-buf)))))
@@ -714,7 +724,7 @@ automatically:
   (if (equal major-mode 'sr-virtual-mode)
       (sr-save-aspect
        (sr-alternate-buffer (sr-goto-dir sr-this-directory))
-       (sr-revert-buffer))))
+       (revert-buffer))))
 
 (defun sr-select-window (side)
   "Select/highlight the given sr window (right or left)."
@@ -770,15 +780,6 @@ automatically:
             (replace-regexp-in-string "/$" "" ad-return-value))))
 (ad-activate 'dired-get-filename)
 
-;; inhibits reverting sunrise virtual buffers:
-(defadvice revert-buffer
-  (around sr-advice-revert-buffer ())
-  (unless (or (equal major-mode 'sr-virtual-mode)
-              (local-variable-p 'sr-virtual-buffer)
-              (equal major-mode 'sr-tree-mode))
-    ad-do-it))
-(ad-activate 'revert-buffer)
-
 ;; selects the correct (selected) pane when switching from other windows:
 (defadvice other-window
   (around sr-advice-other-window (count &optional all-frames))
@@ -830,10 +831,9 @@ automatically:
 (define-key sr-mode-map "\\"          'sr-lock-panes)
 (define-key sr-mode-map "\C-c}"       'sr-max-lock-panes)
 (define-key sr-mode-map "\C-c{"       'sr-min-lock-panes)
-(define-key sr-mode-map "\C-o"        'sr-omit-mode)
+(define-key sr-mode-map "\C-o"        'dired-omit-mode)
 (define-key sr-mode-map "b"           'sr-browse-file)
 (define-key sr-mode-map "\C-c\C-w"    'sr-browse-pane)
-(define-key sr-mode-map "g"           'sr-revert-buffer)
 (define-key sr-mode-map "\C-c\d"      'sr-toggle-attributes)
 (define-key sr-mode-map "\M-l"        'sr-toggle-truncate-lines)
 (define-key sr-mode-map "s"           'sr-interactive-sort)
@@ -1160,12 +1160,12 @@ automatically:
 
 (defun sr-force-passive-highlight (&optional revert)
   "Sets  up  the graphical path line in the passive pane. With optional argument
-  'revert' executes sr-revert-buffer on the passive buffer."
+  'revert' executes revert-buffer on the passive buffer."
   (if (and (window-live-p sr-left-window) (window-live-p sr-right-window))
       (save-window-excursion
         (select-window (sr-other 'window))
         (when (memq major-mode '(sr-mode sr-virtual-mode))
-          (if revert (sr-revert-buffer))
+          (if revert (revert-buffer))
           (sr-graphical-highlight 'sr-passive-path-face)
           (unless (eq sr-left-buffer sr-right-buffer)
             (hl-line-mode 0))))))
@@ -1614,7 +1614,7 @@ automatically:
     (unless noselect (sr-quit))))
 
 ;;; ============================================================================
-;;; graphical interface interaction functions:
+;;; Graphical interface interaction functions:
 
 (defun sr-change-window()
   "Change to the other sr buffer."
@@ -1644,7 +1644,7 @@ automatically:
   "Tries to select the given file name in the current buffer."
   (if (and dired-omit-mode
            (string-match (dired-omit-regexp) filename))
-      (sr-omit-mode -1))
+      (dired-omit-mode -1))
   (let ((expr filename))
     (setq expr (replace-regexp-in-string "/$" "" expr))
     (cond ((file-symlink-p filename)
@@ -1668,7 +1668,7 @@ automatically:
    ((equal sr-window-split-style 'vertical) (sr-split-setup 'top))
    ((equal sr-window-split-style 'top) (progn
                                          (sr-split-setup 'horizontal)
-                                         (sr-in-other (sr-revert-buffer))))
+                                         (sr-in-other (revert-buffer))))
    (t (sr-split-setup 'horizontal))))
 
 (defun sr-split-setup(split-type)
@@ -1709,7 +1709,7 @@ automatically:
     (sr-change-window)
     (when reverse
       (sr-alternate-buffer (switch-to-buffer target))
-      (sr-revert-buffer))))
+      (revert-buffer))))
 
 (defun sr-browse-pane ()
   "Browses the directory in the active pane."
@@ -1736,7 +1736,7 @@ automatically:
         (sr-scrollable-viewer (current-buffer)))))
   (message "Browsing \"%s\" in web browser" file))
 
-(defun sr-revert-buffer ()
+(defun sr-revert-buffer (&optional ignore-auto no-confirm)
   "Reverts the current pane, using the  contents of the back-up buffer (if there
   is one) to do so. If the buffer is non-virtual the back-up buffer is killed."
   (interactive)
@@ -1748,18 +1748,12 @@ automatically:
         (insert-buffer-substring sr-backup-buffer)
         (sr-beginning-of-buffer)
         (dired-mark-remembered marks)
-        (sr-highlight)
         (sr-focus-filename focus)
         (if (eq 'sr-mode major-mode) (sr-kill-backup-buffer)))
-    (sr-save-aspect (revert-buffer))))
-
-(defun sr-omit-mode (&optional force)
-  "Toggles dired-omit-mode."
-  (interactive)
-  (let ((hidden-attrs (get sr-selected-window 'hidden-attrs)))
-    (dired-omit-mode force)
-    (if hidden-attrs (sr-hide-attributes))
-    (sr-highlight)))
+    (unless (or (equal major-mode 'sr-virtual-mode)
+                (local-variable-p 'sr-virtual-buffer))
+      (dired-revert)))
+  (sr-highlight))
 
 (defun sr-quick-view (&optional arg)
   "Allows  to quick-view the currently selected item: on regular files, it opens
@@ -1898,7 +1892,7 @@ automatically:
         (unless (string-match "^/ftp:" default-directory)
           (setq dired-listing-switches sr-listing-switches))
         (dired-sort-other (concat dired-listing-switches option) t))
-      (sr-revert-buffer)))
+      (revert-buffer)))
   (message "Sunrise: sorting entries by %s" label))
 
 (defun sr-sort-virtual (option)
@@ -2072,7 +2066,7 @@ automatically:
   (when as-virtual
     (sr-virtual-mode)
     (sr-force-passive-highlight t))
-  (sr-revert-buffer))
+  (revert-buffer))
 
 (defun sr-terminate-wdired (fun)
   "Restores the current pane's original mode after being edited with WDired."
@@ -2167,7 +2161,7 @@ automatically:
                  (mapcar (lambda (x) (cons (expand-file-name x) ?R)) names)))
               (if (window-live-p (sr-other 'window))
                   (sr-in-other (sr-focus-filename (car names)))))
-            (sr-revert-buffer)
+            (revert-buffer)
             (sr-progress-reporter-done progress)))
       (message "Sunrise: Empty selection. Nothing done."))))
 
@@ -2184,7 +2178,7 @@ automatically:
             (dired-delete-file x deletion-mode)) files)
     (if (eq major-mode 'sr-virtual-mode)
         (dired-do-kill-lines)
-      (sr-revert-buffer))))
+      (revert-buffer))))
 
 (defun sr-do-flagged-delete ()
   "Removes flagged files from the file system."
@@ -2227,7 +2221,7 @@ automatically:
   directory, each with extension .bak"
   (interactive)
   (dired-do-copy-regexp "$" ".bak")
-  (sr-revert-buffer))
+  (revert-buffer))
 
 (defun sr-clone (items target clone-op progress mark-char)
   "Clones  recursively  all given items (files and directories) into the passive
@@ -2239,7 +2233,7 @@ automatically:
     (if (window-live-p (sr-other 'window))
         (sr-in-other
          (progn
-           (sr-revert-buffer)
+           (revert-buffer)
            (dired-mark-remembered
             (mapcar (lambda (x) (cons (expand-file-name x) mark-char)) names))
            (sr-focus-filename (car names)))))))
@@ -2358,7 +2352,7 @@ indir/d => to-dir/d using clone-op to clone all files."
     (unwind-protect
         (kill-line)
       (progn
-        (sr-revert-buffer)
+        (revert-buffer)
         (sr-change-window)
         (dired-unmark-all-marks)))))
 
@@ -2632,7 +2626,7 @@ or (c)ontents? ")
   (after sr-advice-find-dired-sentinel (proc state))
   (when (eq 'sr-virtual-mode major-mode)
     (rename-uniquely)
-    (sr-revert-buffer)
+    (revert-buffer)
     (sr-backup-buffer)))
 (ad-activate 'find-dired-sentinel)
 
@@ -2682,7 +2676,7 @@ or (c)ontents? ")
         (cond ((memq next-char '(?\n ?\r))
                (setq next-char nil))
               ((memq next-char '(?\b ?\d))
-               (sr-revert-buffer)
+               (revert-buffer)
                (setq stack (cdr stack) filter (caar stack) regex (cdar stack))
                (unless stack (setq next-char nil)))
               (t
