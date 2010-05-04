@@ -60,6 +60,8 @@
 
 ;;; Code:
 
+(require 'sunrise-commander)
+
 (remove-hook 'window-size-change-functions 'sr-lock-window)
 
 (defun sr-setup-windows()
@@ -91,7 +93,7 @@
 (defun sr-select-viewer-window (&optional force-setup)
   "Tries to select a window that is not a sr pane."
   (interactive)
-  (make-frame)
-  (other-frame 1))
+  (make-frame '((name . "Sunrise Viewer Frame")))
+  (select-frame-by-name "Sunrise Viewer Frame"))
 
 (provide 'sunrise-x-popviewer)
