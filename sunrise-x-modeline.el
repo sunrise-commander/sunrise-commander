@@ -210,7 +210,6 @@
   (easy-menu-create-menu
    "Mode Line"
    '(["Toggle navigation mode line" sr-modeline-toggle t]
-     ["Turn off navigation mode line" sr-modeline t]
      ["Navigation mode line help" (lambda ()
                                     (interactive)
                                     (describe-function 'sr-modeline))] )))
@@ -218,15 +217,21 @@
   (interactive)
   (popup-menu sr-modeline-menu))
 
-(defun sr-modeline-menu-init ()
-  (unless (fboundp 'easy-menu-binding) ;;<-- not available in emacs 22
-    (defsubst easy-menu-binding (menu &optional item-name) (ignore)))
-  (define-key sr-modeline-map
-    (vector 'menu-bar (easy-menu-intern "Sunrise"))
-    (easy-menu-binding sr-modeline-menu "Sunrise")))
-
 ;;; ============================================================================
 ;;; Bootstrap:
+
+(defun sr-modeline-menu-init ()
+  "Initializes the Sunrise Mode Line extension menu."
+  (unless (lookup-key sr-mode-map [menu-bar Sunrise])
+    (define-key sr-mode-map [menu-bar Sunrise]
+      (cons "Sunrise" (make-sparse-keymap))))
+  (let ((menu-map (make-sparse-keymap "Mode Line")))
+    (define-key sr-mode-map [menu-bar Sunrise mode-line]
+      (cons "Mode Line" menu-map))
+    (define-key menu-map [help] '("Help" . (lambda ()
+                                             (interactive)
+                                             (describe-function 'sr-modeline))))
+    (define-key menu-map [disable] '("Toggle" . sr-modeline-toggle))))
 
 (defun sr-modeline-start-once ()
   "Bootstraps  the  navigation  mode  line on the first execution of the Sunrise
@@ -234,6 +239,7 @@
   (sr-modeline t)
   (sr-modeline-menu-init)
   (remove-hook 'sr-start-hook 'sr-modeline-start-once)
+  (unintern 'sr-modeline-menu-init)
   (unintern 'sr-modeline-start-once))
 (add-hook 'sr-start-hook 'sr-modeline-start-once)
 

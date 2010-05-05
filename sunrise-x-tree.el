@@ -78,7 +78,8 @@
     (unless button
       (sr-tree-beginning-of-buffer)
       (setq button (sr-tree-get-button)))
-  (sr-tree-refresh-dir button)))
+  (sr-tree-refresh-dir button)
+  (sr-highlight)))
 
 (defun sr-tree-revert-buffer (&optional ignore-auto noconfirm)
   (interactive)
@@ -100,7 +101,7 @@
 (defun sr-tree-path-line (&optional path face)
   (let ((face (or face 'sr-active-path-face))
         (path (expand-file-name (or path (cdr sr-tree-cursor) ""))))
-    (propertize path 'face face)))
+    (replace-regexp-in-string "/?$" "" path)))
 
 (defun sr-tree-highlight (&optional face)
   (save-excursion
@@ -108,7 +109,8 @@
           (inhibit-read-only t))
       (goto-char (point-min))
       (kill-line)
-      (widget-insert (sr-tree-path-line nil face) " "))))
+      (widget-insert (sr-tree-path-line nil face) " ")
+      (sr-highlight))))
 
 (defun sr-tree-list (dir)
   "Return the list of entries in DIR. Place directories first."
@@ -154,7 +156,7 @@
     (mapc 'delete-overlay (car all))
     (mapc 'delete-overlay (cdr all))
     (tree-widget-set-theme "folder")
-    (widget-insert (format "%s\n\n" (sr-tree-path-line root)))
+    (widget-insert (format "%s \n\n" (sr-tree-path-line root)))
     (set
      (make-local-variable 'sr-tree-root)
      (widget-create (sr-tree-widget root t)))
@@ -162,7 +164,8 @@
     (if sr-tree-cursor
         (sr-tree-search-cursor)
       (sr-tree-beginning-of-buffer))
-    (sr-tree-refresh-branch)))
+    (sr-tree-refresh-branch)
+    (sr-tree-register-path sr-tree-root)))
 
 ;;; ============================================================================
 ;;; GUI interaction functions:
@@ -210,16 +213,17 @@
 
 (defun sr-tree-update-cursor ()
   (setq sr-tree-cursor (sr-tree-get-cursor))
-  (setq sr-this-directory (cdr sr-tree-cursor))
-  (sr-tree-highlight)
-  (cd (cdr sr-tree-cursor))
-  (when (and (featurep 'sunrise-x-modeline)
-             (not (eq mode-line-format (default-value 'mode-line-format))))
-    (if (fboundp 'sr-modeline-refresh)
-        (sr-modeline-refresh))
-    (force-mode-line-update))
-  (when sr-synchronized
-    (sr-tree-advertised-find-file-other)))
+  (when sr-tree-cursor
+    (setq sr-this-directory (cdr sr-tree-cursor))
+    (sr-tree-highlight)
+    (cd (cdr sr-tree-cursor))
+    (when (and (featurep 'sunrise-x-modeline)
+               (not (eq mode-line-format (default-value 'mode-line-format))))
+      (if (fboundp 'sr-modeline-refresh)
+          (sr-modeline-refresh))
+      (force-mode-line-update))
+    (when sr-synchronized
+      (sr-tree-advertised-find-file-other))))
 
 (defun sr-tree-next-line ()
   (interactive)
@@ -429,6 +433,30 @@
   (unless sr-tree-root
     (sr-tree-build default-directory)))
 
+(defun sr-tree-menu-init ()
+  "Initializes the Sunrise Tree extension menu."
+
+  (unless (lookup-key sr-mode-map [menu-bar Sunrise])
+    (define-key sr-mode-map [menu-bar Sunrise]
+      (cons "Sunrise" (make-sparse-keymap))))
+  (let ((menu-map (make-sparse-keymap "Tree View")))
+    (define-key sr-mode-map [menu-bar Sunrise tree-view]
+      (cons "Tree View" menu-map))
+    (define-key menu-map [enable-tree-view] '("enable" . sr-tree-view)))
+
+  (define-key sr-tree-mode-map [menu-bar Sunrise]
+    (cons "Sunrise" (make-sparse-keymap)))
+  (let ((menu-map (make-sparse-keymap "Tree View")))
+    (define-key sr-tree-mode-map [menu-bar Sunrise tree-view]
+      (cons "Tree View" menu-map))
+    (define-key menu-map [enable-tree-view] nil)
+    (define-key menu-map [disable-tree-view] '("dismiss" . sr-tree-dismiss)))
+
+  (remove-hook 'sr-start-hook 'sr-tree-menu-init)
+  (unintern 'sr-tree-menu-init))
+
+(add-hook 'sr-start-hook 'sr-tree-menu-init)
+
 ;;; ============================================================================
 ;;; Sunrise Tree View keybindings:
 
@@ -448,6 +476,10 @@
 (define-key sr-tree-mode-map "\C-s" 'sr-tree-isearch-forward)
 (define-key sr-tree-mode-map "\C-r" 'sr-tree-isearch-backward)
 (define-key sr-tree-mode-map "\C-c\C-c" 'sr-tree-dismiss)
+(define-key sr-tree-mode-map "\C-cf" 'sr-tree-focus-branch)
+(define-key sr-tree-mode-map "\C-cu" 'sr-tree-unfocus-branch)
+(define-key sr-tree-mode-map "\C-c\C-m" 'sr-tree-explode-branch)
+
 (define-key sr-tree-mode-map "C" 'sr-tree-do-copy)
 (define-key sr-tree-mode-map "K" 'sr-tree-do-clone)
 (define-key sr-tree-mode-map "R" 'sr-tree-do-rename)
@@ -520,12 +552,10 @@
 
 (defun sr-tree-widget-focus-branch (e)
   (interactive "e")
-  (sr-tree-widget-handle-event e 'sr-tree-focus-branch))
-
-(defun sr-tree-widget-unfocus-branch (e)
-  (interactive "e")
-  (sr-tree-beginning-of-buffer)
-  (sr-tree-unfocus-branch))
+  (mouse-set-point e)
+  (if (eq (sr-tree-get-branch) sr-tree-root)
+      (sr-tree-unfocus-branch)
+    (sr-tree-widget-handle-event e 'sr-tree-focus-branch)))
 
 (define-key tree-widget-button-keymap "\t" 'sr-tree-widget-forward)
 (define-key tree-widget-button-keymap "\C-m" 'sr-tree-widget-button-press)
@@ -537,8 +567,7 @@
 (define-key sr-tree-mode-map [mouse-1] 'sr-tree-toggle-branch)
 (define-key sr-tree-mode-map [double-mouse-1] 'sr-tree-widget-advertised-find-file)
 (define-key sr-tree-mode-map [C-mouse-1] 'sr-tree-widget-explode-branch)
-(define-key sr-tree-mode-map [M-mouse-1] 'sr-tree-widget-focus-branch)
-(define-key sr-tree-mode-map [S-mouse-1] 'sr-tree-widget-unfocus-branch)
+(define-key sr-tree-mode-map [S-mouse-1] 'sr-tree-widget-focus-branch)
 
 ;;; ============================================================================
 ;;; Sunrise Core integration:
@@ -565,9 +594,14 @@
   (mouse-set-point e)
   (sr-tree-view))
 
-(define-key sr-mode-map "\C-tv" 'sr-tree-view)
-(define-key sr-mode-map [(control down)] 'sr-tree-view)
+(define-key sr-mode-map "\C-t " 'sr-tree-view)
+(define-key sr-mode-map "\C-t\C-m" 'sr-tree-view)
+(define-key sr-tree-mode-map "\C-t " 'sr-tree-dismiss)
+(define-key sr-tree-mode-map "\C-t\C-m" 'sr-tree-dismiss)
+(define-key sr-mode-map [(shift meta down)] 'sr-tree-view)
+(define-key sr-tree-mode-map [(shift meta down)] 'sr-tree-dismiss)
 (define-key sr-mode-map (kbd "<M-S-down-mouse-1>") 'sr-tree-view-mouse)
+(define-key sr-tree-mode-map (kbd "<M-S-down-mouse-1>") 'sr-tree-dismiss)
 
 ;;; ============================================================================
 ;;; Sunrise Buttons integration:

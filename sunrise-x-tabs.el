@@ -81,7 +81,6 @@
 ;;; Code:
 
 (require 'sunrise-commander)
-(require 'easymenu)
 (eval-when-compile (require 'desktop))
 
 (defcustom sr-tabs-follow-panes t
@@ -464,19 +463,6 @@
 ;;; ============================================================================
 ;;; User interface:
 
-(defvar sr-tabs-menu
-  (easy-menu-create-menu
-   "Tabs"
-   '(["Add/Rename tab" sr-tabs-add]
-     ["Remove tab" sr-tabs-remove]
-     ["Go to next tab" sr-tabs-next]
-     ["Go to previous tab" sr-tabs-prev]
-     ["Kill buffer and go to next tab" sr-tabs-kill-and-go]
-     ["Transpose tabs" sr-tabs-transpose]
-     ["Tabs mode help" (lambda ()
-                         (interactive)
-                         (describe-function 'sr-tabs-mode))])))
-
 (defvar sr-tabs-mode-map (make-sparse-keymap))
 (define-key sr-tabs-mode-map [(control ?j)] 'sr-tabs-add)
 (define-key sr-tabs-mode-map [(control ?k)] 'sr-tabs-remove)
@@ -519,16 +505,27 @@
       (sr-tabs-engage)
     (sr-tabs-disengage)))
 
+
+
 ;;; ============================================================================
 ;;; Bootstrap:
 
 (defun sr-tabs-menu-init ()
   "Initializes the Sunrise Tabs extension menu."
-  (unless (fboundp 'easy-menu-binding) ;;<-- not available in emacs 22
-    (defsubst easy-menu-binding (menu &optional item-name) (ignore)))
-  (define-key sr-tabs-mode-map
-    (vector 'menu-bar (easy-menu-intern "Sunrise"))
-    (easy-menu-binding sr-tabs-menu "Sunrise")))
+  (unless (lookup-key sr-mode-map [menu-bar Sunrise])
+    (define-key sr-mode-map [menu-bar Sunrise]
+      (cons "Sunrise" (make-sparse-keymap))))
+  (let ((menu-map (make-sparse-keymap "Tabs")))
+    (define-key sr-mode-map [menu-bar Sunrise tabs] (cons "Tabs" menu-map))
+    (define-key menu-map [help] '("Help" . (lambda ()
+                                             (interactive)
+                                             (describe-function 'sr-tabs-mode))))
+    (define-key menu-map [transpose] '("Transpose" . sr-tabs-transpose))
+    (define-key menu-map [kill]      '("Kill and go to next" . sr-tabs-kill-and-go))
+    (define-key menu-map [next]      '("Next"         . sr-tabs-next))
+    (define-key menu-map [prev]      '("Previous"     . sr-tabs-prev))
+    (define-key menu-map [remove]    '("Remove"       . sr-tabs-remove))
+    (define-key menu-map [add]       '("Add/Rename"   . sr-tabs-add))))
 
 (defun sr-tabs-start-once ()
   "Bootstraps  the  tabs  mode  on the first execution of the Sunrise Commander,
@@ -536,6 +533,7 @@
   (sr-tabs-mode t)
   (sr-tabs-menu-init)
   (remove-hook 'sr-start-hook 'sr-tabs-start-once)
+  (unintern 'sr-tabs-menu-init)
   (unintern 'sr-tabs-start-once))
 (add-hook 'sr-start-hook 'sr-tabs-start-once)
 
