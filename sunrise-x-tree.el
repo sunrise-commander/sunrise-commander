@@ -43,13 +43,13 @@
 (defvar sr-tree-mode-map (make-sparse-keymap)
   "Keymap for the Sunrise Commander Tree View.")
 
-;;; ============================================================================
-;;; GUI Management functions:
-
 (define-widget 'sr-tree-dir-widget 'tree-widget
   "Directory Tree widget."
   :dynargs  'sr-tree-expand-dir
   :has-children   t)
+
+;;; ============================================================================
+;;; GUI Management functions:
 
 (defun sr-tree-focus-widget ()
   "Move point to the first button widget in the current line (if any)."
@@ -67,6 +67,33 @@
 (defun sr-tree-get-branch ()
   "Return the first tree widget in the current line (if any)."
   (widget-get (sr-tree-get-button) :parent))
+
+(defun sr-tree-get-cursor ()
+  "Construct a new cons cell containing the tree label and the file path of the
+  currently selected node in the tree representation of the file system."
+  (let* ((cursor-node (sr-tree-get-button))
+         (cursor-tree (if cursor-node (widget-get cursor-node :parent)))
+         (cursor-node (widget-get cursor-node :node))
+         (cursor-tag (widget-get cursor-node :tag))
+         (cursor-path (sr-tree-path-line (widget-get cursor-tree :path))))
+    (and cursor-tag cursor-path (cons cursor-tag cursor-path))))
+
+(defun sr-tree-update-cursor ()
+  "Update the internal representation of the directory currently selected in the
+  tree and all graphical elements of the interface, depending on the position of
+  the point."
+  (setq sr-tree-cursor (sr-tree-get-cursor))
+  (when sr-tree-cursor
+    (setq sr-this-directory (cdr sr-tree-cursor))
+    (sr-tree-highlight)
+    (cd (cdr sr-tree-cursor))
+    (when (and (featurep 'sunrise-x-modeline)
+               (not (eq mode-line-format (default-value 'mode-line-format))))
+      (if (fboundp 'sr-modeline-refresh)
+          (sr-modeline-refresh))
+      (force-mode-line-update))
+    (when sr-synchronized
+      (sr-tree-advertised-find-file-other))))
 
 (defun sr-tree-refresh-dir (widget &rest ignore)
   "Refresh WIDGET parent (or own) tree children. IGNORE other arguments."
@@ -112,11 +139,13 @@
       :path ,e)))
 
 (defun sr-tree-path-line (&optional path)
-  "Transform PATH into a suitable "
+  "Transform PATH into a suitable path line for displaying at the top of the
+  pane."
   (let ((path (expand-file-name (or path (cdr sr-tree-cursor) ""))))
     (replace-regexp-in-string "/?$" "" path)))
 
 (defun sr-tree-highlight ()
+  "Set up the path line in the current Sunrise Tree buffer."
   (save-excursion
     (let ((path (or (cdr sr-tree-cursor) "-"))
           (inhibit-read-only t))
@@ -153,6 +182,8 @@
            nil)))))
 
 (defun sr-tree-register-path (widget)
+  "Add the path in WIDGET to the list of open paths in the current Sunrise Tree
+  buffer."
   (let ((path (sr-tree-path-line (widget-get widget :path))))
     (setq sr-tree-open-paths
           (if (widget-get widget :open)
@@ -161,7 +192,8 @@
 (add-hook 'tree-widget-after-toggle-functions 'sr-tree-register-path)
 
 (defun sr-tree-build (root)
-  (interactive "DRoot: ")
+  "Delete the current tree widget and build a new one at ROOT."
+  (interactive "DSunrise Tree Root: ")
   (cd (setq root (expand-file-name root)))
   (let ((inhibit-read-only t)
         (all (overlay-lists)))
@@ -181,6 +213,8 @@
     (sr-tree-register-path sr-tree-root)))
 
 (defun sr-tree-goto-dir (root &optional keep-state)
+  "Implementation of the sr-goto-dir function for buffers in Sunrise Tree
+  mode. See also variable sr-goto-dir-function."
   (interactive)
   (unless keep-state
     (setq sr-tree-cursor nil sr-tree-open-paths nil))
@@ -192,7 +226,46 @@
 ;;; ============================================================================
 ;;; GUI interaction functions:
 
+(defun sr-tree-next-line ()
+  "Move point to the next line in the current pane."
+  (interactive)
+  (forward-line)
+  (sr-tree-update-cursor))
+
+(defun sr-tree-previous-line ()
+  "Move point to the previous line in the current pane."
+  (interactive)
+  (forward-line -1)
+  (sr-tree-update-cursor))
+
+(defun sr-tree-scroll-down (&optional arg)
+  "Scroll down the current pane without moving the point (if possible)."
+  (interactive)
+  (scroll-down arg)
+  (sr-tree-update-cursor))
+
+(defun sr-tree-scroll-up (&optional arg)
+  "Scroll up the current pane without moving the point (if possible)."
+  (interactive)
+  (scroll-up arg)
+  (sr-tree-update-cursor))
+
+(defun sr-tree-beginning-of-buffer ()
+  "Move cursor to the top of the current Sunrise Tree View pane."
+  (interactive)
+  (goto-char (widget-get sr-tree-root :from))
+  (sr-tree-update-cursor))
+
+(defun sr-tree-end-of-buffer ()
+  "Move cursor to the bottom of the current Sunrise Tree View pane."
+  (interactive)
+  (forward-sentence)
+  (sr-tree-update-cursor))
+
 (defun sr-tree-toggle-branch (&optional action)
+  "Open/close (graphically) the node selected in the current Sunrise Tree pane.
+  Optional ACTION is one of the symbols 'open or 'close and allows to specify
+  whether the node has to be open only if closed, or closed only if open."
   (interactive)
   (let ((is-open (widget-get (sr-tree-get-branch) :open)))
     (when (or (and is-open (eq action 'close))
@@ -202,12 +275,34 @@
       (widget-button-press (point)))))
 
 (defun sr-tree-open-branch ()
+  "Unfold (graphically) the directory selected in the current Sunrise Tree pane,
+  displaying the subdirectories directly under it."
   (interactive)
   (if (widget-get (sr-tree-get-branch) :open)
       (sr-tree-advertised-find-file)
     (sr-tree-toggle-branch 'open)))
 
+(defun sr-tree-close-branch ()
+  "Fold the selected directory, hiding all subdirectories being displayed under
+  it or any of its subdirectories."
+  (interactive)
+  (sr-tree-toggle-branch 'close))
+
+(defun sr-tree-collapse-branch ()
+  "If the current folder is open, close it. If it is closed, move to its parent
+  directory, building a new tree if necessary."
+  (interactive)
+  (let ((branch (sr-tree-get-branch)))
+    (if (widget-get branch :open)
+        (sr-tree-close-branch)
+      (sr-tree-prev-subdir)
+      (unless (eq (sr-tree-get-branch) sr-tree-root)
+        (sr-tree-close-branch)))))
+
 (defun sr-tree-explode-branch (&optional level branch)
+  "Open the selected directory and all its open subdirectories recursively, down
+  to the number of levels determined by variable sr-tree-explosion-ratio. LEVEL
+  and BRANCH optional arguments are used only internally to control recursion."
   (interactive)
   (unless (or level branch)
     (recenter (truncate (/ (window-body-height) 10.0))))
@@ -221,53 +316,10 @@
       (dolist (child (cdr (widget-get branch :children)))
         (sr-tree-explode-branch level child)))))
 
-(defun sr-tree-close-branch ()
-  (interactive)
-  (sr-tree-toggle-branch 'close))
-
-(defun sr-tree-get-cursor ()
-  (let* ((cursor-node (sr-tree-get-button))
-         (cursor-tree (if cursor-node (widget-get cursor-node :parent)))
-         (cursor-node (widget-get cursor-node :node))
-         (cursor-tag (widget-get cursor-node :tag))
-         (cursor-path (sr-tree-path-line (widget-get cursor-tree :path))))
-    (and cursor-tag cursor-path (cons cursor-tag cursor-path))))
-
-(defun sr-tree-update-cursor ()
-  (setq sr-tree-cursor (sr-tree-get-cursor))
-  (when sr-tree-cursor
-    (setq sr-this-directory (cdr sr-tree-cursor))
-    (sr-tree-highlight)
-    (cd (cdr sr-tree-cursor))
-    (when (and (featurep 'sunrise-x-modeline)
-               (not (eq mode-line-format (default-value 'mode-line-format))))
-      (if (fboundp 'sr-modeline-refresh)
-          (sr-modeline-refresh))
-      (force-mode-line-update))
-    (when sr-synchronized
-      (sr-tree-advertised-find-file-other))))
-
-(defun sr-tree-next-line ()
-  (interactive)
-  (forward-line)
-  (sr-tree-update-cursor))
-
-(defun sr-tree-previous-line ()
-  (interactive)
-  (forward-line -1)
-  (sr-tree-update-cursor))
-
-(defun sr-tree-scroll-down (&optional arg)
-  (interactive)
-  (scroll-down arg)
-  (sr-tree-update-cursor))
-
-(defun sr-tree-scroll-up (&optional arg)
-  (interactive)
-  (scroll-up arg)
-  (sr-tree-update-cursor))
-
 (defun sr-tree-search-cursor (&optional init-cursor recursing)
+  "Try to move the point to the node represented by INIT-CURSOR. If this is nil
+  use the value of sr-tree-cursor instead. On failure put the point at the top
+  of the pane."
   (let ((cursor (or init-cursor sr-tree-cursor)) new-cursor)
     (if (null cursor)
         (sr-tree-beginning-of-buffer)
@@ -280,34 +332,27 @@
               (sr-tree-search-cursor cursor t))
           (sr-tree-update-cursor))))))
 
-(defun sr-tree-omit-mode (&optional force)
-  (interactive)
-  (setq dired-omit-mode (or force (not dired-omit-mode)))
-  (revert-buffer))
-
-(defun sr-tree-beginning-of-buffer ()
-  (interactive)
-  (goto-char (widget-get sr-tree-root :from))
-  (sr-tree-update-cursor))
-
-(defun sr-tree-end-of-buffer ()
-  (interactive)
-  (forward-sentence)
-  (sr-tree-update-cursor))
-
 (defun sr-tree-isearch-forward (&optional prefix)
+  "Prefixable version of isearch-forward used in Sunrise Tree mode. With PREFIX
+  starts a new isearch-forward immediately after the previous one exits as long
+  as C-g is not pressed."
   (interactive "P")
   (if prefix
       (add-hook 'isearch-mode-end-hook 'sr-tree-post-isearch))
   (isearch-forward nil t))
 
 (defun sr-tree-isearch-backward (&optional prefix)
+  "Prefixable version of isearch-backward used in Sunrise Tree mode. With PREFIX
+  starts a new isearch-forward immediately after the previous search exits until
+  C-g not pressed."
   (interactive "P")
   (if prefix
       (add-hook 'isearch-mode-end-hook 'sr-tree-post-isearch))
   (isearch-backward nil t))
 
 (defun sr-tree-post-isearch ()
+  "Function installed in isearch-mode-end-hook during sticky isearch operations
+  in Sunrise Tree View mode."
   (if isearch-mode-end-hook-quit
       (remove-hook 'isearch-mode-end-hook 'sr-tree-post-isearch)
     (progn
@@ -317,7 +362,33 @@
           (isearch-forward nil t)
         (remove-hook 'isearch-mode-end-hook 'sr-tree-post-isearch)))))
 
+(defun sr-tree-focus-branch ()
+  "Replace the current tree with a new one having the selected directory as its
+  root node."
+  (interactive)
+  (unless (eq (sr-tree-get-branch) sr-tree-root)
+    (sr-tree-goto-dir (cdr sr-tree-cursor) t)))
+
+(defun sr-tree-unfocus-branch ()
+  "Replace the current tree with a new one having the parent of the current root
+  directory as its root, keeping the cursor at its current position."
+  (interactive)
+  (let ((sr-tree-cursor sr-tree-cursor))
+    (unless (eq (sr-tree-get-branch) sr-tree-root)
+      (sr-tree-beginning-of-buffer))
+    (sr-tree-prev-subdir t))
+  (sr-tree-search-cursor)
+  (recenter))
+
+(defun sr-tree-omit-mode (&optional force)
+  "Toggle dired-omit-mode in the current Sunrise Tree View pane."
+  (interactive)
+  (setq dired-omit-mode (or force (not dired-omit-mode)))
+  (revert-buffer))
+
 (defun sr-tree-handle-mouse-event (e handler)
+  "Handle mouse event E by calling function HANDLER after updating the cursor at
+  point. Return t if the even was successfully handled."
   (when (and e (eq major-mode 'sr-tree-mode))
     (mouse-set-point e)
     (when (sr-tree-get-button)
@@ -325,51 +396,35 @@
       (funcall handler)
       t)))
 
-(defun sr-tree-mouse-advertised-find-file (e)
-  (interactive "e")
-  (sr-tree-handle-mouse-event e 'sr-tree-advertised-find-file))
-
 (defun sr-tree-mouse-toggle-branch (e)
+  "Open/close (graphically) the folder clicked with the mouse. Also handle the
+  case when the click occurs on the path line."
   (interactive "e")
-  (sr-tree-handle-mouse-event e 'sr-tree-toggle-branch))
+  (or (sr-tree-handle-mouse-event e 'sr-tree-toggle-branch)
+      (sr-mouse-advertised-find-file e)))
 
 (defun sr-tree-mouse-focus-branch (e)
+  "Version of sr-tree-focus-branch (which see) for the mouse."
   (interactive "e")
   (sr-tree-handle-mouse-event e 'sr-tree-focus-branch))
 
 (defun sr-tree-mouse-unfocus-branch (e)
+  "Version of sr-tree-unfocus-branch (which see) for the mouse."
   (interactive "e")
   (or (sr-tree-handle-mouse-event e 'sr-tree-unfocus-branch)
       (sr-tree-unfocus-branch)))
 
 (defun sr-tree-mouse-explode-branch (e)
+  "Version of sr-tree-explode-branch (which see) for the mouse."
   (interactive "e")
   (sr-tree-handle-mouse-event e 'sr-tree-explode-branch))
-
-;;; ============================================================================
-;;; Tree Widget adapter functions:
-
-(defun sr-tree-widget-forward (arg)
-  (interactive "p")
-  (if (eq major-mode 'sr-tree-mode)
-      (sr-change-window)
-    (widget-forward arg)))
-
-(defun sr-tree-widget-button-press (pos &optional event)
-  (interactive "@d")
-  (if (eq major-mode 'sr-tree-mode)
-      (sr-tree-open-branch)
-    (widget-button-press pos event)))
-
-(defun sr-tree-widget-button-click (event)
-  (interactive "e")
-  (unless (eq major-mode 'sr-tree-mode)
-    (tree-widget-button-click event)))
 
 ;;; ============================================================================
 ;;; File system navigation functions:
 
 (defun sr-tree-prev-subdir (&optional keep-state)
+  "Move to the parent of the currently selected directory in Sunrise Tree View
+  mode, resetting the list of open directories unless KEEP-STATE is not nil."
   (interactive)
   (let* ((branch (sr-tree-get-branch))
          (parent (widget-get branch :parent)))
@@ -385,37 +440,22 @@
       (sr-tree-goto-dir ".." keep-state)
       (sr-tree-beginning-of-buffer)))))
 
-(defun sr-tree-collapse-branch ()
-  (interactive)
-  (let ((branch (sr-tree-get-branch)))
-    (if (widget-get branch :open)
-        (sr-tree-close-branch)
-      (sr-tree-prev-subdir)
-      (unless (eq (sr-tree-get-branch) sr-tree-root)
-        (sr-tree-close-branch)))))
-
-(defun sr-tree-focus-branch ()
-  (interactive)
-  (unless (eq (sr-tree-get-branch) sr-tree-root)
-    (sr-tree-goto-dir (cdr sr-tree-cursor) t)))
-
-(defun sr-tree-unfocus-branch ()
-  (interactive)
-  (let ((sr-tree-cursor sr-tree-cursor))
-    (unless (eq (sr-tree-get-branch) sr-tree-root)
-      (sr-tree-beginning-of-buffer))
-    (sr-tree-prev-subdir t))
-  (sr-tree-search-cursor)
-  (recenter))
-
 (defun sr-tree-advertised-find-file ()
+  "Visit the currently selected file or directory in Sunrise Tree View mode."
   (interactive)
   (let ((sr-goto-dir-function nil))
     (sr-save-aspect
      (sr-alternate-buffer
       (sr-goto-dir (cdr sr-tree-cursor))))))
 
+(defun sr-tree-mouse-advertised-find-file (e)
+  "Visit a file or directory selected using the mouse in the current pane."
+  (interactive "e")
+  (sr-tree-handle-mouse-event e 'sr-tree-advertised-find-file))
+
 (defun sr-tree-advertised-find-file-other ()
+  "In Sunrise Tree View mode, visit the currently selected file or directory in
+  the passive pane."
   (interactive)
   (let ((target (cdr sr-tree-cursor))
         (sr-synchronized nil)
@@ -424,24 +464,12 @@
      (progn (sr-goto-dir target)
             (sr-highlight 'sr-passive-path-face)))))
 
-(defun sr-tree-sync ()
-  (interactive)
-  (unless sr-synchronized
-    (sr-tree-advertised-find-file-other))
-  (sr-sync)
-  (sr-force-passive-highlight))
-
-(defun sr-tree-dismiss ()
-  (interactive)
-  (let ((target (widget-get sr-tree-root :path))
-        (sr-goto-dir-function nil))
-    (sr-save-aspect
-     (sr-alternate-buffer (sr-goto-dir target)))))
-
 ;;; ============================================================================
 ;;; File system manipulation functions:
 
 (defmacro sr-tree-adapt-dired-command (command)
+  "Redefines locally a few dired functions, so the basic dired commands for file
+  manipulation can work in Sunrise Tree View mode."
   `(let ((ad-redefinition-action 'accept))
      (ad-deactivate 'dired-get-filename)
      (flet
@@ -455,22 +483,33 @@
      (ad-activate 'dired-get-filename)))
 
 (defun sr-tree-do-copy ()
+  "Copy recursively all selected files and directories from the active pane to
+  the passive one when one of the panes (or both) is in Sunrise Tree View mode."
   (interactive)
   (sr-tree-adapt-dired-command (sr-do-copy)))
 
 (defun sr-tree-do-clone ()
+  "Clone recursively all selected files and directories from the active pane to
+  the passive one when one of the panes (or both) is in Sunrise Tree View mode."
   (interactive)
   (sr-tree-adapt-dired-command (sr-do-clone)))
 
 (defun sr-tree-do-symlink ()
+  "Make symbolic links in the passive pane to all selected files and directories
+  in the active one when one of the panes (or both) is a Sunrise Tree View."
   (interactive)
   (sr-tree-adapt-dired-command (sr-do-symlink)))
 
 (defun sr-tree-do-relsymlink ()
+  "Make relative symbolic links in the passive pane to all selected files and
+  directories in the active one when one of the panes (or both) is in Sunrise
+  Tree View mode."
   (interactive)
   (sr-tree-adapt-dired-command (sr-do-relsymlink)))
 
 (defun sr-tree-do-rename ()
+  "Move recursively all selected files and directories from the active pane to
+  the passive one when one of the panes (or both) is in Sunrise Tree View mode."
   (interactive)
   (sr-tree-adapt-dired-command (sr-do-rename))
   (unless (file-exists-p (cdr sr-tree-cursor))
@@ -478,6 +517,7 @@
     (sr-tree-refresh-branch)))
 
 (defun sr-tree-do-delete ()
+  "Remove the directory selected in the current Sunrise Tree View pane."
   (interactive)
   (sr-tree-adapt-dired-command (sr-do-delete))
   (unless (file-exists-p (cdr sr-tree-cursor))
@@ -485,6 +525,7 @@
     (sr-tree-refresh-branch)))
 
 (defun sr-tree-show-files-info ()
+  "Version of sr-show-files-info (which see) for Sunrise Tree View panes."
   (interactive)
   (sr-tree-adapt-dired-command (sr-show-files-info)))
 
@@ -497,38 +538,116 @@
                                isearch-mode-end-hook
                                desktop-save-buffer
                                revert-buffer-function
-                               sr-goto-dir-function))
+                               sr-goto-dir-function
+                               sr-buttons-command-adapter))
   (add-hook 'isearch-mode-end-hook 'sr-tree-update-cursor)
-  (setq desktop-save-buffer    'sr-tree-desktop-save-buffer
-        revert-buffer-function 'sr-tree-revert-buffer
-        sr-goto-dir-function   'sr-tree-goto-dir)
+  (setq desktop-save-buffer        'sr-tree-desktop-save-buffer
+        revert-buffer-function     'sr-tree-revert-buffer
+        sr-goto-dir-function       'sr-tree-goto-dir
+        sr-buttons-command-adapter 'sr-tree-buttons-command-adapter)
   (setq dired-omit-mode t)
   (unless sr-tree-root
     (sr-tree-build default-directory)))
 
-(defun sr-tree-menu-init ()
-  "Initializes the Sunrise Tree extension menu."
+;;; ============================================================================
+;;; Sunrise Core + Tabs + Mode Line integration:
 
-  (unless (lookup-key sr-mode-map [menu-bar Sunrise])
-    (define-key sr-mode-map [menu-bar Sunrise]
-      (cons "Sunrise" (make-sparse-keymap))))
-  (let ((menu-map (make-sparse-keymap "Tree View")))
-    (define-key sr-mode-map [menu-bar Sunrise tree-view]
-      (cons "Tree View" menu-map))
-    (define-key menu-map [enable-tree-view] '("enable" . sr-tree-view)))
+(defun sr-tree-view (&optional desktop-mode)
+  "Make the transition from Sunrise normal mode to Tree View. If DESKTOP-MODE is
+  not nil, do not kill the current buffer (necessary during desktop-read)."
+  (interactive)
+  (let ((default-directory (or (dired-default-directory) default-directory))
+        (omit dired-omit-mode))
+    (sr-save-aspect
+     (if desktop-mode
+         (switch-to-buffer (generate-new-buffer "Sunrise Tree"))
+       (sr-alternate-buffer
+        (switch-to-buffer (generate-new-buffer "Sunrise Tree"))))
+     (sr-tree-mode))
+    (if (fboundp 'sr-modeline-setup)
+        (sr-modeline-setup))
+    (if (fboundp 'sr-tabs-engage)
+        (sr-tabs-engage))
+    (sr-force-passive-highlight)))
 
-  (define-key sr-tree-mode-map [menu-bar Sunrise]
-    (cons "Sunrise" (make-sparse-keymap)))
-  (let ((menu-map (make-sparse-keymap "Tree View")))
-    (define-key sr-tree-mode-map [menu-bar Sunrise tree-view]
-      (cons "Tree View" menu-map))
-    (define-key menu-map [enable-tree-view] nil)
-    (define-key menu-map [disable-tree-view] '("dismiss" . sr-tree-dismiss)))
+(defun sr-tree-mouse-view (e)
+  "Make the transition from Sunrise normal mode to Tree View using the mouse."
+  (interactive "e")
+  (sr-mouse-change-window e)
+  (sr-tree-view))
 
-  (remove-hook 'sr-start-hook 'sr-tree-menu-init)
-  (unintern 'sr-tree-menu-init))
+(defun sr-tree-dismiss ()
+  "Make the transition from Tree View to normal mode."
+  (interactive)
+  (let ((target (widget-get sr-tree-root :path))
+        (sr-goto-dir-function nil))
+    (sr-save-aspect
+     (sr-alternate-buffer (sr-goto-dir target)))))
 
-(add-hook 'sr-start-hook 'sr-tree-menu-init)
+(defun sr-tree-mouse-dismiss (e)
+  "Make the transition from Tree View to normal mode using the mouse."
+  (interactive "e")
+  (sr-mouse-change-window e)
+  (sr-tree-dismiss))
+
+;;; ============================================================================
+;;; Sunrise Buttons integration:
+
+(defvar sr-tree-button-commands
+  '((sr-do-copy               . sr-tree-do-copy)
+    (sr-do-clone              . sr-tree-do-clone)
+    (sr-do-symlink            . sr-tree-do-symlink)
+    (sr-do-relsymlink         . sr-tree-do-relsymlink)
+    (sr-do-rename             . sr-tree-do-rename)
+    (sr-do-delete             . sr-tree-do-delete)
+    (sr-change-window         . sr-change-window)
+    (sr-synchronize-panes     . sr-synchronize-panes)
+    (sr-sync                  . sr-sync)
+    (sr-beginning-of-buffer   . sr-tree-beginning-of-buffer)
+    (sr-end-of-buffer         . sr-tree-end-of-buffer)
+    (sr-term                  . sr-term)
+    (sr-describe-mode         . sr-describe-mode)
+    (sr-transpose-panes       . sr-transpose-panes)
+    (revert-buffer            . revert-buffer)
+    (sr-split-toggle          . sr-split-toggle)
+    (sr-toggle-truncate-lines . sr-toggle-truncate-lines))
+  "Sunrise Buttons-to-Tree commands translation table.")
+
+(defun sr-tree-buttons-command-adapter (command)
+  "Execute the given buttons command in the current Sunrise Tree View pane. If
+  the command doesn't make sense in the current context, switch first to normal
+  mode, then execute."
+  (let ((translation (cdr (assq command sr-tree-button-commands))))
+    (if translation
+        (call-interactively translation)
+      (sr-tree-dismiss)
+      (call-interactively command))))
+
+;;; ============================================================================
+;;; Tree Widget adapter functions:
+
+(defun sr-tree-widget-forward (arg)
+  "Replaces function widget-forward in tree-widget-button-keymap to change its
+  behavior only in Sunrise Tree View mode."
+  (interactive "p")
+  (if (eq major-mode 'sr-tree-mode)
+      (sr-change-window)
+    (widget-forward arg)))
+
+(defun sr-tree-widget-button-press (pos &optional event)
+  "Replaces function widget-button-press in tree-widget-button-keymap to change
+  its behavior only in Sunrise Tree View mode."
+  (interactive "@d")
+  (if (eq major-mode 'sr-tree-mode)
+      (sr-tree-open-branch)
+    (widget-button-press pos event)))
+
+(defun sr-tree-widget-button-click (event)
+  "Replaces function widget-button-click in tree-widget-button-keymap to change
+  its behavior only in Sunrise Tree View mode."
+  (interactive "e")
+  (unless (eq major-mode 'sr-tree-mode)
+    (tree-widget-button-click event)))
 
 ;;; ============================================================================
 ;;; Sunrise Tree View keybindings:
@@ -576,7 +695,7 @@
 (define-key sr-tree-mode-map [(control left)] 'sr-tree-collapse-branch)
 (define-key sr-tree-mode-map [(shift left)] 'sr-tree-unfocus-branch)
 
-(define-key sr-tree-mode-map "\C-q" 'sr-tree-sync)
+(define-key sr-tree-mode-map "\C-q" 'sr-sync)
 
 (dotimes (n 10)
   (define-key sr-tree-mode-map (number-to-string n) 'digit-argument))
@@ -584,13 +703,6 @@
 (mapc (lambda (x)
         (define-key sr-tree-mode-map x nil))
       '("Q" "F" "A" "k" "s" "\C-c/"))
-
-(define-key tree-widget-button-keymap "\t" 'sr-tree-widget-forward)
-(define-key tree-widget-button-keymap "\C-m" 'sr-tree-widget-button-press)
-(define-key tree-widget-button-keymap [down-mouse-1] 'sr-tree-widget-button-click)
-(define-key tree-widget-button-keymap [mouse-1] 'tree-widget-button-click)
-(define-key tree-widget-button-keymap [double-mouse-1] 'sr-tree-mouse-advertised-find-file)
-(define-key tree-widget-button-keymap [C-mouse-1] 'sr-tree-mouse-explode-branch)
 
 (define-key sr-tree-mode-map [mouse-1] 'sr-tree-mouse-toggle-branch)
 (define-key sr-tree-mode-map [mouse-2] (lambda ()
@@ -607,38 +719,6 @@
 (define-key sr-tree-mode-map (kbd "<M-down-mouse-1>") 'ignore)
 (define-key sr-tree-mode-map (kbd "<C-down-mouse-1>") 'ignore)
 
-;;; ============================================================================
-;;; Sunrise Core integration:
-
-(defun sr-tree-view (&optional desktop-mode)
-  "Display a tree of entries in current directory."
-  (interactive)
-  (let ((default-directory (or (dired-default-directory) default-directory))
-        (omit dired-omit-mode))
-    (sr-save-aspect
-     (if desktop-mode
-         (switch-to-buffer (generate-new-buffer "Sunrise Tree"))
-       (sr-alternate-buffer
-        (switch-to-buffer (generate-new-buffer "Sunrise Tree"))))
-     (sr-tree-mode))
-    (if (fboundp 'sr-modeline-setup)
-        (sr-modeline-setup))
-    (if (fboundp 'sr-tabs-engage)
-        (sr-tabs-engage))
-    (sr-force-passive-highlight)))
-
-(defun sr-tree-mouse-view (e)
-  (interactive "e")
-  (sr-mouse-change-window e)
-  (sr-tree-view))
-
-(defun sr-tree-mouse-dismiss (e)
-  (interactive "e")
-  (sr-mouse-change-window e)
-  (sr-tree-dismiss))
-
-(define-key sr-mode-map "\C-t " 'sr-tree-view)
-(define-key sr-mode-map "\C-t\C-m" 'sr-tree-view)
 (define-key sr-tree-mode-map "\C-t " 'sr-tree-dismiss)
 (define-key sr-tree-mode-map "\C-t\C-m" 'sr-tree-dismiss)
 (define-key sr-mode-map [(shift meta down)] 'sr-tree-view)
@@ -646,31 +726,42 @@
 (define-key sr-mode-map (kbd "<M-S-down-mouse-1>") 'sr-tree-mouse-view)
 (define-key sr-tree-mode-map (kbd "<M-S-down-mouse-1>") 'sr-tree-mouse-dismiss)
 
+(define-key tree-widget-button-keymap "\t" 'sr-tree-widget-forward)
+(define-key tree-widget-button-keymap "\C-m" 'sr-tree-widget-button-press)
+(define-key tree-widget-button-keymap [down-mouse-1] 'sr-tree-widget-button-click)
+(define-key tree-widget-button-keymap [mouse-1] 'tree-widget-button-click)
+(define-key tree-widget-button-keymap [double-mouse-1] 'sr-tree-mouse-advertised-find-file)
+(define-key tree-widget-button-keymap [C-mouse-1] 'sr-tree-mouse-explode-branch)
+
+(define-key sr-mode-map "\C-t " 'sr-tree-view)
+(define-key sr-mode-map "\C-t\C-m" 'sr-tree-view)
+
 ;;; ============================================================================
-;;; Sunrise Buttons integration:
+;;; Bootstrap:
 
-(defvar sr-tree-button-commands
-  '((sr-do-copy             . sr-tree-do-copy)
-    (sr-do-clone            . sr-tree-do-clone)
-    (sr-do-symlink          . sr-tree-do-symlink)
-    (sr-do-relsymlink       . sr-tree-do-relsymlink)
-    (sr-do-rename           . sr-tree-do-rename)
-    (sr-do-delete           . sr-tree-do-delete)
-    (sr-change-window       . sr-change-window)
-    (sr-synchronize-panes   . sr-synchronize-panes)
-    (sr-sync                . sr-sync)
-    (sr-beginning-of-buffer . sr-tree-beginning-of-buffer)
-    (sr-end-of-buffer       . sr-tree-end-of-buffer)
-    (sr-term                . sr-term)
-    (sr-describe-mode       . sr-describe-mode)
-    (sr-transpose-panes     . sr-transpose-panes)))
+(defun sr-tree-menu-init ()
+  "Initializes the Sunrise Tree extension menu."
 
-(defun sr-tree-button-command (command)
-  (let ((translation (cdr (assq command sr-tree-button-commands))))
-    (if translation
-        (call-interactively translation)
-      (sr-tree-dismiss)
-      (call-interactively command))))
+  (unless (lookup-key sr-mode-map [menu-bar Sunrise])
+    (define-key sr-mode-map [menu-bar Sunrise]
+      (cons "Sunrise" (make-sparse-keymap))))
+  (let ((menu-map (make-sparse-keymap "Tree View")))
+    (define-key sr-mode-map [menu-bar Sunrise tree-view]
+      (cons "Tree View" menu-map))
+    (define-key menu-map [enable-tree-view] '("enable" . sr-tree-view)))
+
+  (define-key sr-tree-mode-map [menu-bar Sunrise]
+    (cons "Sunrise" (make-sparse-keymap)))
+  (let ((menu-map (make-sparse-keymap "Tree View")))
+    (define-key sr-tree-mode-map [menu-bar Sunrise tree-view]
+      (cons "Tree View" menu-map))
+    (define-key menu-map [enable-tree-view] nil)
+    (define-key menu-map [disable-tree-view] '("dismiss" . sr-tree-dismiss)))
+
+  (remove-hook 'sr-start-hook 'sr-tree-menu-init)
+  (unintern 'sr-tree-menu-init))
+
+(add-hook 'sr-start-hook 'sr-tree-menu-init)
 
 ;;; ============================================================================
 ;;; Desktop support:

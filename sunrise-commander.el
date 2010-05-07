@@ -910,9 +910,8 @@ automatically:
 (define-key sr-mode-map "k"           'dired-do-kill-lines)
 (define-key sr-mode-map [backspace]   'dired-unmark-backward)
 
-(define-key sr-mode-map [mouse-1]     'sr-mouse-change-window)
-(define-key sr-mode-map [mouse-2]     'sr-mouse-advertised-find-file)
-(define-key sr-mode-map [follow-link] 'mouse-face)
+(define-key sr-mode-map [mouse-1]     'sr-mouse-advertised-find-file)
+(define-key sr-mode-map [mouse-2]     'sr-mouse-change-window)
 
 (define-key sr-mode-map [(control >)]         'sr-checkpoint-save)
 (define-key sr-mode-map [(control .)]         'sr-checkpoint-restore)
@@ -922,6 +921,8 @@ automatically:
 (define-key sr-mode-map [(control meta ?\=)]  'sr-compare-panes)
 (define-key sr-mode-map [(control })]         'sr-max-lock-panes)
 (define-key sr-mode-map [(control {)]         'sr-min-lock-panes)
+
+(define-key sr-mode-map (kbd "<down-mouse-1>")  'ignore)
 
 (defun sunrise-mc-keys ()
   "Binds the function keys F2 to F10 the traditional MC way."
@@ -1437,17 +1438,6 @@ automatically:
       (if (and sr-avfs-root
                (null (posix-string-match "#" dir)))
           (setq dir (replace-regexp-in-string sr-avfs-root "" dir)))
- 
-      ;; Detect spontaneous windows changes (using the mouse):
-      (when (and (not (sr-equal-dirs sr-this-directory default-directory))
-                 (sr-equal-dirs sr-other-directory default-directory)
-                 (not (local-variable-p 'sr-virtual-buffer)))
-        (setq sr-other-directory sr-this-directory)
-        (sr-force-passive-highlight))
-      (if (eq (selected-window) sr-left-window)
-          (sr-select-window 'left)
-        (sr-select-window 'right))
- 
       (sr-save-aspect
        (sr-within dir (sr-alternate-buffer (dired dir))))
       (sr-history-push default-directory)
@@ -1638,8 +1628,7 @@ automatically:
   "Change to the Sunrise pane pointed to by the mouse."
   (interactive "e")
   (mouse-set-point e)
-  (if (and (eq (current-buffer) (sr-other 'buffer))
-           (not (eq sr-left-buffer sr-right-buffer)))
+  (if (eq (selected-window) (sr-other 'window))
       (sr-change-window)))
 
 (defun sr-beginning-of-buffer()
@@ -2009,7 +1998,7 @@ automatically:
 (defun sr-mouse-advertised-find-file (e)
   "Open the file/directory pointed to by the mouse."
   (interactive "e")
-  (mouse-set-point e)
+  (sr-mouse-change-window e)
   (sr-advertised-find-file))
 
 (defun sr-prev-subdir-other ()

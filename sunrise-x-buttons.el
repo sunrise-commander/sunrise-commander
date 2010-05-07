@@ -60,6 +60,9 @@
 (defvar sr-buttons-buffer-name "*Sunrise Buttons*"
   "Name of the Sunrise buttons buffer")
 
+(defvar sr-buttons-command-adapter nil
+  "(Buffer-local) function to use to execute button commands, or nil to do the default.")
+
 (defvar sr-buttons-list
   '(
     ("GotoDir([F2,]j,/)" 'sr-goto-dir                "Go to any directory in active pane")
@@ -248,8 +251,8 @@
   `(lambda (&rest ignore)
      (interactive)
      (sr-select-window sr-selected-window)
-     (if (and (eq major-mode 'sr-tree-mode) (fboundp 'sr-tree-button-command))
-         (run-with-timer 0.01 nil 'sr-tree-button-command ,action)
+     (if sr-buttons-command-adapter
+         (run-with-timer 0.01 nil (funcall sr-buttons-command-adapter ,action))
        (run-with-timer 0.01 nil 'call-interactively ,action))))
 
 (defun sr-buttons-editable-pane ()
