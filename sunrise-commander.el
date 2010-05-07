@@ -400,6 +400,10 @@
   "Whenever a back-up buffer is created, it is assigned to this variable after
   it's made buffer-local.")
 
+(defvar sr-goto-dir-function nil
+  "Function to use to navigate to a given directory, or nil to do the default.
+  The function receives one argument DIR, which is the directory to go to.")
+
 (defconst sr-side-lookup (list '(left . right) '(right . left))
   "Trivial alist used by the Sunrise Commander to lookup its own passive side.")
 
@@ -490,13 +494,15 @@ substitution may be about to happen."
         C-M-y ......... go to previous directory in history on passive pane
         C-M-u ......... go to next directory in history on passive pane
 
-        g ............. refresh pane
+        g, C-c C-c .... refresh pane
         s ............. change sorting order or files (name/size/time/extension)
         C-o ........... show/hide hidden files (requires dired-omit-mode)
         C-Backspace ... hide/show file attributes in pane
         C-c Backspace . hide/show file attributes in pane (console compatible)
         y ............. show file type / size of selected files and directories.
         M-l ........... truncate/continue long lines in pane
+        C-c v ......... put current panel in VIRTUAL mode
+        C-c C-v ....... create new pure VIRTUAL buffer
         C-c C-w ....... browse directory tree using w3m
 
         M-t ........... transpose panes
@@ -818,6 +824,7 @@ automatically:
 (define-key sr-mode-map "\C-c>"       'sr-checkpoint-save)
 (define-key sr-mode-map "\C-c."       'sr-checkpoint-restore)
 (define-key sr-mode-map "\C-c\C-z"    'sr-sync)
+(define-key sr-mode-map "\C-c\C-c"    'revert-buffer)
 
 (define-key sr-mode-map "\t"          'sr-change-window)
 (define-key sr-mode-map "\C-c\t"      'sr-select-viewer-window)
@@ -868,6 +875,7 @@ automatically:
 (define-key sr-mode-map "\C-c/"       'sr-fuzzy-narrow)
 (define-key sr-mode-map "\C-c\C-r"    'sr-recent-files)
 (define-key sr-mode-map "\C-c\C-d"    'sr-recent-directories)
+(define-key sr-mode-map "\C-cv"       'sr-virtual-mode)
 (define-key sr-mode-map "\C-c\C-v"    'sr-pure-virtual)
 (define-key sr-mode-map "Q"           'sr-do-query-replace-regexp)
 (define-key sr-mode-map "F"           'sr-do-find-marked-files)
@@ -902,10 +910,8 @@ automatically:
 (define-key sr-mode-map "k"           'dired-do-kill-lines)
 (define-key sr-mode-map [backspace]   'dired-unmark-backward)
 
-(define-key sr-mode-map [mouse-2]     (lambda ()
-                                        (interactive)
-                                        (call-interactively 'mouse-set-point)
-                                        (sr-advertised-find-file)))
+(define-key sr-mode-map [mouse-1]     'sr-mouse-change-window)
+(define-key sr-mode-map [mouse-2]     'sr-mouse-advertised-find-file)
 (define-key sr-mode-map [follow-link] 'mouse-face)
 
 (define-key sr-mode-map [(control >)]         'sr-checkpoint-save)
@@ -1164,7 +1170,7 @@ automatically:
   (if (and (window-live-p sr-left-window) (window-live-p sr-right-window))
       (save-window-excursion
         (select-window (sr-other 'window))
-        (when (memq major-mode '(sr-mode sr-virtual-mode))
+        (when (memq major-mode '(sr-mode sr-virtual-mode sr-tree-mode))
           (if revert (revert-buffer))
           (sr-graphical-highlight 'sr-passive-path-face)
           (unless (eq sr-left-buffer sr-right-buffer)
@@ -1425,25 +1431,27 @@ automatically:
 (defun sr-goto-dir (dir)
   "Changes the current directory in the active pane to the given one."
   (interactive "DChange directory (file or pattern): ")
-  (unless (and (eq major-mode 'sr-mode) (sr-equal-dirs dir default-directory))
-    (if (and sr-avfs-root
-             (null (posix-string-match "#" dir)))
-        (setq dir (replace-regexp-in-string sr-avfs-root "" dir)))
-    
-    ;; Detect spontaneous windows changes (using the mouse):
-    (when (and (not (sr-equal-dirs sr-this-directory default-directory))
-               (sr-equal-dirs sr-other-directory default-directory)
-               (not (local-variable-p 'sr-virtual-buffer)))
-      (setq sr-other-directory sr-this-directory)
-      (sr-force-passive-highlight))
-    (if (eq (selected-window) sr-left-window)
-        (sr-select-window 'left)
-      (sr-select-window 'right))
-    
-    (sr-save-aspect
-     (sr-within dir (sr-alternate-buffer (dired dir))))
-    (sr-history-push default-directory)
-    (sr-beginning-of-buffer)))
+  (if sr-goto-dir-function
+      (funcall sr-goto-dir-function dir)
+    (unless (and (eq major-mode 'sr-mode) (sr-equal-dirs dir default-directory))
+      (if (and sr-avfs-root
+               (null (posix-string-match "#" dir)))
+          (setq dir (replace-regexp-in-string sr-avfs-root "" dir)))
+ 
+      ;; Detect spontaneous windows changes (using the mouse):
+      (when (and (not (sr-equal-dirs sr-this-directory default-directory))
+                 (sr-equal-dirs sr-other-directory default-directory)
+                 (not (local-variable-p 'sr-virtual-buffer)))
+        (setq sr-other-directory sr-this-directory)
+        (sr-force-passive-highlight))
+      (if (eq (selected-window) sr-left-window)
+          (sr-select-window 'left)
+        (sr-select-window 'right))
+ 
+      (sr-save-aspect
+       (sr-within dir (sr-alternate-buffer (dired dir))))
+      (sr-history-push default-directory)
+      (sr-beginning-of-buffer))))
 
 (defun sr-dired-prev-subdir (&optional count)
   "Go to the parent directory, or [count] subdirectories upwards."
@@ -1515,7 +1523,8 @@ automatically:
       (if (>= len sr-history-length)
           (nbutlast hist (- len sr-history-length)))
       (if (< 1 (length element))
-          (setq element (replace-regexp-in-string "/?$" "" element)))
+          (setq element (abbreviate-file-name
+                         (replace-regexp-in-string "/?$" "" element))))
       (setq hist (delete element hist))
       (push element hist)
       (setcdr pane hist))))
@@ -1617,13 +1626,21 @@ automatically:
 ;;; Graphical interface interaction functions:
 
 (defun sr-change-window()
-  "Change to the other sr buffer."
+  "Change to the other Sunrise pane."
   (interactive)
   (if (and (window-live-p sr-left-window) (window-live-p sr-right-window))
       (let ((here sr-this-directory))
         (setq sr-this-directory sr-other-directory)
         (setq sr-other-directory here)
         (sr-select-window (sr-other)))))
+
+(defun sr-mouse-change-window (e)
+  "Change to the Sunrise pane pointed to by the mouse."
+  (interactive "e")
+  (mouse-set-point e)
+  (if (and (eq (current-buffer) (sr-other 'buffer))
+           (not (eq sr-left-buffer sr-right-buffer)))
+      (sr-change-window)))
 
 (defun sr-beginning-of-buffer()
   "Go to the first directory/file in dired."
@@ -1988,6 +2005,12 @@ automatically:
         (sr-change-window)
         (sr-advertised-find-file))
     (sr-in-other (sr-advertised-find-file))))
+
+(defun sr-mouse-advertised-find-file (e)
+  "Open the file/directory pointed to by the mouse."
+  (interactive "e")
+  (mouse-set-point e)
+  (sr-advertised-find-file))
 
 (defun sr-prev-subdir-other ()
   "Go to the previous subdirectory in the other pane."
@@ -3191,13 +3214,14 @@ or (c)ontents? ")
     (setq sr-right-buffer (current-buffer))))
 
 (defun sr-backup-buffer ()
-  "Creates a background clone of the current buffer to be used as a cache during
+  "Creates a background copy of the current buffer to be used as a cache  during
   revert operations."
   (if (buffer-live-p sr-backup-buffer) (sr-kill-backup-buffer))
-  (save-current-buffer
+  (let ((buf (current-buffer)))
     (set (make-local-variable 'sr-backup-buffer)
-         (clone-buffer "*Sunrise Backup*")))
-  (bury-buffer sr-backup-buffer))
+         (generate-new-buffer "*Sunrise Backup*"))
+    (with-current-buffer sr-backup-buffer
+      (insert-buffer-substring buf))))
 
 (defun sr-kill-backup-buffer ()
   "Kills the back-up buffer associated to the current one, if there is any."
