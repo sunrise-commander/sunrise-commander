@@ -20,13 +20,132 @@
 
 ;;; Commentary:
 
+;; This  extension adds to the Sunrise Commander file manager a directories-only
+;; tree view that can be used for fast navigation, as well as for several  basic
+;; operations  on  files and directories. It uses the excellent "tree-widget.el"
+;; library written by David Ponce and works the same in text consoles as well as
+;; in graphical environments, using either the mouse or just the keyboard.
+
+;; For more information on the Sunrise Commander, other extensions and cool tips
+;; & tricks visit http://www.emacswiki.org/emacs/Sunrise_Commander
+
+;; This is version 1 $Rev$ of the Sunrise Commander Tree Extension.
+
+;;  It was developed on GNU Emacs 24 on Linux, and tested on GNU Emacs 22 and 24
+;; for Linux, and on EmacsW32 (version 23) for Windows.
+
+;;; Installation:
+
+;; 1) Put this file somewhere in your emacs load-path.
+
+;; 2)  Add  a (require ’sunrise‐x‐tree) expression to your .emacs file somewhere
+;; after the (require ’sunrise‐commander) one.
+
+;; 3) Evaluate the new expression, or reload your .emacs file, or restart emacs.
+
+;; 4) You may have to customize the tree-widget-image-enable variable if all you
+;; get are text-only icons (e.g. "[+]" and "[X]") in your graphical environment,
+;; while you'd rather prefer looking at pretty graphical ones.
+
+;; WARNING: If you use Slime be aware that some versions of this package include
+;; an older version of tree-widget.el that may clobber the one in Emacs and make
+;; this extension work improperly.  At least that's the case in Debian for i386:
+;; slime comes with version 21.4 of tree-widget, but the extension requires 22.1
+;; or better.
+
+;;; Usage:
+
+;; In order to present the different ways this extension is used, it's necessary
+;; to first introduce a few concepts:
+;; * A Sunrise Tree View pane displays a list of directories arranged in a tree-
+;;   like structure. There is exactly one such TREE in every Tree View pane.
+;; * Each node in this tree is called FOLDER and represents one directory in the
+;;   file system. A folder can be in one of two states: OPEN or CLOSED. When the
+;;   folder is open, its children (if any) are displayed under it in the tree.
+;; * The top-most folder in every tree is called the ROOT of the tree. All other
+;;   folders in the same tree represent sub-directories of the root directory.
+;; * To FOCUS a given folder means to replace the current tree with one that has
+;;   that folder as its root.
+;; * The opposite operation of focusing a folder, i.e. showing it in the context
+;;   of a broader tree, is called BLURRING the folder.
+;; * Finally, to EXPLODE a given folder means to open it, then all its children,
+;;   then all the children of its children and so on, as many times as the value
+;;   of the sr-tree-explosion-ratio option (which can be customized). This is an
+;;   additive operation, what means that exploding the same directory many times
+;;   will open more of its descendants deeper and deeper until the tree runs out
+;;   of closed folders in that branch.
+
+;; The Sunrise Tree View mode offers three different ways of navigating the file
+;; system: with the mouse (for rodent lovers), with the arrow keys (for rookies)
+;; and with other keys nearer the home row (for keyboard junkies).
+
+;; 1. With the mouse:
+
+;; * Meta + Shift + left click anywhere inside a pane to switch between tree and
+;;   normal modes.
+;; * Left click on a folder or anywhere beside it to open or close the folder.
+;; * Middle click on a folder, or anywhere beside it, to just select it without
+;;   changing its state.
+;; * Shift + left click on a folder or anywhere beside it to focus it.
+;; * Meta + left click on a folder or anywhere beside it to blur it. Meta + left
+;;   click anywhere else in the pane to blur the currently selected folder.
+;; * Control + left click on a folder or anywhere beside it to explode it.
+;; * Left or Middle click anywhere on the path line at the top of the pane to go
+;;   directly to the directory which path ends at that point in the line.
+
+;; 2. With the arrow keys:
+
+;; * Meta + Shift + down switches between tree and normal modes.
+;; * Up and down move the cursor up and down (duh!)
+;; * Right opens a folder if it was closed, or browses it if it was open.
+;; * Left closes a folder if it was open, or jumps up to its parent folder if it
+;;   was closed.
+;; * Shift + right focuses the selected folder.
+;; * Shift + left blurs the selected folder.
+;; * Control + right explodes the selected folder.
+;; * If you're in a text console and  the bindings above don't work for you, try
+;;   using Escape instead of Shift (not combined -- first press escape, then the
+;;   arrow key) and C-c instead of Control.
+
+;; 3. With alphanumeric keys:
+
+;; * C-t + Space (alternatively C-t + Return) - switch between modes.
+;; * n, p - move cursor up/down.
+;; * Space, Return - open closed folder / browse already open folder.
+;; * Backspace - close open folder / jump to parent of already closed folder.
+;; * C-c f - focus the selected folder.
+;; * C-c b - blur the selected folder.
+;; * C-Return, C-c Return - explode the selected folder.
+;; * f - browse the selected folder in normal mode.
+;; * v, o - view the selected folder in the passive pane, in whatever mode it
+;;   happens to be at that moment.
+;; * C-q - is simply another binding for pane synchonization (C-c C-z) from core
+;;   Sunrise Commander, which in the Tree View realizes the "Quick View" command
+;;   required by the OFM standard.
+
+;; Additionally,  most of the original keybindings from Sunrise apply (of course
+;; wherever it makes sense). This includes switching/transposing/laying out  the
+;; panes, (Tab, M-Tab, C-c C-s), showing/hiding hidden directories (C-o), moving
+;; to parent/arbitrary directory (J, j) and many more. Moreover,  the  following
+;; file  manipulation  commands  work in Sunrise Tree View mode: copy (C), clone
+;; (K), rename (R), delete (D), symlink (S), relative symlink  (Y),  create  new
+;; directory (+) and show file info (y).
+
+;; All directory commands from the Sunrise Buttons extension are also supported.
+;; It is required to upgrade the Buttons extension to version 1R293 or better to
+;; make this integration work correctly, though.
+
+;; Hey, and don't forget to enjoy ;-)
+
+;;; Code:
+
 (require 'sunrise-commander)
 (require 'tree-widget)
 (eval-when-compile (require 'desktop))
 
 (defcustom sr-tree-explosion-ratio 3
   "Maximum number of directory levels for the sr-tree-explode-branch function to
-  open recursively each time it's evaluated."
+  open recursively on every evaluation."
   :group 'sunrise
   :type 'integer)
 
@@ -42,6 +161,9 @@
 
 (defvar sr-tree-mode-map (make-sparse-keymap)
   "Keymap for the Sunrise Commander Tree View.")
+
+(defvar sr-buttons-command-adapter nil
+  "(Compiler pacifier) See sr-buttons-command-adapter in sunrise-x-buttons.el")
 
 (define-widget 'sr-tree-dir-widget 'tree-widget
   "Directory Tree widget."
@@ -92,8 +214,10 @@
       (if (fboundp 'sr-modeline-refresh)
           (sr-modeline-refresh))
       (force-mode-line-update))
-    (when sr-synchronized
-      (sr-tree-advertised-find-file-other))))
+    (if (and sr-synchronized
+             (not (eq sr-left-buffer sr-right-buffer))
+             (eq (selected-window) (sr-this 'window)))
+        (sr-tree-advertised-find-file-other))))
 
 (defun sr-tree-refresh-dir (widget &rest ignore)
   "Refresh WIDGET parent (or own) tree children. IGNORE other arguments."
@@ -369,7 +493,7 @@
   (unless (eq (sr-tree-get-branch) sr-tree-root)
     (sr-tree-goto-dir (cdr sr-tree-cursor) t)))
 
-(defun sr-tree-unfocus-branch ()
+(defun sr-tree-blur-branch ()
   "Replace the current tree with a new one having the parent of the current root
   directory as its root, keeping the cursor at its current position."
   (interactive)
@@ -408,11 +532,11 @@
   (interactive "e")
   (sr-tree-handle-mouse-event e 'sr-tree-focus-branch))
 
-(defun sr-tree-mouse-unfocus-branch (e)
-  "Version of sr-tree-unfocus-branch (which see) for the mouse."
+(defun sr-tree-mouse-blur-branch (e)
+  "Version of sr-tree-blur-branch (which see) for the mouse."
   (interactive "e")
-  (or (sr-tree-handle-mouse-event e 'sr-tree-unfocus-branch)
-      (sr-tree-unfocus-branch)))
+  (or (sr-tree-handle-mouse-event e 'sr-tree-blur-branch)
+      (sr-tree-blur-branch)))
 
 (defun sr-tree-mouse-explode-branch (e)
   "Version of sr-tree-explode-branch (which see) for the mouse."
@@ -457,12 +581,17 @@
   "In Sunrise Tree View mode, visit the currently selected file or directory in
   the passive pane."
   (interactive)
-  (let ((target (cdr sr-tree-cursor))
-        (sr-synchronized nil)
-        (sr-goto-dir-function nil))
-    (sr-in-other
-     (progn (sr-goto-dir target)
-            (sr-highlight 'sr-passive-path-face)))))
+  (let ((target (cdr sr-tree-cursor)))
+    (save-selected-window
+      (select-window (sr-other 'window))
+      (sr-goto-dir target)
+      (sr-keep-buffer (sr-other)))))
+
+(defun sr-tree-sync ()
+  "Toggles the synchronized navigation feature in Sunrise Tree View panes."
+  (interactive)
+  (sr-sync)
+  (sr-tree-update-cursor))
 
 ;;; ============================================================================
 ;;; File system manipulation functions:
@@ -528,6 +657,21 @@
   "Version of sr-show-files-info (which see) for Sunrise Tree View panes."
   (interactive)
   (sr-tree-adapt-dired-command (sr-show-files-info)))
+
+(defun sr-tree-create-directory (directory)
+  "Create a new directory in Sunrise Tree View mode."
+  (interactive
+   (list (read-file-name "Create directory: "
+                         (file-name-as-directory (cdr sr-tree-cursor)))))
+  (let* ((expanded (directory-file-name (expand-file-name directory)))
+         (parent (file-name-directory expanded)))
+    (make-directory expanded t)
+    (when (sr-equal-dirs parent (cdr sr-tree-cursor))
+      (sr-tree-toggle-branch 'open)
+      (sr-tree-refresh-branch)
+      (search-forward
+       (file-name-as-directory (file-name-nondirectory expanded)) nil t)
+      (sr-tree-update-cursor))))
 
 (define-derived-mode sr-tree-mode nil "Sunrise Tree View"
   "Tree view for the Sunrise Commander file manager."
@@ -600,9 +744,13 @@
     (sr-do-relsymlink         . sr-tree-do-relsymlink)
     (sr-do-rename             . sr-tree-do-rename)
     (sr-do-delete             . sr-tree-do-delete)
+    (sr-goto-dir              . sr-goto-dir)
+    (sr-advertised-find-file  . sr-tree-advertised-find-file)
+    (sr-quick-view            . sr-tree-advertised-find-file-other)
+    (sr-dired-prev-subdir     . sr-tree-prev-subdir)
     (sr-change-window         . sr-change-window)
     (sr-synchronize-panes     . sr-synchronize-panes)
-    (sr-sync                  . sr-sync)
+    (sr-sync                  . sr-tree-sync)
     (sr-beginning-of-buffer   . sr-tree-beginning-of-buffer)
     (sr-end-of-buffer         . sr-tree-end-of-buffer)
     (sr-term                  . sr-term)
@@ -610,8 +758,11 @@
     (sr-transpose-panes       . sr-transpose-panes)
     (revert-buffer            . revert-buffer)
     (sr-split-toggle          . sr-split-toggle)
-    (sr-toggle-truncate-lines . sr-toggle-truncate-lines))
-  "Sunrise Buttons-to-Tree commands translation table.")
+    (sr-toggle-truncate-lines . sr-toggle-truncate-lines)
+    (dired-create-directory   . sr-tree-create-directory)
+    (sr-history-prev          . sr-history-prev)
+    (sr-history-next          . sr-history-next)
+    ) "Sunrise Buttons-to-Tree commands translation table.")
 
 (defun sr-tree-buttons-command-adapter (command)
   "Execute the given buttons command in the current Sunrise Tree View pane. If
@@ -652,6 +803,11 @@
 ;;; ============================================================================
 ;;; Sunrise Tree View keybindings:
 
+(define-key sr-mode-map "\C-t " 'sr-tree-view)
+(define-key sr-mode-map "\C-t\C-m" 'sr-tree-view)
+(define-key sr-mode-map [(shift meta down)] 'sr-tree-view)
+(define-key sr-mode-map (kbd "\e <down>") 'sr-tree-view)
+
 (define-key sr-tree-mode-map "\C-m" 'sr-tree-open-branch)
 (define-key sr-tree-mode-map " " 'sr-tree-open-branch)
 (define-key sr-tree-mode-map "\C-o" 'sr-tree-omit-mode)
@@ -663,14 +819,40 @@
 (define-key sr-tree-mode-map "j" 'sr-tree-build)
 (define-key sr-tree-mode-map "f" 'sr-tree-advertised-find-file)
 (define-key sr-tree-mode-map "v" 'sr-tree-advertised-find-file-other)
+(define-key sr-tree-mode-map "o" 'sr-tree-advertised-find-file-other)
 (define-key sr-tree-mode-map "\M-a" 'sr-tree-beginning-of-buffer)
 (define-key sr-tree-mode-map "\M-e" 'sr-tree-end-of-buffer)
 (define-key sr-tree-mode-map "\C-s" 'sr-tree-isearch-forward)
 (define-key sr-tree-mode-map "\C-r" 'sr-tree-isearch-backward)
 (define-key sr-tree-mode-map "\C-c\C-c" 'sr-tree-dismiss)
 (define-key sr-tree-mode-map "\C-cf" 'sr-tree-focus-branch)
-(define-key sr-tree-mode-map "\C-cu" 'sr-tree-unfocus-branch)
+(define-key sr-tree-mode-map "\C-cb" 'sr-tree-blur-branch)
 (define-key sr-tree-mode-map "\C-c\C-m" 'sr-tree-explode-branch)
+(define-key sr-tree-mode-map "\C-t " 'sr-tree-dismiss)
+(define-key sr-tree-mode-map "\C-t\C-m" 'sr-tree-dismiss)
+
+(define-key sr-tree-mode-map [up] 'sr-tree-previous-line)
+(define-key sr-tree-mode-map [down] 'sr-tree-next-line)
+
+(define-key sr-tree-mode-map [right] 'sr-tree-open-branch)
+(define-key sr-tree-mode-map [(shift right)] 'sr-tree-focus-branch)
+(define-key sr-tree-mode-map (kbd "\e <right>") 'sr-tree-focus-branch)
+(define-key sr-tree-mode-map [(control right)] 'sr-tree-explode-branch)
+(define-key sr-tree-mode-map (kbd "\C-c <right>") 'sr-tree-explode-branch)
+
+(define-key sr-tree-mode-map [left] 'sr-tree-collapse-branch)
+(define-key sr-tree-mode-map [(shift left)] 'sr-tree-blur-branch)
+(define-key sr-tree-mode-map (kbd "\e <left>") 'sr-tree-blur-branch)
+(define-key sr-tree-mode-map (kbd "\C-c <left>") 'sr-tree-collapse-branch)
+
+(define-key sr-tree-mode-map [next] 'sr-tree-scroll-up)
+(define-key sr-tree-mode-map [prior] 'sr-tree-scroll-down)
+(define-key sr-tree-mode-map [backspace] 'sr-tree-collapse-branch)
+(define-key sr-tree-mode-map [(control return)] 'sr-tree-explode-branch)
+(define-key sr-tree-mode-map [(shift return)] 'sr-tree-focus-branch)
+(define-key sr-tree-mode-map [(meta return)] 'sr-tree-blur-branch)
+(define-key sr-tree-mode-map [(shift meta down)] 'sr-tree-dismiss)
+(define-key sr-tree-mode-map (kbd "\e <down>") 'sr-tree-dismiss)
 
 (define-key sr-tree-mode-map "C" 'sr-tree-do-copy)
 (define-key sr-tree-mode-map "K" 'sr-tree-do-clone)
@@ -679,23 +861,10 @@
 (define-key sr-tree-mode-map "S" 'sr-tree-do-symlink)
 (define-key sr-tree-mode-map "Y" 'sr-tree-do-relsymlink)
 (define-key sr-tree-mode-map "y" 'sr-tree-show-files-info)
+(define-key sr-tree-mode-map "+" 'sr-tree-create-directory)
 
-(define-key sr-tree-mode-map [up] 'sr-tree-previous-line)
-(define-key sr-tree-mode-map [down] 'sr-tree-next-line)
-(define-key sr-tree-mode-map [left] 'sr-tree-collapse-branch)
-(define-key sr-tree-mode-map [right] 'sr-tree-open-branch)
-(define-key sr-tree-mode-map [next] 'sr-tree-scroll-up)
-(define-key sr-tree-mode-map [prior] 'sr-tree-scroll-down)
-(define-key sr-tree-mode-map [backspace] 'sr-tree-collapse-branch)
-(define-key sr-tree-mode-map [(control return)] 'sr-tree-explode-branch)
-(define-key sr-tree-mode-map [(shift return)] 'sr-tree-focus-branch)
-(define-key sr-tree-mode-map [(meta return)] 'sr-tree-unfocus-branch)
-(define-key sr-tree-mode-map [(control right)] 'sr-tree-explode-branch)
-(define-key sr-tree-mode-map [(shift right)] 'sr-tree-focus-branch)
-(define-key sr-tree-mode-map [(control left)] 'sr-tree-collapse-branch)
-(define-key sr-tree-mode-map [(shift left)] 'sr-tree-unfocus-branch)
-
-(define-key sr-tree-mode-map "\C-q" 'sr-sync)
+(define-key sr-tree-mode-map "\C-c\C-z" 'sr-tree-sync)
+(define-key sr-tree-mode-map "\C-q" 'sr-tree-sync)
 
 (dotimes (n 10)
   (define-key sr-tree-mode-map (number-to-string n) 'digit-argument))
@@ -712,17 +881,13 @@
                                          (sr-tree-update-cursor)))
 (define-key sr-tree-mode-map [double-mouse-1] 'sr-tree-mouse-advertised-find-file)
 (define-key sr-tree-mode-map [S-mouse-1] 'sr-tree-mouse-focus-branch)
-(define-key sr-tree-mode-map [M-mouse-1] 'sr-tree-mouse-unfocus-branch)
+(define-key sr-tree-mode-map [M-mouse-1] 'sr-tree-mouse-blur-branch)
 (define-key sr-tree-mode-map [C-mouse-1] 'sr-tree-mouse-explode-branch)
 
 (define-key sr-tree-mode-map (kbd "<S-down-mouse-1>") 'ignore)
 (define-key sr-tree-mode-map (kbd "<M-down-mouse-1>") 'ignore)
 (define-key sr-tree-mode-map (kbd "<C-down-mouse-1>") 'ignore)
 
-(define-key sr-tree-mode-map "\C-t " 'sr-tree-dismiss)
-(define-key sr-tree-mode-map "\C-t\C-m" 'sr-tree-dismiss)
-(define-key sr-mode-map [(shift meta down)] 'sr-tree-view)
-(define-key sr-tree-mode-map [(shift meta down)] 'sr-tree-dismiss)
 (define-key sr-mode-map (kbd "<M-S-down-mouse-1>") 'sr-tree-mouse-view)
 (define-key sr-tree-mode-map (kbd "<M-S-down-mouse-1>") 'sr-tree-mouse-dismiss)
 
@@ -732,9 +897,6 @@
 (define-key tree-widget-button-keymap [mouse-1] 'tree-widget-button-click)
 (define-key tree-widget-button-keymap [double-mouse-1] 'sr-tree-mouse-advertised-find-file)
 (define-key tree-widget-button-keymap [C-mouse-1] 'sr-tree-mouse-explode-branch)
-
-(define-key sr-mode-map "\C-t " 'sr-tree-view)
-(define-key sr-mode-map "\C-t\C-m" 'sr-tree-view)
 
 ;;; ============================================================================
 ;;; Bootstrap:

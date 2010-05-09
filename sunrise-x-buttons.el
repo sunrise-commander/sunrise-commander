@@ -70,9 +70,9 @@
     ("Open([F4,]Enter)"  'sr-advertised-find-file    "Visit selected file or directory")
     ("Copy([F5,]C)"      'sr-do-copy                 "Copy selected files to passive pane")
     ("Rename([F6,]R)"    'sr-do-rename               "Move selected files to passive pane")
+    ("Clone(K)"          'sr-do-clone                "Clone selected files to passive pane")
     ("NewDir([F7,]+)"    'dired-create-directory     "Create new directory in active pane")
     ("Delete([F8,]D)"    'sr-do-delete               "Delete selected files from active pane")
-    ("Quit([F10,]q)"     'keyboard-escape-quit       "Dismiss Sunrise Commander")
     nil
     ("DirUp([C-PgUp,]J)" 'sr-dired-prev-subdir       "Go to parent directory in active pane")
     ("DirBack(M-y)"      'sr-history-prev            "Go to previous directory in history")
@@ -84,7 +84,7 @@
     ("Attrs(C-Bksp)"     'sr-toggle-attributes       "Hide/Show file attributes in active pane")
     nil
     ("Other(Tab)"        'sr-change-window           "Switch to passive pane")
-    ("Clone(M-o)"        'sr-synchronize-panes       "Make both panes contain the same directory")
+    ("ClonePane(M-o)"    'sr-synchronize-panes       "Make both panes contain the same directory")
     ("Swap(M-t)"         'sr-transpose-panes         "Transpose panes")
     ("Refresh(g)"        'revert-buffer              "Rescan directory in active pane")
     ("Align(C-cC-s)"     'sr-split-toggle            "Change panes alignment (vertical/horizontal/top)")
@@ -101,7 +101,7 @@
     ("Follow(;)"         'sr-follow-file             "Follow file (go to same directory as file)")
     ("Locate(C-cC-l)"    'sr-locate                  "Find files and directories using locate database")
     nil
-    ("FindReplace(Q)"    'sr-do-query-replace-regexp "Find and replace in all selected entries")
+    ("Search(A)"         'sr-do-search               "Search for string/regexp in all marked entries")
     ("Compare(C-M-=)"    'sr-compare-dirs            "Compare directories in panes")
     ("Diff(=)"           'sr-diff                    "Compare selected entries using diff")
     ("Ediff(C-=)"        'sr-ediff                   "Compare selected entries using ediff")
@@ -110,11 +110,14 @@
     ("Home(M-a)"         'sr-beginning-of-buffer     "Go to first entry in active pane")
     ("End(M-e)"          'sr-end-of-buffer           "Go to last entry in active pane")
     nil
+    ("FindReplace(Q)"    'sr-do-query-replace-regexp "Find and replace in all selected entries")
+    ("FuzzyNarrow(C-c/)" 'sr-fuzzy-narrow            "Narrow pane contents with fuzzy matching")
     ("CmdLine(C-ct)"     'sr-term                    "Open Command line in this window")
     ("WDired(C-xC-q)"    'sr-buttons-editable-pane   "Edit active pane using wdired")
     ("SyncNav(C-cC-z)"   'sr-sync                    "Toggle on/off synchronized navigation mode")
     ("LongLines(M-l)"    'sr-toggle-truncate-lines   "Truncate/Restore long lines in active pane")
     ("More...(h)"        'sr-describe-mode           "More commands and keybindings")
+    ("Quit([F10,]q)"     'keyboard-escape-quit       "Dismiss Sunrise Commander")
     )
   "Sunrise button definitions.")
 

@@ -974,6 +974,14 @@ automatically:
         (select-frame my-frame)
         (sunrise left-directory right-directory filename)))))
 
+(defun sr-this (&optional context)
+  "Without  any  arguments  returns  the  symbol that corresponds to the current
+  active side of the manager ('left or 'right). If the  optional  argument  has
+  value 'buffer or 'window returns the current active buffer / window."
+  (if context
+      (symbol-value (sr-symbol sr-selected-window context))
+    sr-selected-window))
+
 (defun sr-other (&optional context)
   "Without  any  arguments  returns  the  symbol that corresponds to the current
   passive side of the manager ('left or 'right). If the  optional  argument  has
@@ -3194,13 +3202,14 @@ or (c)ontents? ")
           (forward-line 1))
         (reverse result)))))
 
-(defun sr-keep-buffer ()
-  "Keeps  the currently selected buffer as one of the panes, even if it does not
-  belong to the pane's history ring. Useful for maintaining the  contents  of  a
-  pane during layout switching."
-  (if (equal sr-selected-window 'left)
-      (setq sr-left-buffer (current-buffer))
-    (setq sr-right-buffer (current-buffer))))
+(defun sr-keep-buffer (&optional side)
+  "Keep the currently displayed buffer in SIDE (left or right) window, even if
+  it does not belong to the panel's history ring. If SIDE is nil, use the value
+  of sr-selected-window instead. Useful for maintaining the contents of the pane
+  during layout switching."
+  (let* ((side (or side sr-selected-window))
+         (window (symbol-value (sr-symbol side 'window))))
+    (set (sr-symbol side 'buffer) (window-buffer window))))
 
 (defun sr-backup-buffer ()
   "Creates a background copy of the current buffer to be used as a cache  during

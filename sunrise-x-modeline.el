@@ -97,10 +97,10 @@
                        (cond ((not buffer-read-only) 'edit)
                              (sr-synchronized 'sync)
                              (t 'norm)))))
-          ((eq major-mode 'sr-virtual-mode)
-           (setq mark (sr-modeline-select-mark 'virt)))
           ((eq major-mode 'sr-tree-mode)
-           (setq mark (sr-modeline-select-mark 'tree))))
+           (setq mark (sr-modeline-select-mark (if sr-synchronized 'sync 'tree))))
+          ((eq major-mode 'sr-virtual-mode)
+           (setq mark (sr-modeline-select-mark 'virt))))
     (if mark (sr-modeline-set mark))))
 
 (defun sr-modeline-set (mark)
