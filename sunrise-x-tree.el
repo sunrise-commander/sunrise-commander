@@ -29,7 +29,7 @@
 ;; For more information on the Sunrise Commander, other extensions and cool tips
 ;; & tricks visit http://www.emacswiki.org/emacs/Sunrise_Commander
 
-;; This is version 1 $Rev$ of the Sunrise Commander Tree Extension.
+;; This is version 1 $Rev: 295 $ of the Sunrise Commander Tree Extension.
 
 ;;  It was developed on GNU Emacs 24 on Linux, and tested on GNU Emacs 22 and 24
 ;; for Linux, and on EmacsW32 (version 23) for Windows.
@@ -590,12 +590,13 @@
   "In Sunrise Tree View mode, visit the currently selected file or directory in
   the passive pane."
   (interactive)
-  (let ((target (cdr sr-tree-cursor)))
+  (let ((target (cdr sr-tree-cursor)) (side (sr-other)))
     (save-selected-window
       (select-window (sr-other 'window))
       (sr-goto-dir target)
-      (hl-line-mode -1)
-      (sr-keep-buffer (sr-other)))))
+      (if  (get side 'hidden-attrs) (sr-hide-attributes))
+      (hl-line-mode 0)
+      (sr-keep-buffer side))))
 
 (defun sr-tree-sync ()
   "Toggles the synchronized navigation feature in Sunrise Tree View panes."

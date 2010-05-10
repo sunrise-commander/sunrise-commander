@@ -649,18 +649,16 @@ automatically:
      (setq sr-dired-directory "")))
 
 (defmacro sr-save-aspect (&rest body)
-  "Restores hidden attributes after a directory transition."
+  "Restores omit mode, hidden attributes and highlighting after a directory
+  transition."
   `(let ((inhibit-read-only t)
          (omit (or dired-omit-mode -1))
-         (hidden-attrs (get sr-selected-window 'hidden-attrs))
          (path-face sr-current-path-face))
      (hl-line-mode 0)
      ,@body
-     (dired-omit-mode omit)
+     (dired-omit-mode omit);;<--revert-buffer => sr-revert-buffer => hide-attrs.
      (if path-face
          (set (make-local-variable 'sr-current-path-face) path-face))
-     (if hidden-attrs
-         (sr-hide-attributes))
      (sr-restore-point-if-same-buffer)))
 
 (defmacro sr-alternate-buffer (form)
@@ -1767,6 +1765,7 @@ automatically:
     (unless (or (equal major-mode 'sr-virtual-mode)
                 (local-variable-p 'sr-virtual-buffer))
       (dired-revert)))
+  (if (get sr-selected-window 'hidden-attrs) (sr-hide-attributes))
   (sr-highlight))
 
 (defun sr-quick-view (&optional arg)
