@@ -976,4 +976,4 @@
 
 (provide 'sunrise-x-tree)
 
-;;; sunrise-x-tree.el ends here
+;;; sunrise-x-tree.el ends here.

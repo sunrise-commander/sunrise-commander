@@ -111,7 +111,7 @@
     ("End(M-e)"          'sr-end-of-buffer           "Go to last entry in active pane")
     nil
     ("FindReplace(Q)"    'sr-do-query-replace-regexp "Find and replace in all selected entries")
-    ("FuzzyNarrow(C-c/)" 'sr-fuzzy-narrow            "Narrow pane contents with fuzzy matching")
+    ("Fuzzy(C-c/)"       'sr-fuzzy-narrow            "Narrow pane contents with fuzzy matching")
     ("CmdLine(C-ct)"     'sr-term                    "Open Command line in this window")
     ("WDired(C-xC-q)"    'sr-buttons-editable-pane   "Edit active pane using wdired")
     ("SyncNav(C-cC-z)"   'sr-sync                    "Toggle on/off synchronized navigation mode")
@@ -179,7 +179,7 @@
          (setq line-spacing 5)
          (setq cursor-in-non-selected-windows nil)
          (if (not (equal major-mode 'sr-buttons-mode))
-             (let ((line-spacing 5)
+             (let ((line-spacing 2)
                    (cursor-in-non-selected-windows nil))
                (sr-buttons-render)
                (toggle-read-only)))))
@@ -214,7 +214,9 @@
       (widget-create 'push-button :tag tag
                                   :action (sr-buttons-action action)
                                   :help-echo hint)
-      (insert " "))))
+      (insert-char ?  1)
+      (put-text-property
+       (1- (point)) (point) 'display (list 'space :width 0.15)))))
 
 (defun sr-buttons-eol ()
   "Terminates the current row of buttons while building the buttons buffer,
@@ -222,10 +224,8 @@
   (let* ((gap (- (window-width) (current-column) 2))
          (margin (/ gap 2)))
     (if (> margin 0)
-        (save-excursion
-          (beginning-of-line)
-          (dotimes (n margin) (insert " "))))
-    (insert "\n")))
+        (save-excursion (beginning-of-line) (insert-char ?  margin)))
+    (unless (eq ?\n (char-before)) (insert "\n"))))
 
 (defun sr-buttons-mc-keys-p ()
   "Determines whether mc style keybindings have been activated in Sunrise."

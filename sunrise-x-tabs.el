@@ -592,7 +592,6 @@
      (add-to-list 'desktop-globals-to-clear
                   '(sr-tabs-on . (sr-tabs-reset-state))))))
 
-
 (provide 'sunrise-x-tabs)
 
-;;; sunrise-x-tabs.el ends here
+;;; sunrise-x-tabs.el ends here.

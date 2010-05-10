@@ -3300,4 +3300,4 @@ or (c)ontents? ")
 
 (provide 'sunrise-commander)
 
-;;; sunrise-commander.el ends here
+;;; sunrise-commander.el ends here.

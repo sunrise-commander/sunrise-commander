@@ -520,4 +520,4 @@
 
 (provide 'sunrise-x-mirror)
 
-;;; sunrise-x-mirror.el ends here
+;;; sunrise-x-mirror.el ends here.
