@@ -169,17 +169,20 @@
   yet, then creates one."
   (apply 'require '(cus-edit))
   (sr-select-viewer-window t)
-  (if (buffer-live-p other-window-scroll-buffer) ;;<-- don't nuke quick views!
-      (switch-to-buffer other-window-scroll-buffer)
-    (switch-to-buffer sr-buttons-buffer-name)
-    (setq truncate-lines t)
-    (setq line-spacing 5)
-    (setq cursor-in-non-selected-windows nil)
-    (if (not (equal major-mode 'sr-buttons-mode))
-        (let ((line-spacing 5)
-              (cursor-in-non-selected-windows nil))
-          (sr-buttons-render)
-          (toggle-read-only))))
+  (cond ((buffer-live-p other-window-scroll-buffer) ;;<-- don't nuke quick views!
+         (switch-to-buffer other-window-scroll-buffer))
+        ((get-buffer "*terminal*")                  ;;<-- prefer terminals
+         (switch-to-buffer "*terminal*"))
+        (t
+         (switch-to-buffer sr-buttons-buffer-name)
+         (setq truncate-lines t)
+         (setq line-spacing 5)
+         (setq cursor-in-non-selected-windows nil)
+         (if (not (equal major-mode 'sr-buttons-mode))
+             (let ((line-spacing 5)
+                   (cursor-in-non-selected-windows nil))
+               (sr-buttons-render)
+               (toggle-read-only)))))
   (sr-select-window sr-selected-window))
 
 (defun sr-buttons-render ()
