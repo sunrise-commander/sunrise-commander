@@ -55,7 +55,7 @@
 
 ;;; Usage:
 
-;; In order to present the different ways this extension is used, it's necessary
+;; In order to explain the different ways this extension is used, it's necessary
 ;; to first introduce a few concepts:
 ;; * A Sunrise Tree View pane displays a list of directories arranged in a tree-
 ;;   like structure. There is exactly one such TREE in every Tree View pane.
@@ -119,17 +119,24 @@
 ;; * f - browse the selected folder in normal mode.
 ;; * v, o - view the selected folder in the passive pane, in whatever mode it
 ;;   happens to be at that moment.
-;; * C-q - is simply another binding for pane synchonization (C-c C-z) from core
-;;   Sunrise Commander, which in the Tree View realizes the "Quick View" command
-;;   required by the OFM standard.
+
+;; * C-q - is simply another binding for the usual pane synchonization (C-c C-z)
+;;   already present in Sunrise Commander  Core, which in tree mode performs the
+;;   "Quick View" operation required by the OFM standard.
+
+;; * C-u C-s, C-u C-r - "sticky" interactive search. This works like the regular
+;; iseach, but when the current search is finished with a Return, the folder the
+;; cursor ends on is automatically opened and a new (forward) isearch starts, so
+;; one can continue searching among the children of that folder. This allows for
+;; extremely fast navigation across lengthy paths of directories with just a few
+;; keystrokes. To terminate a sticky search, press C-g or (once again) Return.
 
 ;; Additionally,  most of the original keybindings from Sunrise apply (of course
-;; wherever it makes sense). This includes switching/transposing/laying out  the
-;; panes, (Tab, M-Tab, C-c C-s), showing/hiding hidden directories (C-o), moving
-;; to parent/arbitrary directory (J, j) and many more. Moreover,  the  following
-;; file  manipulation  commands  work in Sunrise Tree View mode: copy (C), clone
-;; (K), rename (R), delete (D), symlink (S), relative symlink  (Y),  create  new
-;; directory (+) and show file info (y).
+;; wherever it makes sense). For instance switching/transposing/laying out panes
+;; (Tab, M-Tab, C-c, C-s), showing / hiding hidden directories (C-o), jumping to
+;; parent/arbitrary directory (J, j) and many more, including the following file
+;; manipulation  commands:  copy (C), clone (K), rename (R), delete (D), symlink
+;; (S), relative symlink (Y), create a new directory (+) and show file size (y).
 
 ;; All directory commands from the Sunrise Buttons extension are also supported.
 ;; It is required to upgrade the Buttons extension to version 1R293 or better to
@@ -567,10 +574,12 @@
 (defun sr-tree-advertised-find-file ()
   "Visit the currently selected file or directory in Sunrise Tree View mode."
   (interactive)
-  (let ((sr-goto-dir-function nil))
+  (let ((sr-goto-dir-function nil)
+        (in-search (memq 'sr-tree-post-isearch isearch-mode-end-hook)))
     (sr-save-aspect
      (sr-alternate-buffer
-      (sr-goto-dir (cdr sr-tree-cursor))))))
+      (sr-goto-dir (cdr sr-tree-cursor))))
+    (if in-search (abort-recursive-edit))))
 
 (defun sr-tree-mouse-advertised-find-file (e)
   "Visit a file or directory selected using the mouse in the current pane."
@@ -585,6 +594,7 @@
     (save-selected-window
       (select-window (sr-other 'window))
       (sr-goto-dir target)
+      (hl-line-mode -1)
       (sr-keep-buffer (sr-other)))))
 
 (defun sr-tree-sync ()

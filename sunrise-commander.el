@@ -1785,9 +1785,10 @@ automatically:
 (defun sr-quick-view-kill ()
   "Kills the last buffer opened using quick view (if any)."
   (let ((buf other-window-scroll-buffer))
-    (if (and (buffer-live-p buf)
-             (y-or-n-p (format "Kill buffer %s? " (buffer-name buf))))
-        (kill-buffer buf))))
+    (when (and (buffer-live-p buf)
+               (y-or-n-p (format "Kill buffer %s? " (buffer-name buf))))
+      (setq other-window-scroll-buffer nil)
+      (kill-buffer buf))))
 
 (defun sr-quick-view-directory (name)
   "Opens the given directory in the passive pane."
