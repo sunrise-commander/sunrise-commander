@@ -656,7 +656,7 @@ automatically:
          (path-face sr-current-path-face))
      (hl-line-mode 0)
      ,@body
-     (dired-omit-mode omit);;<--revert-buffer => sr-revert-buffer => hide-attrs.
+     (dired-omit-mode omit)
      (if path-face
          (set (make-local-variable 'sr-current-path-face) path-face))
      (sr-restore-point-if-same-buffer)))
@@ -670,6 +670,7 @@ automatically:
      ,form
      (setq sr-this-directory default-directory)
      (sr-keep-buffer)
+     (if (get sr-selected-window 'hidden-attrs) (sr-hide-attributes))
      (sr-highlight)
      (if (buffer-live-p dispose)
          (with-current-buffer dispose
