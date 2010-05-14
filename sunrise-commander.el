@@ -3246,7 +3246,7 @@ or (c)ontents? ")
   "Sets the other-window-scroll-buffer variable to the given buffer (or nil)."
   (setq other-window-scroll-buffer buffer)
   (if buffer
-      (message "QUICK VIEW: Press C-e/C-y to scroll, C-M-v/S-C-M-v to page, and C-u v (or C-u o) to dismiss")))
+      (message "QUICK VIEW: Press C-e/C-y to scroll, Space/M-Space to page, and C-u v (or C-u o) to dismiss")))
 
 (defun sr-describe-mode ()
   "Calls describe-mode and makes the resulting buffer C-M-v scrollable."
