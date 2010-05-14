@@ -845,6 +845,8 @@ automatically:
 (define-key sr-mode-map "s"           'sr-interactive-sort)
 (define-key sr-mode-map "\C-e"        'sr-scroll-up)
 (define-key sr-mode-map "\C-y"        'sr-scroll-down)
+(define-key sr-mode-map " "           'sr-scroll-quick-view)
+(define-key sr-mode-map "\M- "        'sr-scroll-quick-view-down)
 
 (define-key sr-mode-map "C"           'sr-do-copy)
 (define-key sr-mode-map "K"           'sr-do-clone)
@@ -1952,6 +1954,16 @@ automatically:
         (scroll-down 1))
     (scroll-down 1)))
 
+(defun sr-scroll-quick-view ()
+  "Scrolls down the viewer window during a quick view."
+  (interactive)
+  (if other-window-scroll-buffer (scroll-other-window)))
+
+(defun sr-scroll-quick-view-down ()
+  "Scrolls down the viewer window during a quick view."
+  (interactive)
+  (if other-window-scroll-buffer (scroll-other-window-down nil)))
+
 ;;; ============================================================================
 ;;; Passive & synchronized navigation functions:
 
@@ -2175,7 +2187,7 @@ automatically:
               (with-current-buffer (sr-other 'buffer)
                 (setq progress
                       (sr-make-progress-reporter
-                       "renaming" (sr-files-size selected-items)))
+                       "renaming" (length selected-items)))
                 (sr-move-files selected-items default-directory progress)
                 (revert-buffer)
                 (dired-mark-remembered
@@ -2313,7 +2325,7 @@ indir/d => to-dir/d using clone-op to clone all files."
       (if (file-directory-p f)
           (progn
             (setq f (replace-regexp-in-string "/?$" "/" f))
-            (sr-progress-reporter-update progress (sr-files-size (list f)))
+            (sr-progress-reporter-update progress 1)
             (let* ((target (concat target-dir (sr-directory-name-proper f))))
               (if (file-exists-p target)
                   (when (or (eq do-overwrite 'ALWAYS)
@@ -2325,7 +2337,7 @@ indir/d => to-dir/d using clone-op to clone all files."
         (let* ((name (file-name-nondirectory f))
                (target-file (concat target-dir name)))
           ;; (message "Renaming: %s => %s" f target-file)
-          (sr-progress-reporter-update progress (nth 7 (file-attributes f)))
+          (sr-progress-reporter-update progress 1)
           (if (file-exists-p target-file)
               (if (or (eq do-overwrite 'ALWAYS)
                       (setq do-overwrite (sr-ask-overwrite target-file)))
