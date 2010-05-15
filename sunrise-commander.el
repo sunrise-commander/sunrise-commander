@@ -259,10 +259,11 @@
           (const :tag "AVFS support disabled" nil)
           (directory :tag "AVFS root directory")))
 
-(defcustom sr-avfs-handlers-alist '(("\\.[jwesh]ar$" . "#uzip/")
-                                    ("\\.xpi$"       . "#uzip/")
-                                    ("\\.iso$"       . "#iso9660/")
-                                    ("."             . "#/"))
+(defcustom sr-avfs-handlers-alist '(("\\.[jwesh]ar$"   . "#uzip/")
+                                    ("\\.xpi$"         . "#uzip/")
+                                    ("\\.iso$"         . "#iso9660/")
+                                    ("\\.patch$"       . "#/")
+                                    ("."               . "#/"))
   "List of AVFS handlers to manage specific file extensions."
   :group 'sunrise
   :type 'alist)
@@ -1366,7 +1367,7 @@ automatically:
   a virtual directory served by AVFS."
   (interactive (find-file-read-args "Find file or directory: " nil))
   (cond ((file-directory-p filename) (sr-find-regular-directory filename))
-        ((sr-avfs-directory-p filename) (sr-find-avfs-directory filename))
+        ((sr-avfs-dir filename) (sr-find-regular-directory (sr-avfs-dir filename)))
         ((sr-virtual-directory-p filename) (sr-find-virtual-directory filename))
         (t (sr-find-regular-file filename wildcards))))
 
@@ -1391,16 +1392,6 @@ automatically:
   (if (string= directory (expand-file-name "../"))
       (sr-dired-prev-subdir)
     (sr-goto-dir directory)))
-
-(defun sr-find-avfs-directory (filename)
-  "Determine whether FILENAME is actually the root of some directory in AVFS,
-  and visit it accordingly as a directory or as a regular file."
-  (let ((dir-path (sr-avfs-dir filename)))
-    (if dir-path
-        (progn
-          (sr-goto-dir dir-path)
-          (sr-keep-buffer))
-      (sr-find-regular-file filename))))
 
 (defun sr-find-virtual-directory (sr-virtual-dir)
   "Visit the given Sunrise VIRTUAL directory in the active pane."
@@ -1427,16 +1418,10 @@ automatically:
   "Returns the virtual path for accessing the given file through AVFS, or nil if
    AVFS cannot manage this kind of file."
   (let* ((handler (assoc-default filename sr-avfs-handlers-alist 'string-match))
-         (vdir (concat filename handler))
-         (is-mounted (file-directory-p vdir)))
+         (vdir (concat filename handler)))
     (unless (sr-overlapping-paths-p sr-avfs-root vdir)
       (setq vdir (concat sr-avfs-root vdir)))
-    (unless is-mounted
-      (condition-case discard
-          (with-temp-buffer (cd vdir)) ;; forces AVFS to create vdir.
-        (error (sit-for 1)))
-      (setq is-mounted (file-directory-p vdir)))
-    (if is-mounted vdir nil)))
+    (if (file-attributes vdir) vdir nil)))
 
 (defun sr-goto-dir (dir)
   "Changes the current directory in the active pane to the given one."
@@ -1763,7 +1748,8 @@ automatically:
         (insert-buffer-substring sr-backup-buffer)
         (sr-beginning-of-buffer)
         (dired-mark-remembered marks)
-        (sr-focus-filename focus)
+        (if focus (sr-focus-filename focus))
+        (dired-change-marks ?\t ?*)
         (if (eq 'sr-mode major-mode) (sr-kill-backup-buffer)))
     (unless (or (equal major-mode 'sr-virtual-mode)
                 (local-variable-p 'sr-virtual-buffer))
