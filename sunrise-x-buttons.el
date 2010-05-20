@@ -1,10 +1,17 @@
-;; sunrise-x-buttons.el  ---  Mouse  clickable  shortcut buttons for the Sunrise
-;; Commander File Manager.
+;;; sunrise-x-buttons.el --- Mouse clickable shortcut buttons for the Sunrise Commander File Manager.
 
 ;; Copyright (C) 2008-2010 José Alfredo Romero Latouche.
 
 ;; Author: José Alfredo Romero L. <escherdragon@gmail.com>
+;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
+;; Created: 11 Jun 2008
+;; Version: 1
+;; RCS Version: $Rev$
 ;; Keywords: Sunrise Commander Emacs File Manager Extension Shortcut Buttons
+;; URL: http://www.emacswiki.org/emacs/sunrise-x-buttons.el
+;; Compatibility: GNU Emacs 22+
+
+;; This file is *NOT* part of GNU Emacs.
 
 ;; This program is free software: you can redistribute it and/or modify it under
 ;; the terms of the GNU General Public License as published by the Free Software

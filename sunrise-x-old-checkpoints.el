@@ -1,10 +1,17 @@
-;;; sunrise-x-old-checkpoints.el --- Backward compatibility checkpoint functions
-;;; for the Sunrise Commander File Manager
+;;; sunrise-x-old-checkpoints.el --- Backward compatibility checkpoint functions for the Sunrise Commander File Manager.
 
 ;; Copyright (C) 2009-2010 José Alfredo Romero Latouche.
 
 ;; Author: José Alfredo Romero L. <escherdragon@gmail.com>
+;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
+;; Created: 28 Dec 2009
+;; Version: 1
+;; RCS Version: $Rev$
 ;; Keywords: Sunrise Commander Emacs File Manager Old Checkpoints
+;; URL: http://www.emacswiki.org/emacs/sunrise-x-old-checkpoints.el
+;; Compatibility: GNU Emacs 22
+
+;; This file is *NOT* part of GNU Emacs.
 
 ;; This program is free software: you can redistribute it and/or modify it under
 ;; the terms of the GNU General Public License as published by the Free Software
