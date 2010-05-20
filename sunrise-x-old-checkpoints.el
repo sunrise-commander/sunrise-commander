@@ -88,3 +88,5 @@
   (ignore))
 
 (provide 'sunrise-x-old-checkpoints)
+
+;;; sunrise-x-old-checkpoints.el ends here.

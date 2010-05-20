@@ -120,3 +120,5 @@
 (ad-activate 'bookmark-relocate)
 
 (provide 'sunrise-x-checkpoints)
+
+;;; sunrise-x-checkpoints.el ends here.

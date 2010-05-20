@@ -339,3 +339,5 @@
 
 (sr-loop-engage)
 (provide 'sunrise-x-loop)
+
+;;; sunrise-x-loop.el ends here.

@@ -102,3 +102,5 @@
   (select-frame-by-name "Sunrise Viewer Frame"))
 
 (provide 'sunrise-x-popviewer)
+
+;;; sunrise-x-popviewer.el ends here.

@@ -285,3 +285,5 @@
         (t (message "Already in regular mode"))))
 
 (provide 'sunrise-x-buttons)
+
+;;; sunrise-x-buttons.el ends here.
