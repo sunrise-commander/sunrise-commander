@@ -748,7 +748,8 @@ automatically:
 
 (defun sr-viewer-window ()
   "Return an active window that can be used as the viewer."
-  (if (memq major-mode '(sr-mode sr-virtual-mode sr-tree-mode))
+  (if (or (memq major-mode '(sr-mode sr-virtual-mode sr-tree-mode))
+          (memq (current-buffer) (list sr-left-buffer sr-right-buffer)))
       (let ((current-window (selected-window)) (target-window))
         (dotimes (times 2)
           (setq current-window (next-window current-window))
@@ -1057,7 +1058,7 @@ automatically:
         (if (eq start (current-buffer)) (setq start nil)))))
 
   ;;now create the viewer window
-  (unless sr-panes-height
+  (unless (and sr-panes-height (< sr-panes-height (frame-height)))
     (setq sr-panes-height (sr-get-panes-size)))
   (if (and (<= sr-panes-height (* 2 window-min-height))
            (equal sr-window-split-style 'vertical))
@@ -2416,7 +2417,7 @@ indir/d => to-dir/d using clone-op to clone all files."
 
 (defun sr-overlapping-paths-p (dir1 dir2)
   "Determines whether the directory dir2 is located inside the directory dir1."
-  (setq dir1 (expand-file-name (concat dir1 "/"))
+  (setq dir1 (expand-file-name (file-name-as-directory dir1))
         dir2 (expand-file-name dir2))
   (if (>= (length dir2) (length dir1))
       (equal (substring dir2 0 (length dir1)) dir1)
