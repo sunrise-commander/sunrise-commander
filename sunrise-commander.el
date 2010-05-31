@@ -2094,7 +2094,8 @@ automatically:
   (when as-virtual
     (sr-virtual-mode)
     (sr-force-passive-highlight t))
-  (revert-buffer))
+  (dired-build-subdir-alist)
+  (sr-revert-buffer))
 
 (defun sr-terminate-wdired (fun)
   "Restores the current pane's original mode after being edited with WDired."
@@ -2417,11 +2418,12 @@ indir/d => to-dir/d using clone-op to clone all files."
 
 (defun sr-overlapping-paths-p (dir1 dir2)
   "Determines whether the directory dir2 is located inside the directory dir1."
-  (setq dir1 (expand-file-name (file-name-as-directory dir1))
-        dir2 (expand-file-name dir2))
-  (if (>= (length dir2) (length dir1))
-      (equal (substring dir2 0 (length dir1)) dir1)
-      nil))
+  (when (and dir1 dir2)
+    (setq dir1 (expand-file-name (file-name-as-directory dir1))
+	  dir2 (expand-file-name dir2))
+    (if (>= (length dir2) (length dir1))
+	(equal (substring dir2 0 (length dir1)) dir1)
+      nil)))
 
 (defun sr-list-of-contents (dir)
   "Return the whole list of contents in DIR as a list of strings."
