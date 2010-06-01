@@ -1693,7 +1693,7 @@ automatically:
 (defun sr-transpose-panes ()
   "Changes the order of the panes."
   (interactive)
-  (unless (sr-equal-dirs sr-this-directory sr-other-directory)
+  (unless (eq sr-left-buffer sr-right-buffer)
     (mapc (lambda (x)
             (let ((left (sr-symbol 'left x)) (right (sr-symbol 'right x)) (tmp))
               (setq tmp (symbol-value left))
