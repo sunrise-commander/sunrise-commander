@@ -806,7 +806,7 @@ automatically:
 
 ;; for some strange reason delete-directory does not follow symlinks:
 (defadvice delete-directory
-  (around sr-advice-delete-directory (directory &optional recursive))
+  (around sr-advice-delete-directory (directory &optional recursive trash))
   (if (file-symlink-p directory)
       (delete-file directory)
     ad-do-it))
