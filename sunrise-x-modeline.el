@@ -261,5 +261,6 @@
 (add-to-list 'sr-desktop-restore-handlers 'sr-modeline-desktop-restore-buffer)
 
 (provide 'sunrise-x-modeline)
+;;;###autoload (require 'sunrise-x-modeline)
 
 ;;; sunrise-x-modeline.el ends here.

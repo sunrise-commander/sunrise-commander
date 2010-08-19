@@ -1168,4 +1168,6 @@
 
 (provide 'sunrise-x-tree)
 
+;;;###autoload (require 'sunrise-x-tree)
+
 ;;; sunrise-x-tree.el ends here.

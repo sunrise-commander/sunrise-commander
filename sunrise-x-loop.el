@@ -1,4 +1,4 @@
-;;;  sunrise-x-loop.el --- Asynchronous execution of filesystem operations for the Sunrise Commander File Manager.
+;;; sunrise-x-loop.el --- Asynchronous execution of filesystem operations for the Sunrise Commander File Manager.
 
 ;; Copyright (C) 2008-2010 José Alfredo Romero Latouche.
 
@@ -339,5 +339,7 @@
 
 (sr-loop-engage)
 (provide 'sunrise-x-loop)
+
+;;;###autoload (require 'sunrise-x-loop)
 
 ;;; sunrise-x-loop.el ends here.

@@ -111,4 +111,6 @@
 
 (provide 'sunrise-x-popviewer)
 
+;;;###autoload (require 'sunrise-x-popviewer)
+
 ;;; sunrise-x-popviewer.el ends here.

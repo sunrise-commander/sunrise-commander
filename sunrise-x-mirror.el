@@ -527,4 +527,6 @@
 
 (provide 'sunrise-x-mirror)
 
+;;;###autoload (require 'sunrise-x-mirror)
+
 ;;; sunrise-x-mirror.el ends here.

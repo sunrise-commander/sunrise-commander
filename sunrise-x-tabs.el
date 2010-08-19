@@ -602,4 +602,6 @@
 
 (provide 'sunrise-x-tabs)
 
+;;;###autoload (require 'sunrise-x-tabs)
+
 ;;; sunrise-x-tabs.el ends here.

@@ -286,4 +286,6 @@
 
 (provide 'sunrise-x-buttons)
 
+;;;###autoload (require 'sunrise-x-buttons)
+
 ;;; sunrise-x-buttons.el ends here.
