@@ -1730,10 +1730,12 @@ automatically:
     (sr-change-window)
     (if reverse
         (setq target (current-buffer))
-      (sr-alternate-buffer (switch-to-buffer target)))
+      (sr-alternate-buffer (switch-to-buffer target))
+      (sr-history-push default-directory))
     (sr-change-window)
     (when reverse
       (sr-alternate-buffer (switch-to-buffer target))
+      (sr-history-push default-directory)
       (revert-buffer))))
 
 (defun sr-browse-pane ()
