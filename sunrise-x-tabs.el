@@ -476,6 +476,7 @@
 (define-key sr-tabs-mode-map [(control ?k)] 'sr-tabs-remove)
 (define-key sr-tabs-mode-map [(control ?p)] 'sr-tabs-prev)
 (define-key sr-tabs-mode-map [(control ?n)] 'sr-tabs-next)
+(define-key sr-tabs-mode-map [(meta tab)] 'sr-tabs-next)
 
 (define-key sr-tabs-mode-map [(control meta ?j)]
   (lambda () (interactive) (sr-in-other (sr-tabs-add))))
@@ -484,6 +485,8 @@
 (define-key sr-tabs-mode-map [(control meta ?p)]
   (lambda () (interactive) (sr-in-other (sr-tabs-prev))))
 (define-key sr-tabs-mode-map [(control meta ?n)]
+  (lambda () (interactive) (sr-in-other (sr-tabs-next))))
+(define-key sr-tabs-mode-map [(control meta tab)] 
   (lambda () (interactive) (sr-in-other (sr-tabs-next))))
 
 (define-key sr-tabs-mode-map "\C-xk" 'sr-tabs-kill-and-go)

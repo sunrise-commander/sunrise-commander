@@ -67,9 +67,13 @@
 
 ;; * Press C-c C-s to change the layout of the panes (horizontal/vertical/top)
 
-;; *  Press C-c / to interactively refine the contents of the current pane using
-;; fuzzy matching, then press Return/C-g to accept the current narrowed state or
-;; Backspace/Delete to return to any of the previous ones.
+;; * Press C-c / to interactively refine  the contents of the current pane using
+;; fuzzy (a.k.a. flex) matching, then:
+;;    - press Delete or Backspace to revert the buffer to its previous state
+;;    - press Return, C-n or C-p to exit and accept the current narrowed state
+;;    - press Esc or C-g to abort the operation and revert the buffer.
+;; Once narrowed and accepted, you can restore the original contents of the pane
+;; by pressing g (revert-buffer).
 
 ;; *  Press  C-x C-q   to put the current pane in Editable Dired mode (allows to
 ;; edit the pane as if it were a regular file -- press C-c C-c  to  commit  your
@@ -2715,18 +2719,28 @@ or (c)ontents? ")
   (sr-backup-buffer))
 
 (defun sr-fuzzy-narrow ()
-  "Interactively  narrows the contents of the current pane using fuzzy matching:
-  press Delete or Backspace to revert buffer to its previous state and Return or
-  C-g to exit and accept the current narrowed state."
+  "Interactively narrows the contents of  the current pane using fuzzy matching:
+  * press Delete or Backspace to revert the buffer to its previous state
+  * press Return, C-n or C-p to exit and accept the current narrowed state
+  * press Esc or C-g to abort the operation and revert the buffer.
+  Once narrowed and accepted, you can  restore the original contents of the pane
+  by pressing g (revert-buffer)."
   (interactive)
   (when sr-running
     (sr-beginning-of-buffer)
     (dired-change-marks ?* ?\t)
-    (let ((stack nil) (filter "") (regex "") (next-char nil) (matches nil))
+    (let ((stack nil) (filter "") (regex "") (next-char nil) (matches nil)
+          (inhibit-quit t))
       (setq next-char (read-char "Fuzzy narrow: "))
       (sr-backup-buffer)
       (while next-char
-        (cond ((memq next-char '(?\n ?\r))
+        (cond ((memq next-char '(?\e ?\C-g))
+               (setq next-char nil) (sr-revert-buffer))
+              ((eq next-char ?\C-n)
+               (setq next-char nil) (sr-beginning-of-buffer))
+              ((eq next-char ?\C-p)
+               (setq next-char nil) (sr-end-of-buffer))
+              ((memq next-char '(?\n ?\r))
                (setq next-char nil))
               ((memq next-char '(?\b ?\d))
                (revert-buffer)
@@ -2747,7 +2761,7 @@ or (c)ontents? ")
               (sit-for 1)))
           (setq next-char (read-char (concat "Fuzzy narrow: " filter))))))
     (dired-change-marks ?\t ?*)))
-
+  
 (defun sr-recent-files ()
   "Displays the history of recent files maintained by recentf in sunrise virtual
    mode."
