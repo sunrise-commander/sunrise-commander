@@ -615,7 +615,8 @@
           (define-key isearch-mode-map (car binding) nil))
         sr-tree-isearch-mode-commands)
   (define-key isearch-mode-map "\C-c" 'isearch-other-control-char)
-  (isearch-done))
+  (isearch-done)
+  (setq isearch-mode-end-hook-quit t))
 
 (defun sr-tree-isearch-forward (&optional prefix)
   "Prefixable version of isearch-forward used in Sunrise Tree mode. With PREFIX
@@ -640,20 +641,17 @@
 (defun sr-tree-post-isearch (&optional command)
   "Function installed in isearch-mode-end-hook during sticky isearch operations
   in Sunrise Tree View mode."
-  (if (or isearch-mode-end-hook-quit (equal "" isearch-string))
-      (progn
-        (sr-tree-isearch-done)
-        (if command
-            (sr-tree-isearch-command-loop command)
-          (sr-tree-open-branch)))
-    (sr-tree-update-cursor)
-    (if (not (sr-tree-toggle-branch 'open))
-        (sr-tree-isearch-done)
-      (if (widget-get (sr-tree-get-branch) :args)
-          (recenter (truncate (/ (window-body-height) 10.0))))
-      (if command (sr-tree-isearch-command-loop command))
-      (sr-tree-isearch-setup)
-      (isearch-forward nil t))))
+  (sr-tree-update-cursor)
+  (cond (command (sr-tree-isearch-command-loop command))
+        (isearch-mode-end-hook-quit (sr-tree-isearch-done))
+        ((equal "" isearch-string) (sr-tree-open-branch))
+        ((and (sr-tree-toggle-branch 'open)
+              (widget-get (sr-tree-get-branch) :args))
+         (recenter (truncate (/ (window-body-height) 10.0))))
+        (t (ignore)))
+  (unless isearch-mode-end-hook-quit
+    (sr-tree-isearch-setup)
+    (isearch-forward nil t)))
 
 (defun sr-tree-isearch-command-loop (command)
   (funcall command)
@@ -666,7 +664,8 @@
       (funcall next-command)
       (setq key (read-key-sequence msg)
             next-command (lookup-key sr-tree-mode-map key)))
-    (isearch-unread-key-sequence (listify-key-sequence key))))
+    (isearch-unread-key-sequence (listify-key-sequence key))
+    (setq isearch-mode-end-hook-quit nil)))
 
 (defun sr-tree-focus-branch ()
   "Replace the current tree with a new one having the selected directory as its
@@ -772,7 +771,8 @@
         (in-search (memq 'sr-tree-post-isearch isearch-mode-end-hook)))
     (sr-tree-check-virtual-size target)
     (if in-search (sr-tree-isearch-done))
-    (sr-save-aspect (sr-alternate-buffer (sr-goto-dir target)))))
+    (sr-save-aspect (sr-alternate-buffer (sr-goto-dir target)))
+    (if in-search (sr-sticky-isearch))))
 
 (defun sr-tree-mouse-advertised-find-file (e)
   "Visit a file or directory selected using the mouse in the current pane."
