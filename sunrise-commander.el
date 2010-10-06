@@ -904,7 +904,8 @@ automatically:
 (define-key sr-mode-map "Q"           'sr-do-query-replace-regexp)
 (define-key sr-mode-map "F"           'sr-do-find-marked-files)
 (define-key sr-mode-map "A"           'sr-do-search)
-(define-key sr-mode-map "\C-cs"       'sr-sticky-isearch)
+(define-key sr-mode-map "\C-cs"       'sr-sticky-isearch-forward)
+(define-key sr-mode-map "\C-cr"       'sr-sticky-isearch-backward)
 (define-key sr-mode-map "\C-x\C-f"    'sr-find-file)
 (define-key sr-mode-map "y"           'sr-show-files-info)
 
@@ -2852,15 +2853,26 @@ or (c)ontents? ")
   (message (propertize "Sunrise sticky I-search (C-g to exit): "
                        'face 'minibuffer-prompt)))
 
-(defun sr-sticky-isearch ()
-  "Concatenates isearch-forward operations to allow fast navigation through long
-  paths in the file system, until C-g is pressed (to abort) or Return is pressed
-  on a regular file (to end the operation and visit that file)."
-  (interactive)
+(defun sr-sticky-isearch (&optional backward)
+  "Concatenates isearch operations to allow  fast  navigation through long paths
+  in the file system, until C-g is pressed  (to abort) or Return is pressed on a
+  regular file (to end the operation and visit that file)."
   (set (make-local-variable 'search-nonincremental-instead) nil)
   (add-hook 'isearch-mode-end-hook 'sr-sticky-post-isearch)
-  (isearch-forward nil t)
+  (if backward
+      (isearch-backward nil t)
+    (isearch-forward nil t))
   (sr-sticky-isearch-prompt))
+
+(defun sr-sticky-isearch-forward ()
+  "Starts a sticky forward search in the current pane."
+  (interactive)
+  (sr-sticky-isearch))
+
+(defun sr-sticky-isearch-backward ()
+  "Starts a sticky backward search in the current pane."
+  (interactive)
+  (sr-sticky-isearch t))
 
 (defun sr-sticky-post-isearch ()
   "Function installed in isearch-mode-end-hook during sticky isearch operations
