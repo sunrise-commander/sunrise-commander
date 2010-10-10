@@ -2862,7 +2862,7 @@ or (c)ontents? ")
   (if backward
       (isearch-backward nil t)
     (isearch-forward nil t))
-  (sr-sticky-isearch-prompt))
+  (run-with-idle-timer 0.01 nil 'sr-sticky-isearch-prompt))
 
 (defun sr-sticky-isearch-forward ()
   "Starts a sticky forward search in the current pane."
@@ -2877,22 +2877,24 @@ or (c)ontents? ")
 (defun sr-sticky-post-isearch ()
   "Function installed in isearch-mode-end-hook during sticky isearch operations
   in Sunrise browse mode."
-  (let* ((filename (expand-file-name (dired-get-filename nil t)))
-         (is-dir (or (file-directory-p filename)
-                     (sr-avfs-dir filename)
-                     (sr-virtual-directory-p filename))))
-    (cond ((or isearch-mode-end-hook-quit (not is-dir))
-           (progn
-             (remove-hook 'isearch-mode-end-hook 'sr-sticky-post-isearch)
-             (kill-local-variable 'search-nonincremental-instead)
-             (isearch-done)
-             (or isearch-mode-end-hook-quit (sr-find-file filename))))
-          (t
-           (progn
-             (sr-find-file filename)
-             (set (make-local-variable 'search-nonincremental-instead) nil)
-             (isearch-forward nil t)
-             (sr-sticky-isearch-prompt))))))
+  (and
+   (dired-get-filename nil t)
+   (let* ((filename (expand-file-name (dired-get-filename nil t)))
+          (is-dir (or (file-directory-p filename)
+                      (sr-avfs-dir filename)
+                      (sr-virtual-directory-p filename))))
+     (cond ((or isearch-mode-end-hook-quit (not is-dir))
+            (progn
+              (remove-hook 'isearch-mode-end-hook 'sr-sticky-post-isearch)
+              (kill-local-variable 'search-nonincremental-instead)
+              (isearch-done)
+              (or isearch-mode-end-hook-quit (sr-find-file filename))))
+           (t
+            (progn
+              (sr-find-file filename)
+              (set (make-local-variable 'search-nonincremental-instead) nil)
+              (isearch-forward nil t)
+              (run-with-idle-timer 0.01 nil 'sr-sticky-isearch-prompt)))))))
 
 (defun sr-show-files-info (&optional deref-symlinks)
   "Enhanced version of dired‐show‐file‐type from dired‐aux.  If at most one item
