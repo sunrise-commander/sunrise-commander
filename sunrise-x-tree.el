@@ -612,7 +612,8 @@
           (define-key
             isearch-mode-map
             (car binding) (sr-tree-isearch-command binding)))
-        sr-tree-isearch-mode-commands))
+        sr-tree-isearch-mode-commands)
+  (run-hooks 'sr-refresh-hook))
 
 (defun sr-tree-isearch-done ()
   "Clean up the isearch hook and keymap after a sticky search."

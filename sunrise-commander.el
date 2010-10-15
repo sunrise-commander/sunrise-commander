@@ -2862,6 +2862,7 @@ or (c)ontents? ")
   (if backward
       (isearch-backward nil t)
     (isearch-forward nil t))
+  (run-hooks 'sr-refresh-hook)
   (run-with-idle-timer 0.01 nil 'sr-sticky-isearch-prompt))
 
 (defun sr-sticky-isearch-forward ()
@@ -2888,7 +2889,9 @@ or (c)ontents? ")
               (remove-hook 'isearch-mode-end-hook 'sr-sticky-post-isearch)
               (kill-local-variable 'search-nonincremental-instead)
               (isearch-done)
-              (or isearch-mode-end-hook-quit (sr-find-file filename))))
+              (if isearch-mode-end-hook-quit
+                  (run-hooks 'sr-refresh-hook)
+                (sr-find-file filename))))
            (t
             (progn
               (sr-find-file filename)
@@ -3352,7 +3355,8 @@ or (c)ontents? ")
     (set (make-local-variable 'sr-backup-buffer)
          (generate-new-buffer "*Sunrise Backup*"))
     (with-current-buffer sr-backup-buffer
-      (insert-buffer-substring buf))))
+      (insert-buffer-substring buf))
+    (run-hooks 'sr-refresh-hook)))
 
 (defun sr-kill-backup-buffer ()
   "Kills the back-up buffer associated to the current one, if there is any."
