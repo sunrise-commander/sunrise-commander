@@ -2742,9 +2742,9 @@ or (c)ontents? ")
 
 (defun sr-multifind-handler (operation &rest args)
   "Magic file name handler for manipulating the command executed by find-dired
-  when the user requests to perform the find operation in all currently marked
-  subdirectories. Removes itself from the inhibit-file-name-handlers list when
-  executed."
+  when the user requests to perform the find operation on all currently marked
+  items (as opposed to the current default directory). Removes itself from the
+  inhibit-file-name-handlers every time it's executed."
   (let ((inhibit-file-name-handlers
          (cons 'sr-multifind-handler
                (and (eq inhibit-file-name-operation operation)
@@ -2849,18 +2849,16 @@ or (c)ontents? ")
                (setq stack (cdr stack) filter (caar stack) regex (cdar stack))
                (unless stack (setq next-char nil)))
               (t
-               (progn
-                 (setq filter (concat filter (char-to-string next-char))
-                       regex (concat regex "[^" (char-to-string next-char) "]*")
-                       stack (cons (cons filter regex) stack)))))
+               (setq filter (concat filter (char-to-string next-char))
+                     regex (concat regex "[^" (char-to-string next-char) "]*")
+                     stack (cons (cons filter regex) stack))))
         (when next-char
           (setq matches (dired-mark-files-regexp (concat "^" regex "$")))
           (if matches
               (dired-do-kill-lines)
-            (progn
-              (message "Sunrise: Nothing left to filter out!")
-              (setq stack (cdr stack) filter (caar stack) regex (cdar stack))
-              (sit-for 1)))
+            (message "Sunrise: Nothing left to filter out!")
+            (setq stack (cdr stack) filter (caar stack) regex (cdar stack))
+            (sit-for 1))
           (setq next-char (read-char (concat "Fuzzy narrow: " filter))))))
     (dired-change-marks ?\t ?*)))
 
@@ -3518,11 +3516,7 @@ or (c)ontents? ")
     (if (< (length marked) 2)
         (setq marked nil)
       (if (eq t (car marked)) (setq marked (cdr marked)))
-      (setq marked
-            (delq nil (mapcar (lambda (x) (and (file-directory-p x) x)) marked))
-            marked
-            (format "\"%s\"" (mapconcat 'identity marked "\" \""))))
-      marked))
+      (format "\"%s\"" (mapconcat 'identity marked "\" \"")))))
 
 ;;; ============================================================================
 ;;; Font-Lock colors & styles:
