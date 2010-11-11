@@ -96,6 +96,14 @@
 ;; slot 2 -- transient states:
 (defconst sr-modeline-bkup-mark '("#" . "♥"))
 
+(defface sr-modeline-separator-face
+  '((t (:height 0.3)))
+  "Face of the string used to separate the state indicators from one another."
+  :group 'sunrise)
+
+(defconst sr-modeline-sep #(" " 0 1 (face sr-modeline-separator-face))
+  "Sunrise Modeline separator character.")
+
 ;;; ============================================================================
 ;;; Core functions:
 
@@ -131,10 +139,10 @@
 
 (defun sr-modeline-select-mode (mode)
   "Assembles the indicators section on the left of the modeline."
-  (concat "|" (sr-modeline-select-mark mode 0)
-          "|" (sr-modeline-select-mark mode 1)
-          "|" (sr-modeline-select-mark mode 2)
-          "|"))
+  (concat sr-modeline-sep (sr-modeline-select-mark mode 0)
+          sr-modeline-sep (sr-modeline-select-mark mode 1)
+          sr-modeline-sep (sr-modeline-select-mark mode 2)
+          sr-modeline-sep))
 
 (defun sr-modeline-setup ()
   "Determines  the mode indicator (icon) to display in the mode line. On success
@@ -152,7 +160,7 @@
   "Sets  the mode line format using the given mode indicator and the path to the
   current directory of the pane. Truncates the path  if  it’s  longer  than  the
   available width of the pane."
-  (let ((path default-directory)
+  (let ((path (expand-file-name default-directory))
         (path-length (length default-directory))
         (max-length (- (window-width) 8)))
     (if (< max-length path-length)
