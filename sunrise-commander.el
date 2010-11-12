@@ -565,7 +565,7 @@ substitution may be about to happen."
         C-c t ......... open new terminal or switch to already open one
         C-c T ......... open terminal AND/OR change directory to current
         C-c C-t ....... open always a new terminal in current directory
-        q ............. quit Sunrise Commander, restore previous window setup
+        q, C-x k ...... quit Sunrise Commander, restore previous window setup
         M-q ........... quit Sunrise Commander, don't restore previous windows
 
 Additionally, if you activate the mc-compatible keybindings (by invoking the
@@ -951,6 +951,7 @@ automatically:
 (define-key sr-mode-map "\C-cT"       'sr-term-cd)
 (define-key sr-mode-map "\C-c\C-t"    'sr-term-cd-newterm)
 (define-key sr-mode-map "q"           'sr-quit)
+(define-key sr-mode-map "\C-xk"       'sr-quit)
 (define-key sr-mode-map "\M-q"        'sunrise-cd)
 (define-key sr-mode-map "h"           'sr-describe-mode)
 (define-key sr-mode-map "?"           'sr-summary)
