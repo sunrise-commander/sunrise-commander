@@ -3475,7 +3475,8 @@ or (c)ontents? ")
   "Calls describe-mode and makes the resulting buffer C-M-v scrollable."
   (interactive)
   (describe-mode)
-  (sr-scrollable-viewer (get-buffer "*Help*")))
+  (sr-scrollable-viewer (get-buffer "*Help*"))
+  (sr-select-window sr-selected-window))
 
 (defun sr-equal-dirs (dir1 dir2)
   "Determines whether two directory paths represent the same directory."
