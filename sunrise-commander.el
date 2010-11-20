@@ -2852,14 +2852,13 @@ or (c)ontents? ")
   * press Delete or Backspace to revert the buffer to its previous state
   * press Return, C-n or C-p to exit and accept the current narrowed state
   * press Esc or C-g to abort the operation and revert the buffer.
-  Once narrowed and accepted, you can  restore the original contents of the pane
+  Once narrowed and accepted, you can restore the original contents of the pane
   by pressing g (revert-buffer)."
   (interactive)
   (when sr-running
     (sr-beginning-of-buffer)
     (dired-change-marks ?* ?\t)
-    (let ((stack nil) (filter "") (regex "") (next-char nil) (matches nil)
-          (inhibit-quit t))
+    (let ((stack nil) (filter "") (regex "") (next-char nil) (inhibit-quit t))
       (setq next-char (read-char "Fuzzy narrow: "))
       (sr-backup-buffer)
       (while next-char
@@ -2880,12 +2879,8 @@ or (c)ontents? ")
                      regex (concat regex "[^" (char-to-string next-char) "]*")
                      stack (cons (cons filter regex) stack))))
         (when next-char
-          (setq matches (dired-mark-files-regexp (concat "^" regex "$")))
-          (if matches
-              (dired-do-kill-lines)
-            (message "Sunrise: Nothing left to filter out!")
-            (setq stack (cdr stack) filter (caar stack) regex (cdar stack))
-            (sit-for 1))
+          (if (dired-mark-files-regexp (concat "^" regex "$"))
+              (dired-do-kill-lines))
           (setq next-char (read-char (concat "Fuzzy narrow: " filter))))))
     (dired-change-marks ?\t ?*)))
 
