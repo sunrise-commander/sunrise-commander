@@ -2876,10 +2876,10 @@ or (c)ontents? ")
                (unless stack (setq next-char nil)))
               (t
                (setq filter (concat filter (char-to-string next-char))
-                     regex (concat regex ".*" (char-to-string next-char) ".*")
+                     regex (concat regex (char-to-string next-char) ".*")
                      stack (cons (cons filter regex) stack))))
         (when next-char
-          (dired-mark-files-regexp (concat "^" regex "$"))
+          (dired-mark-files-regexp (concat "^.*" regex "$"))
           (dired-toggle-marks)
           (dired-do-kill-lines)
           (setq next-char (read-char (concat "Fuzzy narrow: " filter))))))
