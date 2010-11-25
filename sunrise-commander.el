@@ -71,7 +71,8 @@
 ;; fuzzy (a.k.a. flex) matching, then:
 ;;    - press Delete or Backspace to revert the buffer to its previous state
 ;;    - press Return, C-n or C-p to exit and accept the current narrowed state
-;;    - press Esc or C-g to abort the operation and revert the buffer.
+;;    - press Esc or C-g to abort the operation and revert the buffer
+;;    - use ! to prefix characters that should NOT appear after a given position
 ;; Once narrowed and accepted, you can restore the original contents of the pane
 ;; by pressing g (revert-buffer).
 
@@ -309,6 +310,13 @@
   "Number of entries to keep in each of the pane history rings."
   :group 'sunrise
   :type 'integer)
+
+(defcustom sr-fuzzy-negation-character ?!
+  "Character to use for negating patterns when fuzzy-narrowing a pane."
+  :group 'sunrise
+  :type '(choice
+          (const :tag "Fuzzy matching negation disabled" nil)
+          (character :tag "Fuzzy matching negation character" ?!)))
 
 (defcustom sr-start-hook nil
   "List of functions to be called after the Sunrise panes are displayed"
@@ -2851,7 +2859,8 @@ or (c)ontents? ")
   "Interactively narrows the contents of  the current pane using fuzzy matching:
   * press Delete or Backspace to revert the buffer to its previous state
   * press Return, C-n or C-p to exit and accept the current narrowed state
-  * press Esc or C-g to abort the operation and revert the buffer.
+  * press Esc or C-g to abort the operation and revert the buffer
+  * use ! to prefix characters that should NOT appear beyond a given position.
   Once narrowed and accepted, you can restore the original contents of the pane
   by pressing g (revert-buffer)."
   (interactive)
@@ -2859,31 +2868,40 @@ or (c)ontents? ")
     (sr-beginning-of-buffer)
     (dired-change-marks ?* ?\t)
     (let ((stack nil) (filter "") (regex "") (next-char nil) (inhibit-quit t))
-      (setq next-char (read-char "Fuzzy narrow: "))
-      (sr-backup-buffer)
-      (while next-char
-        (cond ((memq next-char '(?\e ?\C-g))
-               (setq next-char nil) (sr-revert-buffer))
-              ((eq next-char ?\C-n)
-               (setq next-char nil) (sr-beginning-of-buffer))
-              ((eq next-char ?\C-p)
-               (setq next-char nil) (sr-end-of-buffer))
-              ((memq next-char '(?\n ?\r))
-               (setq next-char nil))
-              ((memq next-char '(?\b ?\d))
-               (revert-buffer)
-               (setq stack (cdr stack) filter (caar stack) regex (cdar stack))
-               (unless stack (setq next-char nil)))
-              (t
-               (setq filter (concat filter (char-to-string next-char))
-                     regex (concat regex (char-to-string next-char) ".*")
-                     stack (cons (cons filter regex) stack))))
-        (when next-char
-          (dired-mark-files-regexp (concat "^.*" regex "$"))
-          (dired-toggle-marks)
-          (dired-do-kill-lines)
-          (setq next-char (read-char (concat "Fuzzy narrow: " filter))))))
-    (dired-change-marks ?\t ?*)))
+      (flet ((read-next (f) (read-char (concat "Fuzzy narrow: " f))))
+        (setq next-char (read-next filter))
+        (sr-backup-buffer)
+        (while next-char
+          (cond ((memq next-char '(?\e ?\C-g))
+                 (setq next-char nil) (sr-revert-buffer))
+                ((eq next-char ?\C-n)
+                 (setq next-char nil) (sr-beginning-of-buffer))
+                ((eq next-char ?\C-p)
+                 (setq next-char nil) (sr-end-of-buffer))
+                ((memq next-char '(?\n ?\r))
+                 (setq next-char nil))
+                ((memq next-char '(?\b ?\d))
+                 (revert-buffer)
+                 (setq stack (cdr stack) filter (caar stack) regex (cdar stack))
+                 (unless stack (setq next-char nil)))
+                (t
+                 (setq filter (concat filter (char-to-string next-char)))
+                 (if (not (eq next-char sr-fuzzy-negation-character))
+                     (setq next-char (char-to-string next-char)  
+                           regex (if (string= "" regex) ".*" regex)
+                           regex (concat regex (regexp-quote next-char) ".*"))
+                   (setq next-char (char-to-string (read-next filter))
+                         filter (concat filter next-char)
+                         regex (replace-regexp-in-string "\\.\\*\\'" "" regex)
+                         regex (concat regex "[^"(regexp-quote next-char)"]*")))
+                 (setq stack (cons (cons filter regex) stack))))
+          (when next-char
+            (message regex)
+            (dired-mark-files-regexp (concat "^" regex "$"))
+            (dired-toggle-marks)
+            (dired-do-kill-lines)
+            (setq next-char (read-next filter)))))
+      (dired-change-marks ?\t ?*))))
 
 (defun sr-recent-files ()
   "Displays the history of recent files maintained by recentf in sunrise virtual
