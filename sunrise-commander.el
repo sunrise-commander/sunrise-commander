@@ -2180,7 +2180,8 @@ automatically:
            (let ((was-virtual (local-variable-p 'sr-virtual-buffer))
                  (saved-point (point)))
              (setq major-mode 'wdired-mode)
-             ad-do-it
+             (flet ((yes-or-no-p (prompt) nil))
+               ad-do-it)
              (sr-readonly-pane was-virtual)
              (goto-char saved-point)))
         ad-do-it)))
