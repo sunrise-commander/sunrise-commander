@@ -496,6 +496,7 @@ substitution may be about to happen."
         C-u o, C-u v .. kill quick-visited buffer (restores normal scrolling)
 
         + ............. create new directory
+        M-+ ........... create new empty file(s)
         C ............. copy marked (or current) files and directories
         R ............. rename marked (or current) files and directories
         D ............. delete marked (or current) files and directories
@@ -916,6 +917,7 @@ automatically:
 (define-key sr-mode-map "\M-H"        'dired-do-hardlink)
 (define-key sr-mode-map "\C-x\C-q"    'sr-editable-pane)
 (define-key sr-mode-map "@"           'sr-fast-backup-files)
+(define-key sr-mode-map "\M-+"        'sr-create-files)
 
 (define-key sr-mode-map "="           'sr-diff)
 (define-key sr-mode-map "\C-c="       'sr-ediff)
@@ -2147,6 +2149,29 @@ automatically:
 
 ;;; ============================================================================
 ;;; File manipulation functions:
+
+(defun sr-create-files (&optional qty)
+  "Interactively creates one or more (with numeric prefix QTY) empty files with
+  the given name or template. *NEVER* overwrites existing files. A template may
+  contain one %-format sequence like those used by the \"format\" function, but
+  the only supported specifiers are: d (decimal), x (hex) or o (octal)."
+  (interactive "p")
+  (let* ((qty (or (and (integerp qty) (< 0 qty) qty) 1))
+         (prompt (if (>= 1 qty) "Create file: "
+                   (format "Create %d files using template: " qty)))
+         (filename (read-file-name prompt)) (name))
+    (with-temp-buffer
+      (if (>= 1 qty)
+          (unless (file-exists-p filename) (write-file filename))
+        (unless (string-match "%[0-9]*[dox]" filename)
+          (setq filename (concat filename ".%d")))
+        (setq filename (replace-regexp-in-string "%\\([^%]\\)" "%%\\1" filename)
+              filename (replace-regexp-in-string
+                        "%%\\([0-9]*[dox]\\)" "%\\1" filename))
+        (dotimes (n qty)
+          (setq name (format filename (1+ n)))
+          (unless (file-exists-p name) (write-file name)))))
+    (sr-revert-buffer)))
 
 (defun sr-editable-pane ()
   "Puts the current pane in Editable Dired mode (WDired)."
