@@ -3520,8 +3520,8 @@ or (c)ontents? ")
 
 (defun sr-equal-dirs (dir1 dir2)
   "Determines whether two directory paths represent the same directory."
-  (string= (expand-file-name (concat dir1 "/"))
-           (expand-file-name (concat dir2 "/"))))
+  (string= (expand-file-name (concat (directory-file-name dir1) "/"))
+           (expand-file-name (concat (directory-file-name dir2) "/"))))
 
 (defun sr-summary ()
   "Summarize basic Sunrise commands and show recent dired errors."
