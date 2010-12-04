@@ -175,30 +175,24 @@
 
 ;; 2) Add a (require 'sunrise-commander) to your .emacs file.
 
-;; 3) If you want the function keys bound to the usual MC commands (F5 for copy,
-;; F6 for rename, and so on) add: (sunrise-mc-keys)  after  the  "require"  line
-;; (IMHO  these  bindings  are not optimal for emacs, but I'm including them be-
-;; cause some MC power users may have them too deeply embedded in  their  spinal
-;; cord)
-
-;; 4)  Choose  some  unused  extension for files to be opened in Sunrise VIRTUAL
+;; 3)  Choose  some  unused  extension for files to be opened in Sunrise VIRTUAL
 ;; mode and add it to auto-mode-alist, e.g. if you want  to  name  your  virtual
 ;; directories  like  *.svrm  just  add  to  your  .emacs  file  a line like the
 ;; following:
 ;;
 ;;     (add-to-list 'auto-mode-alist '("\\.srvm\\'" . sr-virtual-mode))
 
-;; 5) Evaluate the new lines, or reload your .emacs file, or restart emacs.
+;; 4) Evaluate the new lines, or reload your .emacs file, or restart emacs.
 
-;; 6) Type M-x sunrise to invoke the Sunrise Commander (or much better: bind the
+;; 5) Type M-x sunrise to invoke the Sunrise Commander (or much better: bind the
 ;; function to your favorite key combination). The  command  sunrise-cd  invokes
 ;; Sunrise  and  automatically  selects  the  current file wherever it is in the
 ;; filesystem. Type h at any moment for information on available key bindings.
 
-;; 7)  Type  M-x customize-group <RET> sunrise <RET> to customize options, fonts
+;; 6)  Type  M-x customize-group <RET> sunrise <RET> to customize options, fonts
 ;; and colors (activate AVFS support here, too).
 
-;; 8) Enjoy :)
+;; 7) Enjoy :)
 
 ;;; Code:
 
@@ -577,8 +571,8 @@ substitution may be about to happen."
         q, C-x k ...... quit Sunrise Commander, restore previous window setup
         M-q ........... quit Sunrise Commander, don't restore previous windows
 
-Additionally, if you activate the mc-compatible keybindings (by invoking the
-sunrise-mc-keys function) you'll get the following ones:
+Additionally, the following traditional commander-style keybindings are provided
+ (these may be disabled by customizing the ``sr-use-commander-keys'' option):
 
         F2 ............ go to directory
         F3 ............ quick visit selected file
@@ -1014,6 +1008,11 @@ automatically:
   :group 'sunrise
   :type 'boolean
   :set 'sr-set-commander-keys)
+
+;; These are for backward compatibility:
+(defun sunrise-mc-keys () "Currently does nothing" (interactive) (ignore))
+(make-obsolete 'sunrise-mc-keys
+               "Customize variable sr-commander-keys instead" "4R340")
 
 ;;; ============================================================================
 ;;; Initialization and finalization functions:
