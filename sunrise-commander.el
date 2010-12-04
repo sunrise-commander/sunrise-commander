@@ -982,24 +982,38 @@ automatically:
 
 (define-key sr-mode-map (kbd "<down-mouse-1>")  'ignore)
 
-(defun sunrise-mc-keys ()
-  "Binds the function keys F2 to F10 the traditional MC way."
-  (interactive)
-  (define-key sr-mode-map [(f2)]            'sr-goto-dir)
-  (define-key sr-mode-map [(f3)]            'sr-quick-view)
-  (define-key sr-mode-map [(f4)]            'sr-advertised-find-file)
-  (define-key sr-mode-map [(f5)]            'sr-do-copy)
-  (define-key sr-mode-map [(f6)]            'sr-do-rename)
-  (define-key sr-mode-map [(f7)]            'dired-create-directory)
-  (define-key sr-mode-map [(f8)]            'sr-do-delete)
-  (define-key sr-mode-map [(f10)]           'keyboard-escape-quit)
-  (define-key sr-mode-map [(control f3)]    'sr-sort-by-name)
-  (define-key sr-mode-map [(control f4)]    'sr-sort-by-extension)
-  (define-key sr-mode-map [(control f5)]    'sr-sort-by-time)
-  (define-key sr-mode-map [(control f6)]    'sr-sort-by-size)
-  (define-key sr-mode-map [(shift f7)]      'sr-do-symlink)
-  (define-key sr-mode-map [(insert)]        'sr-mark-toggle)
-  (define-key sr-mode-map [(control prior)] 'sr-dired-prev-subdir))
+(defvar sr-commander-keys
+  '(([(f2)]            . sr-goto-dir)
+    ([(f3)]            . sr-quick-view)
+    ([(f4)]            . sr-advertised-find-file)
+    ([(f5)]            . sr-do-copy)
+    ([(f6)]            . sr-do-rename)
+    ([(f7)]            . dired-create-directory)
+    ([(f8)]            . sr-do-delete)
+    ([(f10)]           . keyboard-escape-quit)
+    ([(control f3)]    . sr-sort-by-name)
+    ([(control f4)]    . sr-sort-by-extension)
+    ([(control f5)]    . sr-sort-by-time)
+    ([(control f6)]    . sr-sort-by-size)
+    ([(shift f7)]      . sr-do-symlink)
+    ([(insert)]        . sr-mark-toggle)
+    ([(control prior)] . sr-dired-prev-subdir))
+  "Traditional commander-style keybindings for the Sunrise Commander")
+
+(defun sr-set-commander-keys (symbol value)
+  "Setter function for the sr-use-commander-keys customizable option."
+  (if value
+      (mapc (lambda (x)
+              (define-key sr-mode-map (car x) (cdr x))) sr-commander-keys)
+    (mapc (lambda (x)
+            (define-key sr-mode-map (car x) nil)) sr-commander-keys))
+  (set symbol value))
+
+(defcustom sr-use-commander-keys t
+  "Whether to use the traditional commander-style keys (F5 = copy, etc)."
+  :group 'sunrise
+  :type 'boolean
+  :set 'sr-set-commander-keys)
 
 ;;; ============================================================================
 ;;; Initialization and finalization functions:
