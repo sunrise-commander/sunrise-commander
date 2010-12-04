@@ -990,7 +990,7 @@ automatically:
     ([(f6)]            . sr-do-rename)
     ([(f7)]            . dired-create-directory)
     ([(f8)]            . sr-do-delete)
-    ([(f10)]           . keyboard-escape-quit)
+    ([(f10)]           . sr-quit)
     ([(control f3)]    . sr-sort-by-name)
     ([(control f4)]    . sr-sort-by-extension)
     ([(control f5)]    . sr-sort-by-time)
