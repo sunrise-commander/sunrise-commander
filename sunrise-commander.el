@@ -1447,7 +1447,8 @@ automatically:
   a virtual directory served by AVFS."
   (interactive (find-file-read-args "Find file or directory: " nil))
   (cond ((file-directory-p filename) (sr-find-regular-directory filename))
-        ((sr-avfs-dir filename) (sr-find-regular-directory (sr-avfs-dir filename)))
+        ((sr-avfs-directory-p filename)
+         (sr-find-regular-directory (sr-avfs-dir filename)))
         ((sr-virtual-directory-p filename) (sr-find-virtual-directory filename))
         (t (sr-find-regular-file filename wildcards))))
 
