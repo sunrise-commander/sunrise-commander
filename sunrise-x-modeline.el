@@ -162,7 +162,7 @@
   available width of the pane."
   (let ((path (expand-file-name default-directory))
         (path-length (length default-directory))
-        (max-length (- (window-width) 8)))
+        (max-length (- (window-width) 12)))
     (if (< max-length path-length)
         (setq path (concat "..." (substring path (- path-length max-length)))))
     (eval
@@ -301,8 +301,8 @@
   (sr-modeline t)
   (sr-modeline-menu-init)
   (remove-hook 'sr-start-hook 'sr-modeline-start-once)
-  (unintern 'sr-modeline-menu-init)
-  (unintern 'sr-modeline-start-once))
+  (unintern 'sr-modeline-menu-init obarray)
+  (unintern 'sr-modeline-start-once obarray))
 (add-hook 'sr-start-hook 'sr-modeline-start-once)
 
 ;;; ============================================================================

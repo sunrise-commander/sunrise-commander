@@ -1157,7 +1157,7 @@
     (define-key menu-map [disable-tree-view] '("dismiss" . sr-tree-dismiss)))
 
   (remove-hook 'sr-start-hook 'sr-tree-menu-init)
-  (unintern 'sr-tree-menu-init))
+  (unintern 'sr-tree-menu-init obarray))
 
 (add-hook 'sr-start-hook 'sr-tree-menu-init)
 

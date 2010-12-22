@@ -69,7 +69,9 @@
 (defun sr-checkpoint-restore (&optional arg)
   "Calls interactively bookmark-jump."
   (interactive "p")
-  (call-interactively 'bookmark-jump))
+  (call-interactively 'bookmark-jump)
+  (sr-history-push default-directory)
+  (sr-in-other (sr-history-push default-directory)))
 
 (defun sr-make-checkpoint-record ()
   "Generates a the bookmark record for a new checkpoint."
