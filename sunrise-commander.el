@@ -2863,15 +2863,11 @@ or (c)ontents? ")
   all its subdirectories in the active pane."
   (interactive "cFlatten branch showing: (E)verything, (D)irectories,\
  (N)on-directories or (F)iles only?")
-  (let ((success t))
-    (if (and mode (>= mode 97)) (setq mode (- mode 32)))
-    (cond ((eq ?E mode) (sr-find-name "*"))
-          ((eq ?D mode) (sr-find "-type d"))
-          ((eq ?N mode) (sr-find "-not -type d"))
-          ((eq ?F mode) (sr-find "-type f"))
-          (t (setq success nil)))
-    (if success
-        (rename-uniquely))))
+  (if (and mode (>= mode 97)) (setq mode (- mode 32)))
+  (cond ((eq ?E mode) (sr-find-name "*"))
+        ((eq ?D mode) (sr-find "-type d"))
+        ((eq ?N mode) (sr-find "-not -type d"))
+        ((eq ?F mode) (sr-find "-type f"))))
 
 (defun sr-prune-paths (regexp)
   "Kills all the lines (not files) for which the displayed path in the current
