@@ -1,6 +1,6 @@
 ;;; sunrise-commander.el --- Two-pane file manager for Emacs based on Dired and inspired by MC.
 
-;; Copyright (C) 2007-2010 José Alfredo Romero Latouche.
+;; Copyright (C) 2007-2011 José Alfredo Romero Latouche.
 
 ;; Author: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
