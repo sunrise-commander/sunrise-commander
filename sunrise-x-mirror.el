@@ -238,6 +238,7 @@
                 ((eq 'unionfs-fuse sr-mirror-unionfs-impl)
                  (concat "cd ~; unionfs-fuse -o cow,kernel_cache -o allow_other "
                          overlay "=RW:" virtual "=RO " mirror)))))
+    (message "COMMAND IS: %s" command)
     (if (null virtual)
         (error (concat "Sunrise: sorry, don't know how to mirror " path)))
     (unless (file-directory-p mirror)
@@ -347,7 +348,7 @@
   full path to the newly packed archive, on failure throws an error."
   (message "Sunrise: repacking mirror, please wait...")
   (let* ((target-home (concat sr-mirror-home ".repacked/"))
-         (archive (replace-regexp-in-string "#?$" "" mirror))
+         (archive (replace-regexp-in-string "#[a-z0-9]*$" "" mirror))
          (target (replace-regexp-in-string
                   "/?$" ""
                   (car (last (split-string archive "+")))))
@@ -368,11 +369,12 @@
 (defun sr-mirror-mangle (path)
   "Transforms  the  given  filesystem  path  into  a  string  that  can  be used
   internally as the name of a new mirror area."
-  (if (equal ?/ (string-to-char path))
-      (setq path (substring path 1)))
-  (concat (replace-regexp-in-string
-           "/" "+"
-           (replace-regexp-in-string "\\+" "{+}" path)) "#"))
+  (let ((handler (assoc-default path sr-avfs-handlers-alist 'string-match)))
+    (if (equal ?/ (string-to-char path))
+        (setq path (substring path 1)))
+    (concat (replace-regexp-in-string
+             "/" "+"
+             (replace-regexp-in-string "\\+" "{+}" path)) handler)))
 
 (defun sr-mirror-demangle (path)
   "Does  the  opposite of sr-mirror-mangle, ie. transforms the given mirror area
@@ -381,19 +383,22 @@
           (replace-regexp-in-string
            "{\\+}" "+" (replace-regexp-in-string
                         "\\+\\([^}]\\)" "/\\1" (replace-regexp-in-string
-                                                "#$" "" path)))))
+                                                "#[a-z0-9]*$" "" path)))))
 
 (defun sr-mirror-full-demangle (path)
   "Demangles recursively the given path, so as to obtain the current path of the
    originally reflected archive. This is necessary because reflecting an archive
    that is itself a reflection causes deadlocks in FUSE."
-  (let ((reflected path) (home-len (length sr-mirror-home)) (prev-path))
+  (let ((reflected path)
+        (home-len (length sr-mirror-home))
+        (handler (assoc-default path sr-avfs-handlers-alist 'string-match))
+        (prev-path))
     (while (and (not (string= reflected prev-path))
                 (sr-overlapping-paths-p sr-mirror-home reflected))
       (setq prev-path reflected)
       (setq reflected (substring reflected home-len)
             reflected (sr-mirror-demangle reflected)))
-    (setq reflected (concat sr-avfs-root reflected "#/"))
+    (setq reflected (concat sr-avfs-root reflected handler))
     reflected))
 
 (defun sr-mirror-files (directory)
