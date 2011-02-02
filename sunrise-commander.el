@@ -505,7 +505,7 @@ substitution may be about to happen."
         C-M-u ......... go to next directory in history on passive pane
 
         g, C-c C-c .... refresh pane
-        s ............. change sorting order or files (name/size/time/extension)
+        s ............. sort entries (by name, number, size, time or extension)
         C-o ........... show/hide hidden files (requires dired-omit-mode)
         C-Backspace ... hide/show file attributes in pane
         C-c Backspace . hide/show file attributes in pane (console compatible)
@@ -563,7 +563,7 @@ substitution may be about to happen."
         M-q ........... quit Sunrise Commander, don't restore previous windows
 
 Additionally, the following traditional commander-style keybindings are provided
- (these may be disabled by customizing the ``sr-use-commander-keys'' option):
+ (these may be disabled by customizing the `sr-use-commander-keys' option):
 
         F2 ............ go to directory
         F3 ............ quick visit selected file
@@ -577,6 +577,7 @@ Additionally, the following traditional commander-style keybindings are provided
         C-F4 .......... sort contents of current pane by extension
         C-F5 .......... sort contents of current pane by time
         C-F6 .......... sort contents of current pane by size
+        C-F7 .......... sort contents of current pane numerically
         S-F7 .......... soft-link selected file/directory to passive pane
         Insert ........ mark file
         C-PgUp ........ go to parent directory
