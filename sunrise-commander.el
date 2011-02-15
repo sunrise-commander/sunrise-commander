@@ -2004,7 +2004,7 @@ automatically:
   entries containing unpadded numbers in a more logical order than the presented
   when sorted alphabetically by name."
   (interactive)
-  (sr-sort-by-operation 'sr-numerical-sort-op (or inhibit-label "NUMBER")))
+  (sr-sort-by-operation 'sr-numerical-sort-op (unless inhibit-label "NUMBER")))
 
 (defun sr-interactive-sort (order)
   "Prompts for a new sorting order for the active pane and applies it."
