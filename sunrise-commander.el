@@ -1589,7 +1589,7 @@ automatically:
   displays the contents of that directory in the passive pane."
   (interactive "p")
   (let ((order (or order 0))
-        (path (expand-file-name (dired-default-directory)))
+        (path (expand-file-name (dired-current-directory)))
         (pos 0) (projections (list)) candidate)
     (setq path (replace-regexp-in-string "^/\\|/$" "" path))
     (if (< 0 (length path))
@@ -1933,7 +1933,7 @@ automatically:
           (overlay nil))
       (while next
         (beginning-of-line)
-        (setq overlay (make-overlay (1+ (point)) (- next 1)))
+        (setq overlay (make-overlay (+ 2 (point)) next))
         (setq attr-list (cons overlay attr-list))
         (overlay-put overlay 'invisible t)
         (overlay-put overlay 'intangible t)
