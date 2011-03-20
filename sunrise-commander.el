@@ -1591,11 +1591,12 @@ automatically:
   to visit all matches consecutively."
   (interactive)
   (let* ((path (expand-file-name (dired-current-directory)))
-         (path (replace-regexp-in-string "^/\\|/$" "" path))
-         (pos (if (< 0 (length path)) 0)) (candidate) (next-key))
+         (path (replace-regexp-in-string "/*$" "" path))
+         (pos (if (< 0 (length path)) 1)) (candidate) (next-key))
     (while pos
-      (setq candidate (concat sr-other-directory (substring path (1+ pos)))
-            pos (string-match "/" path (1+ pos)))
+      (setq candidate (concat sr-other-directory (substring path pos))
+            pos (string-match "/" path (1+ pos))
+            pos (if pos (1+ pos)))
       (when (and (file-directory-p candidate)
                  (not (sr-equal-dirs sr-this-directory candidate)))
         (sr-goto-dir-other candidate)
