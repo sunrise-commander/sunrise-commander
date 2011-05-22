@@ -30,14 +30,17 @@
 
 ;; This extension implements a listing of all Windows drives and special folders
 ;; inside the Sunrise Commander, as well  as support for *.lnk shortcuts for all
-;; filesystem  operations inside  Sunrise. Only  standard Windows  shortcuts are
-;; currently supported,  if you need  support for Cygwin-style link  file please
-;; drop me a line.
+;; file system  operations inside Sunrise.  Only standard Windows  shortcuts are
+;; currently supported.
+
+;; *WARNING!* this extension is targeted at Emacs ports that run directly on the
+;; Windows file system (like EmacsW32 and...  are there any others?) if yours is
+;; running on top of some simulation layer (like Cygwin does) that maps the file
+;; system this code is of no use to you.
 
 ;; It was developed on EmacsW32 (version 23.1.50.1, patched) for Windows, during
-;; the Hackergarten session at the GeeCon 2011 conference in Cracow.
-
-;; Big Thanks to Andreas Ames for beta-testing this stuff.
+;; the Hackergarten session at the GeeCon 2011 conference in Cracow.   Thanks go
+;; to Andreas Ames for beta-testing this code.
 
 ;;; Installation:
 
@@ -55,13 +58,13 @@
 
 ;; * The "Windows Drives and Special Folders" pane can be accessed in two ways:
 ;; 1) by pressing "C-c w" anywhere in the file system, or
-;; 2) by navigating up (either pressing J or selecting the .. directory) from a
-;; top-level directory in any drive or network share.
+;; 2) by navigating "up" (J) from a  top-level directory in any drive or network
+;; share.
 
 ;; * Windows shortcuts are resolved automatically and, as long as a shortcut can
 ;; be resolved to an existing file, all operations (*INCLUDING DELETION!!!*) are
 ;; performed directly on that file. If you want to operate on shortcuts you must
-;; first disable shortcut resolution  by customizing the sr-w32-follow-shortcuts
+;; first disable shortcut resolution by customizing the  sr-w32-follow-shortcuts
 ;; flag and setting it to false.
 
 ;; * Virtual directories (i.e. directories containing a "target.lnk" shortcut to
