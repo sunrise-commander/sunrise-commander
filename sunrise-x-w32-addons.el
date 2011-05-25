@@ -105,7 +105,7 @@
 
 ;; This implements virtual folder resolution in Windows:
 (defadvice sr-find-file
-  (before sr-w32-advice-sr-find-file (&optional filename))
+  (before sr-w32-advice-sr-find-file (filename &optional wildcards))
   (when sr-w32-follow-shortcuts
     (let ((info) (target (format "%s/target.lnk" filename)))
       (if (file-readable-p target)
