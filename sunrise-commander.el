@@ -2025,7 +2025,8 @@ automatically:
         (message "Sunrise: continuing long lines"))
     (progn
       (setq truncate-partial-width-windows (sr-truncate-v t))
-      (message "Sunrise: truncating long lines"))))
+      (message "Sunrise: truncating long lines")))
+  (dired-do-redisplay))
 
 (defun sr-truncate-p nil
   "Returns  whether  truncate-partial-width-widows  is  set to truncate the long
@@ -2037,7 +2038,7 @@ automatically:
 (defun sr-truncate-v (active)
   "Returns the right value to set for truncate-partial-width-widows depending on
   the emacs version being used. Used by sr-toggle-truncate-lines."
-  (or (and (equal "23" (substring emacs-version 0 2))
+  (or (and (<= 23 (string-to-number (substring emacs-version 0 2)))
            (or (and active 3000) 0))
       active))
 
