@@ -6,7 +6,7 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 4 May 2008
 ;; Version: 2
-;; RCS Version: $Rev$
+;; RCS Version: $Rev: 350 $
 ;; Keywords: Sunrise Commander Emacs File Manager Extension Archives Read/Write
 ;; URL: http://www.emacswiki.org/emacs/sunrise-x-mirror.el
 ;; Compatibility: GNU Emacs 22+
@@ -79,7 +79,7 @@
 ;; work  on  Windows.  It was written on GNU Emacs 23 on Linux and tested on GNU
 ;; Emacs 22 and 23 for Linux.
 
-;; This is version 2 $Rev$ of the Sunrise Commander Mirror Extension.
+;; This is version 2 $Rev: 350 $ of the Sunrise Commander Mirror Extension.
 
 ;;; Installation and Usage:
 

@@ -6,7 +6,7 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 24 Oct 2009
 ;; Version: 1
-;; RCS Version: $Rev$
+;; RCS Version: $Rev: 345 $
 ;; Keywords: Sunrise Commander Emacs File Manager Tabs Minor Mode
 ;; URL: http://www.emacswiki.org/emacs/sunrise-x-tabs.el
 ;; Compatibility: GNU Emacs 22+
@@ -77,7 +77,7 @@
 ;; Sunrise  panes.  It’s meant to be simple and to work nicely with Sunrise with
 ;; just a few tabs (up to 10‐15 per pane, maybe).
 
-;; This is version 1 $Rev$ of the Sunrise Commander Tabs Extension.
+;; This is version 1 $Rev: 345 $ of the Sunrise Commander Tabs Extension.
 
 ;; It  was  written  on GNU Emacs 23 on Linux, and tested on GNU Emacs 22 and 23
 ;; for Linux and on EmacsW32 (version 23) for  Windows.

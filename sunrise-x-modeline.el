@@ -6,7 +6,7 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 10 Oct 2009
 ;; Version: 2
-;; RCS Version: $Rev$
+;; RCS Version: $Rev: 345 $
 ;; Keywords: Sunrise Commander Emacs File Manager Path Mode Line
 ;; URL: http://www.emacswiki.org/emacs/sunrise-x-modeline.el
 ;; Compatibility: GNU Emacs 22+
@@ -56,7 +56,7 @@
 ;; The  extension  is  provided  as a minor mode, so you can enable / disable it
 ;; totally by issuing the command (M-x) sr-modeline.
 
-;; This is version 2 $Rev$ of the Sunrise Commander Modeline Extension.
+;; This is version 2 $Rev: 345 $ of the Sunrise Commander Modeline Extension.
 
 ;; It  was  written  on GNU Emacs 23 on Linux, and tested on GNU Emacs 22 and 23
 ;; for Linux and on EmacsW32 (version 22) for  Windows.

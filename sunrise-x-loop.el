@@ -6,7 +6,7 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 27 Jun 2008
 ;; Version: 3
-;; RCS Version: $Rev$
+;; RCS Version: $Rev: 315 $
 ;; Keywords: Sunrise Commander Emacs File Manager Background Copy Rename Move
 ;; URL: http://www.emacswiki.org/emacs/sunrise-x-loop.el
 ;; Compatibility: GNU Emacs 22+
@@ -60,7 +60,7 @@
 ;; since in these cases the execution of file transfers in the background should
 ;; be managed directly by the FTP client.
 
-;; This is version 3 $Rev$ of the Sunrise Commander Loop Extension.
+;; This is version 3 $Rev: 315 $ of the Sunrise Commander Loop Extension.
 
 ;; It  was  written  on GNU Emacs 23 on Linux, and tested on GNU Emacs 22 and 23
 ;; for Linux and on EmacsW32 (version 22) for  Windows.

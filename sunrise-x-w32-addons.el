@@ -6,7 +6,7 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 14 May 2011
 ;; Version: 1
-;; RCS Version: $Rev$
+;; RCS Version: $Rev: 368 $
 ;; Keywords: Sunrise Commander Emacs File Manager Windows Drives Special Folders Shortcuts
 ;; URL: http://www.emacswiki.org/emacs/sunrise-x-w32-addons.el
 ;; Compatibility: GNU Emacs 23+

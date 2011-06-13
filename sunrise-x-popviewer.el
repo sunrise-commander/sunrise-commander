@@ -6,7 +6,7 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 20 Aug 2008
 ;; Version: 1
-;; RCS Version: $Rev$
+;; RCS Version: $Rev: 364 $
 ;; Keywords: Sunrise Commander Emacs File Manager Accessibility Viewer
 ;; URL: http://www.emacswiki.org/emacs/sunrise-x-popviewer.el
 ;; Compatibility: GNU Emacs 22+
