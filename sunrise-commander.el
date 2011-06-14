@@ -1043,7 +1043,7 @@ This is done so all its dired-filename attributes are kept in the file."
               (define-key sr-mode-map (car x) (cdr x))) sr-commander-keys)
     (mapc (lambda (x)
             (define-key sr-mode-map (car x) nil)) sr-commander-keys))
-  (set symbol value))
+  (set-default symbol value))
 
 (defcustom sr-use-commander-keys t
   "Whether to use the traditional commander-style keys (F5 = copy, etc)."
