@@ -7,7 +7,7 @@
 ;; Created: 4 May 2008
 ;; Version: 2
 ;; RCS Version: $Rev: 350 $
-;; Keywords: Sunrise Commander Emacs File Manager Extension Archives Read/Write
+;; Keywords: sunrise commander, archives read/write
 ;; URL: http://www.emacswiki.org/emacs/sunrise-x-mirror.el
 ;; Compatibility: GNU Emacs 22+
 

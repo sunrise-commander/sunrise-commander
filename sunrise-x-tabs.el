@@ -7,7 +7,7 @@
 ;; Created: 24 Oct 2009
 ;; Version: 1
 ;; RCS Version: $Rev: 345 $
-;; Keywords: Sunrise Commander Emacs File Manager Tabs Minor Mode
+;; Keywords: sunrise commander, tabs
 ;; URL: http://www.emacswiki.org/emacs/sunrise-x-tabs.el
 ;; Compatibility: GNU Emacs 22+
 

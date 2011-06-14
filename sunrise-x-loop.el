@@ -7,7 +7,7 @@
 ;; Created: 27 Jun 2008
 ;; Version: 3
 ;; RCS Version: $Rev: 315 $
-;; Keywords: Sunrise Commander Emacs File Manager Background Copy Rename Move
+;; Keywords: sunrise commander, background copy rename move
 ;; URL: http://www.emacswiki.org/emacs/sunrise-x-loop.el
 ;; Compatibility: GNU Emacs 22+
 

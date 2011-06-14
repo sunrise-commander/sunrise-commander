@@ -7,7 +7,7 @@
 ;; Created: 28 Dec 2009
 ;; Version: 1
 ;; RCS Version: $Rev: 309 $
-;; Keywords: Sunrise Commander Emacs File Manager Old Checkpoints
+;; Keywords: sunrise commander, old checkpoints
 ;; URL: http://www.emacswiki.org/emacs/sunrise-x-old-checkpoints.el
 ;; Compatibility: GNU Emacs 22
 

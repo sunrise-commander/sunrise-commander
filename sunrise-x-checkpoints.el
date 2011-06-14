@@ -7,7 +7,7 @@
 ;; Created: 29 Dec 2009
 ;; Version: 1
 ;; RCS Version: $Rev: 345 $
-;; Keywords: Sunrise Commander Emacs File Manager Checkpoints Bookmarks
+;; Keywords: sunrise commander, checkpoints, bookmarks
 ;; URL: http://www.emacswiki.org/emacs/sunrise-x-checkpoints.el
 ;; Compatibility: GNU Emacs 23+
 

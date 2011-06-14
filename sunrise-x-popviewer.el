@@ -7,7 +7,7 @@
 ;; Created: 20 Aug 2008
 ;; Version: 1
 ;; RCS Version: $Rev: 364 $
-;; Keywords: Sunrise Commander Emacs File Manager Accessibility Viewer
+;; Keywords: sunrise commander, windows, accessibility, viewer
 ;; URL: http://www.emacswiki.org/emacs/sunrise-x-popviewer.el
 ;; Compatibility: GNU Emacs 22+
 

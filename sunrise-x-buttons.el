@@ -7,7 +7,7 @@
 ;; Created: 11 Jun 2008
 ;; Version: 1
 ;; RCS Version: $Rev: 315 $
-;; Keywords: Sunrise Commander Emacs File Manager Extension Shortcut Buttons
+;; Keywords: sunrise commander, shortcut buttons
 ;; URL: http://www.emacswiki.org/emacs/sunrise-x-buttons.el
 ;; Compatibility: GNU Emacs 22+
 

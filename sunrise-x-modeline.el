@@ -7,7 +7,7 @@
 ;; Created: 10 Oct 2009
 ;; Version: 2
 ;; RCS Version: $Rev: 345 $
-;; Keywords: Sunrise Commander Emacs File Manager Path Mode Line
+;; Keywords: sunrise commander, modeline, path mode line
 ;; URL: http://www.emacswiki.org/emacs/sunrise-x-modeline.el
 ;; Compatibility: GNU Emacs 22+
 
