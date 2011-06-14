@@ -76,15 +76,15 @@
   (bury-buffer)
   (delete-other-windows)
 
-  (cond
-   ((equal sr-window-split-style 'horizontal) (split-window-horizontally))
-   ((equal sr-window-split-style 'vertical)   (split-window-vertically))
-   ((equal sr-window-split-style 'top)        (ignore))
-   (t (error "Sunrise: don't know how to split this window: %s" sr-window-split-style)))
+  (case sr-window-split-style
+    (horizontal (split-window-horizontally))
+    (vertical   (split-window-vertically))
+    (top        (ignore))
+    (t (error "Sunrise: don't know how to split this window: %s" sr-window-split-style)))
 
   ;;setup sunrise on both panes
   (sr-setup-pane left)
-  (unless (equal sr-window-split-style 'top)
+  (unless (eq sr-window-split-style 'top)
     (other-window 1)
     (sr-setup-pane right))
 

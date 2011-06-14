@@ -185,7 +185,7 @@ If no buttons buffer exists yet, creates one."
          (setq truncate-lines t)
          (setq line-spacing 5)
          (setq cursor-in-non-selected-windows nil)
-         (if (not (equal major-mode 'sr-buttons-mode))
+         (if (not (eq major-mode 'sr-buttons-mode))
              (let ((line-spacing 2)
                    (cursor-in-non-selected-windows nil))
                (sr-buttons-render)
@@ -235,8 +235,8 @@ Centers it if necessary."
     (unless (eq ?\n (char-before)) (insert "\n"))))
 
 (defun sr-buttons-mc-keys-p ()
-  (equal 'sr-goto-dir (assoc-default 'f2 sr-mode-map)))
   "Determine whether mc-style keybindings have been activated in Sunrise."
+  (eq 'sr-goto-dir (cdr (assq 'f2 sr-mode-map))))
 
 (defun sr-buttons-maxtaglen ()
   "Calculate the length of the longest tag in `sr-buttons-list'."
@@ -280,9 +280,10 @@ Used inside the Sunrise Buttons buffer."
 (defun sr-buttons-restore-mode ()
   "Implement the [Restore] action in the Sunrise buttons panel."
   (interactive)
-  (cond ((equal major-mode 'sr-virtual-mode) (sr-virtual-dismiss))
-        ((equal major-mode 'wdired-mode) (eval '(wdired-finish-edit)))
-        (t (message "Already in regular mode"))))
+  (case major-mode
+    (sr-virtual-mode (sr-virtual-dismiss))
+    (wdired-mode (eval '(wdired-finish-edit)))
+    (t (message "Already in regular mode"))))
 
 (provide 'sunrise-x-buttons)
 

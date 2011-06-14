@@ -698,7 +698,7 @@ automatically:
   "Execute FORM in a new buffer, after killing the previous one."
   `(let ((dispose nil))
      (unless (or (not (or dired-directory (eq major-mode 'sr-tree-mode)))
-                 (equal sr-left-buffer sr-right-buffer))
+                 (eq sr-left-buffer sr-right-buffer))
        (setq dispose (current-buffer)))
      ,form
      (setq sr-this-directory default-directory)
@@ -732,7 +732,7 @@ Helper macro for passive & synchronized navigation."
   "Set Sunrise mode in every Dired buffer opened in Sunrise (called in a hook)."
   (if (and sr-running
            (sr-equal-dirs dired-directory default-directory)
-           (not (equal major-mode 'sr-mode)))
+           (not (eq major-mode 'sr-mode)))
       (let ((dired-listing-switches dired-listing-switches)
             (sorting-options (or (get sr-selected-window 'sorting-options) "")))
         (if (null (string-match "^/ftp:" default-directory))
@@ -760,7 +760,7 @@ Helper macro for passive & synchronized navigation."
 (defun sr-virtualize-pane ()
   "Put the current normal view in VIRTUAL mode."
   (interactive)
-  (when (equal major-mode 'sr-mode)
+  (when (eq major-mode 'sr-mode)
     (let ((focus (dired-get-filename 'verbatim t)))
       (sr-virtual-mode)
       (if focus (sr-focus-filename focus)))))
@@ -768,7 +768,7 @@ Helper macro for passive & synchronized navigation."
 (defun sr-virtual-dismiss ()
   "Restore normal pane view in Sunrise VIRTUAL mode."
   (interactive)
-  (when (equal major-mode 'sr-virtual-mode)
+  (when (eq major-mode 'sr-virtual-mode)
     (let ((focus (dired-get-filename 'verbatim t)))
       (sr-process-kill)
       (sr-save-aspect
@@ -1173,19 +1173,19 @@ buffer or window."
   (unless (and sr-panes-height (< sr-panes-height (frame-height)))
     (setq sr-panes-height (sr-get-panes-size)))
   (if (and (<= sr-panes-height (* 2 window-min-height))
-           (equal sr-window-split-style 'vertical))
+           (eq sr-window-split-style 'vertical))
       (setq sr-panes-height (* 2 window-min-height)))
   (split-window (selected-window) sr-panes-height)
 
-  (cond
-   ((equal sr-window-split-style 'horizontal) (split-window-horizontally))
-   ((equal sr-window-split-style 'vertical)   (split-window-vertically))
-   ((equal sr-window-split-style 'top)        (ignore))
-   (t (error "Don't know how to split this window: %s" sr-window-split-style)))
+  (case sr-window-split-style
+    (horizontal (split-window-horizontally))
+    (vertical   (split-window-vertically))
+    (top        (ignore))
+    (t (error "Don't know how to split this window: %s" sr-window-split-style)))
 
   ;;setup sunrise on all visible panes
   (sr-setup-pane left)
-  (unless (equal sr-window-split-style 'top)
+  (unless (eq sr-window-split-style 'top)
     (other-window 1)
     (sr-setup-pane right))
 
@@ -1202,12 +1202,12 @@ buffer or window."
         (setq sr-windows-locked nil))
     (if (and sr-windows-locked
              (not sr-ediff-on)
-             (not (equal sr-window-split-style 'vertical))
+             (not (eq sr-window-split-style 'vertical))
              (window-live-p sr-left-window))
         (save-selected-window
           (select-window sr-left-window)
           (let* ((my-style-factor
-                  (if (equal sr-window-split-style 'horizontal) 2 1))
+                  (if (eq sr-window-split-style 'horizontal) 2 1))
                  (my-delta (- sr-panes-height (window-height))))
             (enlarge-window my-delta))
           (scroll-right)
@@ -1369,7 +1369,7 @@ With optional argument REVERT, executes `revert-buffer' on the passive buffer."
 
 (defun sr-restore-panes-width ()
   "Restore the last registered pane width."
-  (when (and (equal sr-window-split-style 'horizontal)
+  (when (and (eq sr-window-split-style 'horizontal)
              (numberp sr-selected-window-width))
     (enlarge-window-horizontally
      (min (- sr-selected-window-width (window-width))
@@ -1836,18 +1836,18 @@ and add it to your `load-path'" name name))))
 (defun sr-split-toggle()
   "Change Sunrise window layout from horizontal to vertical to top and so on."
   (interactive)
-  (cond
-   ((equal sr-window-split-style 'horizontal) (sr-split-setup 'vertical))
-   ((equal sr-window-split-style 'vertical) (sr-split-setup 'top))
-   ((equal sr-window-split-style 'top) (progn
-                                         (sr-split-setup 'horizontal)
-                                         (sr-in-other (revert-buffer))))
-   (t (sr-split-setup 'horizontal))))
+  (case sr-window-split-style
+    (horizontal (sr-split-setup 'vertical))
+    (vertical (sr-split-setup 'top))
+    (top (progn
+           (sr-split-setup 'horizontal)
+           (sr-in-other (revert-buffer))))
+    (t (sr-split-setup 'horizontal))))
 
 (defun sr-split-setup(split-type)
   (setq sr-window-split-style split-type)
   (when sr-running
-    (when (equal sr-window-split-style 'top)
+    (when (eq sr-window-split-style 'top)
       (sr-select-window 'left)
       (delete-window sr-right-window)
       (setq sr-panes-height (window-height)))
@@ -1927,7 +1927,7 @@ If the buffer is non-virtual the backup buffer is killed."
         (if focus (sr-focus-filename focus))
         (dired-change-marks ?\t ?*)
         (if (eq 'sr-mode major-mode) (sr-kill-backup-buffer)))
-    (unless (or (equal major-mode 'sr-virtual-mode)
+    (unless (or (eq major-mode 'sr-virtual-mode)
                 (local-variable-p 'sr-virtual-buffer))
       (dired-revert)
       (if (string= "NUMBER" (get sr-selected-window 'sorting-order))
@@ -2069,7 +2069,7 @@ Depends on the Emacs version being used. Used by
   "Change the sorting order of the active pane.
 Appends additional options to `dired-listing-switches' and
 reverts the buffer."
-  (if (equal major-mode 'sr-virtual-mode)
+  (if (eq major-mode 'sr-virtual-mode)
       (sr-sort-virtual option)
     (progn
       (put sr-selected-window 'sorting-order label)
@@ -2448,7 +2448,7 @@ specifiers are: d (decimal), x (hex) or o (octal)."
   "Put the current pane in File Names Editing mode (`wdired-mode')."
   (interactive)
   (sr-highlight 'sr-editing-path-face)
-  (let* ((was-virtual (equal major-mode 'sr-virtual-mode))
+  (let* ((was-virtual (eq major-mode 'sr-virtual-mode))
          (major-mode 'dired-mode))
     (wdired-change-to-wdired-mode)
     (if was-virtual
@@ -2731,7 +2731,7 @@ IN-DIR/D => TO-DIR/D using CLONE-OP to clone the files."
 Otherwise returns nil."
   (save-window-excursion
     (switch-to-buffer (sr-other 'buffer))
-    (if (equal major-mode 'sr-virtual-mode)
+    (if (eq major-mode 'sr-virtual-mode)
         (or (buffer-file-name) "Sunrise VIRTUAL buffer")
       nil)))
 

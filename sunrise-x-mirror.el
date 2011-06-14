@@ -376,7 +376,7 @@ newly packed archive, otherwise throws an error."
 (defun sr-mirror-mangle (path)
   "Transform PATH into a string naming a new mirror area."
   (let ((handler (assoc-default path sr-avfs-handlers-alist 'string-match)))
-    (if (equal ?/ (string-to-char path))
+    (if (eq ?/ (string-to-char path))
         (setq path (substring path 1)))
     (concat (replace-regexp-in-string
              "/" "+"
@@ -435,7 +435,7 @@ the path is not inside any mirror fs, it is returned unmodified."
                   (setq mirror (substring mirror 0 pos))))
             (if (and target
                      (or (> (length target) 0) force-root)
-                     (not (equal ?. (string-to-char mirror))))
+                     (not (eq ?. (string-to-char mirror))))
                 (concat sr-mirror-home "." mirror "/" target)
               dirname))
         dirname))))

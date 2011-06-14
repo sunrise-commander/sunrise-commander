@@ -78,7 +78,7 @@
          (dirs-list (cdr cp-list)))
     (unless cp-list
       (error (concat "No such checkpoint: " name)))
-    (if (equal sr-selected-window 'right)
+    (if (eq sr-selected-window 'right)
         (setq dirs-list (reverse dirs-list)))
     (mapc '(lambda (x) (sr-goto-dir x) (sr-change-window)) dirs-list)))
 
