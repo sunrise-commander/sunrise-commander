@@ -725,9 +725,9 @@ Helper macro for passive & synchronized navigation."
      (sr-highlight)))
 
 (eval-and-compile
-  (defun sr-symbol (side context)
+  (defun sr-symbol (side type)
     "Synthesize Sunrise symbols (`sr-left-buffer', `sr-right-window', etc.)."
-    (intern (concat "sr-" (symbol-name side) "-" (symbol-name context)))))
+    (intern (concat "sr-" (symbol-name side) "-" (symbol-name type)))))
 
 (defun sr-dired-mode ()
   "Set Sunrise mode in every Dired buffer opened in Sunrise (called in a hook)."
@@ -1110,22 +1110,24 @@ these values uses the default, ie. $HOME."
       (sr-quit t)
       (message "Hast thou a charm to stay the morning-star in his deep course?"))))
 
-(defun sr-this (&optional context)
-  "Return symbol denoting the active side of the manager (`left' or `right').
-If CONTEXT is `buffer' or `window', returns the corresponding
-buffer or window."
-  (if context
-      (symbol-value (sr-symbol sr-selected-window context))
+(defun sr-this (&optional type)
+  "Return object of type TYPE corresponding to the active side of the manager.
+If TYPE is not specified (nil), returns a symbol (`left' or `right').
+If TYPE is `buffer' or `window', returns the corresponding buffer
+or window."
+  (if type
+      (symbol-value (sr-symbol sr-selected-window type))
     sr-selected-window))
 
-(defun sr-other (&optional context)
-  "Return symbol denoting the passive side of the manager (`left' or `right').
-If CONTEXT is `buffer' or `window', returns the corresponding
+(defun sr-other (&optional type)
+  "Return object of type TYPE corresponding to the passive side of the manager.
+If TYPE is not specified (nil), returns a symbol (`left' or `right').
+If TYPE is `buffer' or `window', returns the corresponding
 buffer or window."
-  (let ((side (cdr (assoc sr-selected-window sr-side-lookup))))
-    (or
-     (and (null context) side)
-     (symbol-value (sr-symbol side context)))))
+  (let ((side (cdr (assq sr-selected-window sr-side-lookup))))
+    (if type
+        (symbol-value (sr-symbol side type))
+      side)))
 
 ;;;###autoload
 (defun sr-dired (directory &optional switches)
