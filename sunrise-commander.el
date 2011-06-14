@@ -2566,7 +2566,7 @@ See `dired-make-relative-symlink'."
   "Remove selected files from the file system."
   (interactive)
   (let* ((files (dired-get-marked-files))
-         (mode (sr-ask "Delete" nil files #'y-n-or-a-p))
+         (mode (sr-ask "Delete" nil files #'sr-y-n-or-a-p))
          (deletion-mode (cond ((eq mode 'ALWAYS) 'always)
                               (mode 'top)
                               (t (error "(No deletions performed)")))))
@@ -2766,10 +2766,10 @@ Otherwise returns nil."
         (funcall function (format "%s %s? " prompt msg)))))
 
 (defun sr-ask-overwrite (file-name)
-  (y-n-or-a-p (format "File %s exists. OK to overwrite? " file-name)))
   "Ask whether to overwrite the given FILE-NAME."
+  (sr-y-n-or-a-p (format "File %s exists. OK to overwrite? " file-name)))
 
-(defun y-n-or-a-p (prompt)
+(defun sr-y-n-or-a-p (prompt)
   "Ask the user with PROMPT for an answer y/n/a ('a' stands for 'always').
 Returns t if the answer is y/Y, nil if the answer is n/N or the
 symbol `ALWAYS' if the answer is a/A."
@@ -3378,19 +3378,22 @@ bytes (calculated recursively) of all marked items."
       (message "%s bytes in %d selected items" size items))
     (sit-for 0.5)))
 
+(eval-when-compile
+  (defsubst sr-size-attr (file)
+    "Helper function for `sr-files-size'."
+    (float (or (nth 7 (file-attributes file)) 0))))
+
 (defun sr-files-size (files)
-  (eval-when-compile
-    (defsubst size-attr (file) (float (or (nth 7 (file-attributes file)) 0))))
   "Recursively calculate the total size of all FILES.
 FILES should be a list of paths."
   (let ((result 0))
     (mapc
      (lambda (x) (setq result (+ x result)))
      (mapcar (lambda (f) (cond ((string-match "\\.\\./?$" f) 0)
-                               ((string-match "\\./?$" f) (size-attr f))
-                               ((file-symlink-p f) (size-attr f))
+                               ((string-match "\\./?$" f) (sr-size-attr f))
+                               ((file-symlink-p f) (sr-size-attr f))
                                ((file-directory-p f) (sr-directory-size f))
-                               (t (float (size-attr f)))))
+                               (t (float (sr-size-attr f)))))
              files))
     result))
 

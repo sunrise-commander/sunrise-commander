@@ -411,10 +411,10 @@ nil = inactive, t = active. Creates new labels when needed."
 (defsubst sr-tabs-empty-null (line)
   (if (sr-tabs-empty-p line) nil line))
 
-(defun has-nonempty-p (line-list)
+(defun sr-nonempty-p (line-list)
   "Return non-nil if LINE-LIST contains at least one non-nil element."
   (or (not (sr-tabs-empty-p (car line-list)))
-      (and (cdr line-list) (has-nonempty-p (cdr line-list)))))
+      (and (cdr line-list) (sr-nonempty-p (cdr line-list)))))
 
 (defun sr-tabs-xor (list1 list2)
   "Replacement for function `set-exclusive-or'.
@@ -443,7 +443,7 @@ contain the same buffer, glues together the tab lines with a
         (same-buffer (eq sr-left-buffer sr-right-buffer)))
     (if same-buffer
         (setq header-line-format
-              (and (has-nonempty-p line-list)
+              (and (sr-nonempty-p line-list)
                    (mapconcat 'concat line-list sr-tabs-ligature)))
       (let ((other-buffer (sr-other 'buffer)))
         (if (eq 'right sr-selected-window)
