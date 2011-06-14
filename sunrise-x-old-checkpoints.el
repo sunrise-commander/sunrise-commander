@@ -56,11 +56,10 @@
 (eval-when-compile (require 'sunrise-commander))
 
 (defvar sr-checkpoint-registry '(("~" "~/" "~/"))
-  "Registry of currently defined checkpoints")
+  "Registry of currently defined checkpoints.")
 
 (defun sr-checkpoint-save (&optional name)
-  "Allows to give a name to the current directories in the Sunrise panes, so
-  they can be restored later."
+  "Save the current Sunrise pane directories under NAME for later restoring."
   (interactive "sCheckpoint name to save? ")
   (let ((my-cell (assoc-string name sr-checkpoint-registry)))
     (sr-save-directories)
@@ -73,7 +72,7 @@
   (message "%s" (concat "Checkpoint \"" name "\" saved"))))
 
 (defun sr-checkpoint-restore (&optional name)
-  "Allows to restore a previously saved checkpoint."
+  "Restore a checkpoint previously saved under NAME."
   (interactive "sCheckpoint name to restore? " )
   (let* ((cp-list (assoc-string name sr-checkpoint-registry))
          (dirs-list (cdr cp-list)))
@@ -84,7 +83,7 @@
     (mapc '(lambda (x) (sr-goto-dir x) (sr-change-window)) dirs-list)))
 
 (defun sr-checkpoint-handler (&optional arg)
-  "Empty method to keep compatilibity with new checkpoints interface."
+  "Dummy function for compatilibity with the new checkpoints interface."
   (ignore))
 
 (provide 'sunrise-x-old-checkpoints)

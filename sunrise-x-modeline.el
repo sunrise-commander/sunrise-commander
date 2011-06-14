@@ -42,10 +42,10 @@
 ;;                         !        ⚡     Editable Pane mode.
 ;;                         @        ☯     Virtual Directory mode.
 ;;                         T        ⚘     Tree View mode (with tree extension).
-;;                          
+;;
 ;; 2. Navigation modes:    &        ⚓     Synchronized Navigation.
 ;;                         $        ♻     Sticky Search.
-;;                          
+;;
 ;; 3. Transient states:    #        ♥     Contents snapshot available.
 ;;
 ;; (if you can't see the icons on the right don't use utf8 marks)
@@ -65,8 +65,8 @@
 
 ;; 1) Put this file somewhere in your emacs load-path.
 
-;; 2)  Add  a  (require  ’sunrise‐x‐modeline)  expression  to  your  .emacs file
-;; somewhere after the (require ’sunrise‐commander) one.
+;; 2)  Add  a  (require  'sunrise‐x‐modeline)  expression  to  your  .emacs file
+;; somewhere after the (require 'sunrise‐commander) one.
 
 ;; 3) Evaluate the new expression, or reload your .emacs file, or restart emacs.
 
@@ -84,7 +84,7 @@
   :type 'boolean)
 
 ;; slot 0 -- pane modes:
-(defconst sr-modeline-norm-mark '("*" . "☼")) 
+(defconst sr-modeline-norm-mark '("*" . "☼"))
 (defconst sr-modeline-edit-mark '("!" . "⚡"))
 (defconst sr-modeline-virt-mark '("@" . "☯"))
 (defconst sr-modeline-tree-mark '("T" . "⚘"))
@@ -116,8 +116,9 @@
 (define-key sr-modeline-path-map [mode-line mouse-2] 'sr-modeline-navigate-path)
 
 (defun sr-modeline-select-mark (mark &optional slot)
-  "Selects the right mark for the given MODE in SLOT depending on whether UTF-8
-  has been enabled in the mode line."
+  "Select the right character for the given MARK in SLOT.
+Depends on whether UTF-8 has been enabled in the mode line via
+the variable `sr-modeline-use-utf8-marks'."
   (let ((select (if sr-modeline-use-utf8-marks #'cdr #'car))
         (slot (or slot 0)))
     (cond ((eq slot 0)
@@ -138,15 +139,16 @@
              " ")))))
 
 (defun sr-modeline-select-mode (mode)
-  "Assembles the indicators section on the left of the modeline."
+  "Assemble the indicators section on the left of the modeline."
   (concat sr-modeline-sep (sr-modeline-select-mark mode 0)
           sr-modeline-sep (sr-modeline-select-mark mode 1)
           sr-modeline-sep (sr-modeline-select-mark mode 2)
           sr-modeline-sep))
 
 (defun sr-modeline-setup ()
-  "Determines  the mode indicator (icon) to display in the mode line. On success
-  sets the mode line format by calling sr-modeline-set."
+  "Determine the mode indicator (character) to display in the mode line.
+On success, sets the mode line format by calling
+`sr-modeline-set'."
   (let ((mode nil))
     (cond ((eq major-mode 'sr-mode)
            (setq mode (sr-modeline-select-mode (if buffer-read-only 'norm 'edit))))
@@ -157,9 +159,10 @@
     (if mode (sr-modeline-set mode))))
 
 (defun sr-modeline-set (mark)
-  "Sets  the mode line format using the given mode indicator and the path to the
-  current directory of the pane. Truncates the path  if  it’s  longer  than  the
-  available width of the pane."
+  "Adjust the current mode line format.
+Uses the given mode indicator and the path to the current
+directory of the pane. Truncates the path if it is longer than
+the available width of the pane."
   (let ((path (expand-file-name default-directory))
         (path-length (length default-directory))
         (max-length (- (window-width) 12)))
@@ -170,8 +173,7 @@
             '("%[" ,(sr-modeline-mark mark) "%] " ,(sr-modeline-path path))))))
 
 (defun sr-modeline-mark (marks-string)
-  "Prepares  the  propertized string used in the mode line format to display the
-  mode indicators."
+  "Propertize MARKS-STRING for use in displaying the mode line indicators."
   (let ((mode-name "") (marks (split-string marks-string "|")))
     (setq mode-name
           (concat
@@ -189,14 +191,14 @@
             "")
            (if (buffer-live-p sr-backup-buffer) " | Snapshot Available" "")))
     (propertize marks-string
-                'font 'bold 
+                'font 'bold
                 'mouse-face 'mode-line-highlight
                 'help-echo (format "Sunrise Commander: %s" mode-name)
                 'local-map sr-modeline-mark-map)))
 
 (defun sr-modeline-path (path)
-  "Prepares  the  propertized string used in the mode line format to display the
-  path to the current directory in the file system."
+  "Propertize the string PATH for use in the mode line format.
+PATH is the current directory in the file system."
   (propertize path
               'local-map sr-modeline-path-map
               'mouse-face 'mode-line-highlight
@@ -204,8 +206,10 @@
               'sr-selected-window sr-selected-window))
 
 (defun sr-modeline-navigate-path ()
-  "Analyzes  all  click  events  detected  on  the  directory  path and modifies
-  accordingly the current directory of the corresponding panel."
+  "Handle click events occuring on the mode line directory path.
+Analyzes all click events detected on the directory path and
+modifies the current directory of the corresponding panel
+accordingly."
   (interactive)
   (let* ((event (caddr (cddadr last-input-event)))
          (path (car event)) (pos (cdr event)) (slash) (levels))
@@ -227,19 +231,20 @@
   (sr-modeline-setup))
 
 (defun sr-modeline-engage ()
-  "Activates and enforces the navigation mode line format."
-  (add-hook 'sr-refresh-hook 'sr-modeline-refresh)  
+  "Activate and enforce the navigation mode line format."
+  (add-hook 'sr-refresh-hook 'sr-modeline-refresh)
   (sr-modeline-setup)
   (sr-in-other (sr-modeline-setup)))
 
 (defun sr-modeline-disengage ()
-  "De-activates the navigation mode line format, enforcing the default one."
+  "De-activate the navigation mode line format, restoring the default one."
   (remove-hook 'sr-refresh-hook 'sr-modeline-refresh)
   (setq mode-line-format (default-value 'mode-line-format))
   (sr-in-other (setq mode-line-format (default-value 'mode-line-format))))
 
 (defun sr-modeline-toggle (&optional force)
-  "Toggles the usage and enforcement of the navigation mode line format."
+  ;; FIXME explain the argument
+  "Toggle display of the navigation mode line format."
   (interactive)
   (cond ((and force (< 0 force)) (sr-modeline-engage))
         ((and force (> 0 force)) (sr-modeline-disengage))
@@ -255,17 +260,17 @@
 (define-key sr-modeline-map "\C-cm" 'sr-modeline-toggle)
 
 (define-minor-mode sr-modeline
-  "Navigable  mode  line  for  the  Sunrise Commander. This is a minor mode that
-  provides only one keybind:
-  
+  "Provide navigable mode line for the Sunrise Commander.
+This is a minor mode that provides a single keybinding:
+
   C-c m ................ Toggle between navigation and default mode line formats
-  
+
   To totally disable this extension do: M-x sr-modeline <RET>"
 
   nil (sr-modeline-select-mode 'norm) sr-modeline-map
   (unless (memq major-mode '(sr-mode sr-virtual-mode sr-tree-mode))
     (setq sr-modeline nil)
-    (error "Sorry, this mode can be used only within the Sunrise Commander."))
+    (error "Sorry, this mode can be used only within the Sunrise Commander"))
   (sr-modeline-toggle 1))
 
 (defvar sr-modeline-menu
@@ -283,7 +288,7 @@
 ;;; Bootstrap:
 
 (defun sr-modeline-menu-init ()
-  "Initializes the Sunrise Mode Line extension menu."
+  "Initialize the Sunrise Mode Line extension menu."
   (unless (lookup-key sr-mode-map [menu-bar Sunrise])
     (define-key sr-mode-map [menu-bar Sunrise]
       (cons "Sunrise" (make-sparse-keymap))))
@@ -296,8 +301,9 @@
     (define-key menu-map [disable] '("Toggle" . sr-modeline-toggle))))
 
 (defun sr-modeline-start-once ()
-  "Bootstraps  the  navigation  mode  line on the first execution of the Sunrise
-  Commander, after module installation."
+  ;; FIXME
+  "Bootstrap the navigation mode line on the first execution of
+the Sunrise Commander, after module installation."
   (sr-modeline t)
   (sr-modeline-menu-init)
   (remove-hook 'sr-start-hook 'sr-modeline-start-once)
@@ -311,7 +317,7 @@
 (defun sr-modeline-desktop-restore-buffer (desktop-buffer-file-name
                                            desktop-buffer-name
                                            desktop-buffer-misc)
-  "Activates the mode line when restoring sunrise buffers using desktop."
+  "Activate the mode line when restoring Sunrise buffers using desktop."
   (run-with-timer 0.1 nil 'sr-modeline-toggle 1))
 (add-to-list 'sr-desktop-restore-handlers 'sr-modeline-desktop-restore-buffer)
 

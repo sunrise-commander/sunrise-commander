@@ -121,8 +121,7 @@
 (eval-when-compile (require 'sunrise-commander))
 
 (defcustom sr-mirror-keep-backups t
-  "Flag that indicates whether backup files are to be kept whenever the mirror
-  of a read-only archive is modified and committed."
+  "If non-nil, keep backup files when committing changes to read-only archives."
   :group 'sunrise
   :type 'boolean)
 
@@ -133,11 +132,13 @@
     ("\\.\\(?:tar\\.gz\\|tgz\\)$" . "tar cvzf %f *")
     ("\\.tar\\.bz2$" .              "tar cvjf %f *")
    )
-  "List of shell commands to repack the contents of the current mirror area into
-  a compressed archive of the appropriate type. Use %f as a placeholder for  the
-  name  of  the  resulting  archive. If no repacking command has been registered
-  here for a file (usu. a file extension),  Sunrise  will  refuse  to  create  a
-  mirror area for it even if it is normally browseable through AVFS."
+  "List of shell commands to repack particular archive contents.
+Used when repacking contents from a mirror area into a compressed
+archive of the appropriate type. Use %f as a placeholder for the
+name of the resulting archive. If no repacking command has been
+registered here for a file (usually a file extension), Sunrise
+will refuse to create a mirror area for it even if it is normally
+browseable through AVFS."
   :group 'sunrise
   :type 'alist)
 
@@ -153,23 +154,26 @@
   :group 'sunrise)
 
 (defvar sr-mirror-home nil
-  "Root directory of all mirror areas. This is set automatically by the function
-  sr-mirror-enable and reset by sr-mirror-disable to keep the mirror home  path,
-  as  well  as  to  indicate  mirroring  support  is on/off. Do not mess with it
-  directly - if you need to change the name of your mirror home dir then  modify
-  sr-mirror-enable.")
+  "Root directory of all mirror areas.
+Set automatically by the function `sr-mirror-enable' and reset by
+`sr-mirror-disable' to keep the mirror home path, as well as to
+indicate mirroring support is on/off. Do not mess with it
+directly - if you need to change the name of your mirror home
+dir, modify `sr-mirror-enable'.")
 
 (defvar sr-mirror-divert-goto-dir t
-  "Variable used to avoid infinite recursion when diverting sr-goto-dir calls to
-  sr-mirror-goto-dir. Do not touch, or else.")
+  "Internal variable used to avoid infinite recursion.
+Used when diverting `sr-goto-dir' calls to `sr-mirror-goto-dir'.
+Do not touch, or else.")
 
 (if (boundp 'sr-mode-map)
     (define-key sr-mode-map "\C-c\C-b" 'sr-mirror-toggle))
 
 (defun sr-mirror-enable ()
-  "Enables  sunrise  mirror  support by setting the sr-mirror-home variable to a
-  non-nil value and activating all advice necessary for mirror operations.  This
-  method is called every time a new mirror area is created."
+  "Enable Sunrise mirror support.
+Sets the variable `sr-mirror-home' to a non-nil value and
+activates all advice necessary for mirror operations. This method
+is called every time a new mirror area is created."
   (unless sr-mirror-home
     (setq sr-mirror-home (concat sr-avfs-root "#mirror#/"))
     (ad-activate 'make-directory)
@@ -177,9 +181,10 @@
     (ad-activate 'sr-goto-dir)))
 
 (defun sr-mirror-disable ()
-  "Disables   sunrise   mirror  support  by  resetting  the  sr-mirror-home  and
-  deactivating all advice used in mirror operations. This method is called after
-  the last mirror area in the current mirror home is closed."
+  "Disable Sunrise mirror support.
+Resets `sr-mirror-home' and deactivates all advice used in mirror
+operations. This method is called after the last mirror area in
+the current mirror home is closed."
   (when sr-mirror-home
     (setq sr-mirror-home nil)
     (ad-deactivate 'make-directory)
@@ -187,10 +192,11 @@
     (ad-deactivate 'sr-goto-dir)))
 
 (defun sr-mirror-open ()
-  "Uses  funionfs to create a writeable filesystem overlay over the AVFS virtual
-  fs of the selected compressed archive and displays it in the current pane. The
-  result  is  a  mirror  of  the  contents of the original archive that is fully
-  writeable."
+  "Set up a mirror area in the current pane.
+Uses funionfs to create a writeable filesystem overlay over the
+AVFS virtual filesystem of the selected compressed archive and
+displays it in the current pane. The result is a mirror of the
+contents of the original archive that is fully writeable."
   (interactive)
   (let ((path (or (dired-get-filename nil t)
                   (concat (expand-file-name (dired-current-directory)) "/.")))
@@ -223,9 +229,9 @@
     t ))
 
 (defun sr-mirror-mount (path)
-  "Creates  and  mounts  (if necessary) all the directories needed to mirror the
-  compressed archive identified by the given file path and returns the file path
-  to its corresponding mirror area."
+  "Create and mount (if necessary) all the directories needed to mirror PATH.
+PATH identifies the compressed archive. Returns the path to the
+corresponding mirror area."
   (let* ((base (sr-mirror-mangle path))
          (virtual (sr-mirror-full-demangle path))
          (mirror (concat sr-mirror-home base))
@@ -247,10 +253,11 @@
     mirror))
 
 (defun sr-mirror-close (&optional do-commit local-commit moving)
-  "Destroys  the  current mirror area by unmounting and deleting the directories
-  it was built upon. Tries to automatically repack the mirror and substitute the
-  original  archive  with  a  new  one  containing the modifications made to the
-  mirror."
+  "Destroy the current mirror area.
+Unmounts and deletes the directories it was built upon. Tries to
+automatically repack the mirror and substitute the original
+archive with a new one containing the modifications made to the
+mirror."
   (interactive)
   (unless sr-mirror-home
     (error (concat "Sunrise: sorry, can't mirror " (dired-get-filename))))
@@ -294,10 +301,11 @@
   t)
 
 (defun sr-mirror-commit (mirror overlay)
-  "Commits  all  modifications  made  to  the  given mirror in the given overlay
-  directory by replacing the mirrored archive with a  new  one  built  with  the
-  current  contents of the mirror. Keeps a backup of the original archive if the
-  sr-mirror-backup variable is not nil (as set by default)."
+  "Commit all modifications made to MIRROR in directory OVERLAY.
+Replaces the mirrored archive with a new one built with the
+current contents of the mirror. Keeps a backup of the original
+archive if the variable `sr-mirror-backup' is non-nil (the
+default)."
   (condition-case err
       (let ((repacked (sr-mirror-repack mirror))
             (target (dired-get-filename)))
@@ -314,8 +322,8 @@
                  (error err))))))
 
 (defun sr-mirror-unmount (mirror overlay)
-  "Unmounts  and  deletes  all directories used for mirroring a given compressed
-  archive."
+  ;; FIXME explain the arguments
+  "Unmount and delete all directories used for mirroring given compressed archive."
   (let* ((command (concat "cd ~; fusermount -u " sr-mirror-home mirror))
          (err (shell-command-to-string command)))
     (if (or (null err) (string= err ""))
@@ -323,11 +331,10 @@
           (dired-delete-file (concat sr-mirror-home mirror) 'always)
           (dired-delete-file (concat sr-mirror-home overlay) 'always)
           (revert-buffer))
-      (error (concat "Sunrise: Error unmounting mirror: " err)))))
+      (error (concat "Sunrise: error unmounting mirror: " err)))))
 
 (defun sr-mirror-toggle ()
-  "Opens  a new mirror area or destroys the current one, depending on the actual
-  context."
+  "Open new or destroy the current mirror area, depending on context."
   (interactive)
   (let ((open-ok) (close-ok) (err-msg))
     (condition-case err1
@@ -343,8 +350,9 @@
       (sr-highlight))))
 
 (defun sr-mirror-repack (mirror)
-  "Tries  to repack the given mirror. On success returns a string containing the
-  full path to the newly packed archive, on failure throws an error."
+  "Try to repack the given MIRROR.
+On success, returns a string containing the full path to the
+newly packed archive, otherwise throws an error."
   (message "Sunrise: repacking mirror, please wait...")
   (let* ((target-home (concat sr-mirror-home ".repacked/"))
          (archive (replace-regexp-in-string "#[a-z0-9]*$" "" mirror))
@@ -366,8 +374,7 @@
     target))
 
 (defun sr-mirror-mangle (path)
-  "Transforms  the  given  filesystem  path  into  a  string  that  can  be used
-  internally as the name of a new mirror area."
+  "Transform PATH into a string naming a new mirror area."
   (let ((handler (assoc-default path sr-avfs-handlers-alist 'string-match)))
     (if (equal ?/ (string-to-char path))
         (setq path (substring path 1)))
@@ -376,8 +383,8 @@
              (replace-regexp-in-string "\\+" "{+}" path)) handler)))
 
 (defun sr-mirror-demangle (path)
-  "Does  the  opposite of sr-mirror-mangle, ie. transforms the given mirror area
-  name into a regular filesystem path."
+  "Transform the given mirror area name into a regular filesystem path.
+Opposite of `sr-mirror-mangle'."
   (concat "/"
           (replace-regexp-in-string
            "{\\+}" "+" (replace-regexp-in-string
@@ -385,9 +392,9 @@
                                                 "#[a-z0-9]*$" "" path)))))
 
 (defun sr-mirror-full-demangle (path)
-  "Demangles recursively the given path, so as to obtain the current path of the
-   originally reflected archive. This is necessary because reflecting an archive
-   that is itself a reflection causes deadlocks in FUSE."
+  "Demangle PATH recursively to obtain the current path of the original archive.
+This is necessary because reflecting an archive that is itself a
+reflection causes deadlocks in FUSE."
   (let ((reflected path)
         (home-len (length sr-mirror-home))
         (handler (assoc-default path sr-avfs-handlers-alist 'string-match))
@@ -401,8 +408,7 @@
     reflected))
 
 (defun sr-mirror-files (directory)
-  "Returns a list with the names of files and directories that can be considered
-  as mirror modifications inside an overlay directory."
+  "Return list of pathnames constituting mirror modifications inside overlay DIRECTORY."
   (if (not (file-directory-p directory))
       (ignore)
     (let ((files (directory-files directory)))
@@ -411,9 +417,10 @@
       files)))
 
 (defun sr-mirror-overlay-redir (dirname &optional force-root)
-  "Analyses  the  given  directory  path  and rewrites it (if necessary) to play
-  nicely with the mirror fs the given path  belongs  to.  If  the  path  is  not
-  inside any mirror fs then it is returned unmodified."
+  "Adjust DIRNAME for use with a mirror filesystem.
+Analyses the given directory path and rewrites it (if necessary)
+to play nicely with the mirror fs the given path belongs to. If
+the path is not inside any mirror fs, it is returned unmodified."
   (if (null sr-avfs-root)
       dirname
     (let ((xpdir (expand-file-name dirname))
@@ -434,8 +441,7 @@
         dirname))))
 
 (defun sr-mirror-surface (dir)
-  "Returns the surface  (ie. the topmost parent of  DIR under sr-mirror-home) of
-  the mirror area containing DIR, if there is any."
+  "Return the topmost parent of DIR under `sr-mirror-home', if any."
   (if (and sr-mirror-home
            (sr-overlapping-paths-p sr-mirror-home dir)
            (not (sr-equal-dirs sr-mirror-home dir)))
@@ -444,8 +450,9 @@
         (match-string 1 local-dir))))
 
 (defun sr-mirror-overlapping-p (mirror1 mirror2)
-  "Determines whether the  surface of MIRROR1 mirrors a  parent of the directory
-  mirrored by the surface of MIRROR2."
+  ;; FIXME
+  "Determine whether the surface of MIRROR1 mirrors a parent of
+the directory mirrored by the surface of MIRROR2."
   (let ((surface1 (sr-mirror-surface mirror1))
         (surface2 (sr-mirror-surface mirror2))
         top)
@@ -454,8 +461,8 @@
       (sr-overlapping-paths-p top (sr-mirror-demangle surface2)))))
 
 (defun sr-mirror-goto-dir (target)
-  "Enhances to sr-goto-dir with  transparent navigation inside mirror areas. All
-  calls to sr-goto-dir are diverted to this function."
+  "Enhance `sr-goto-dir' with transparent navigation inside mirror areas.
+All calls to `sr-goto-dir' are diverted to this function."
   (let* ((here (expand-file-name default-directory))
          (target (expand-file-name (or target ".")))
          (surface-here (sr-mirror-surface here))
@@ -483,26 +490,26 @@
     (sr-highlight)))
 
 (defun sr-mirror-on-kill-buffer ()
-  "Handles those cases of navigation out of a mirror area, in which the function
-  sr-goto-dir is never called (e.g. bookmark jumps and pane synchronizations)."
+  "Handle navigation out of a mirror area other than through `sr-goto-dir'.
+This includes e.g. bookmark jumps and pane synchronizations."
   (when (and sr-mirror-home (eq major-mode 'sr-mode)
            (null (sr-mirror-surface sr-this-directory))
            (sr-mirror-surface (dired-current-directory)))
       (sr-mirror-goto-dir sr-this-directory)
       (kill-local-variable 'sr-current-path-face)))
 
-;; This diverts all sr-goto-dir calls to sr-mirror-goto-dir
 (defadvice sr-goto-dir
   (around sr-mirror-advice-sr-goto-dir (dir))
+  "Divert all `sr-goto-dir' calls to `sr-mirror-goto-dir'."
   (if sr-mirror-divert-goto-dir
       (sr-mirror-goto-dir dir)
     ad-do-it))
 
-;; This redirects all sr-copy operations to the right path under the overlay
-;; directory:
 (defadvice sr-clone-files
   (around sr-mirror-advice-sr-clone-files
           (file-path-list target-dir clone-op progress &optional do-overwrite))
+"Redirect all `sr-copy' operations to the right path under the
+overlay directory."
   (if (null sr-mirror-home)
       ad-do-it
     (let ((orig target-dir))
@@ -512,19 +519,19 @@
       ad-do-it)))
 (ad-activate 'sr-clone-files)
 
-;; This redirects directory creation operations to the right path under the
-;; overlay directory:
 (defadvice make-directory
   (around sr-mirror-advice-make-directory (dirname &optional parents))
+  "Redirect directory creation operations to the right path under
+the overlay directory."
   (setq dirname (sr-mirror-overlay-redir dirname))
   (setq parents t)
   ad-do-it)
 
-;; This creates all the subdirectories needed (and sets their permissions) in
-;; order to make possible the redirection of buffer saving operations to the
-;; right path under the overlay directory:
 (defadvice save-buffer
   (around sr-mirror-advice-save-buffer (&optional args))
+  "Create all the subdirectories (and set their permissions)
+needed for enabling the redirection of buffer saving operations
+to the right path under the overlay directory."
   (let* ((orig (buffer-file-name))
          (target (sr-mirror-overlay-redir orig)))
     (if (> (length target) (length orig))
@@ -535,9 +542,9 @@
           (write-file target nil))
       ad-do-it)))
 
-;; This toggles the read-only flag in all buffers opened inside a mirror area,
-;; so they are always writeable by default:
 (defun sr-mirror-toggle-read-only ()
+  "Toggle the read-only flag in all buffers opened inside a mirror area,
+so they are always writeable by default."
   (if sr-mirror-home
       (let* ((orig (buffer-file-name))
              (target (sr-mirror-overlay-redir orig)))

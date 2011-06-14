@@ -60,21 +60,21 @@
                    (require 'sunrise-commander))
 
 (defun sr-checkpoint-save (&optional arg)
-  "Creates a new checkpoint bookmark to save the location of both panes."
+  "Create a new checkpoint bookmark to save the location of both panes."
   (interactive "p")
   (sr-save-directories)
   (let ((bookmark-make-record-function 'sr-make-checkpoint-record))
     (call-interactively 'bookmark-set)))
 
 (defun sr-checkpoint-restore (&optional arg)
-  "Calls interactively bookmark-jump."
+  "Call `bookmark-jump' interactively."
   (interactive "p")
   (call-interactively 'bookmark-jump)
   (sr-history-push default-directory)
   (sr-in-other (sr-history-push default-directory)))
 
 (defun sr-make-checkpoint-record ()
-  "Generates a the bookmark record for a new checkpoint."
+  "Generate a the bookmark record for a new checkpoint."
   `((filename . ,(format "Sunrise Checkpoint: %s | %s"
                          sr-left-directory sr-right-directory))
     (sr-directories . (,sr-left-directory ,sr-right-directory))
@@ -94,7 +94,7 @@
     (if missing (sr-checkpoint-relocate bookmark (reverse missing)))))
 
 (defun sr-checkpoint-relocate (bookmark &optional sides)
-  "Handles relocation of checkpoint bookmarks."
+  "Handle relocation of checkpoint bookmarks."
   (interactive (list (bookmark-completing-read "Bookmark to relocate")))
   (let* ((sides (or sides '(left right)))
          (name (car bookmark))

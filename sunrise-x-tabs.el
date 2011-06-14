@@ -68,7 +68,7 @@
 ;; assigned to the first available tab (if any).
 
 ;; The  extension  is  provided  as a minor mode, so you can enable / disable it
-;; totally by issuing the command (M-x) sr-tabs-mode.
+;; totally by using the command `sr-tabs-mode'.
 
 ;; It does *not* pretend to be a generic solution for tabs in emacs. If you need
 ;; one, have a look at TabBar  mode  (http://www.emacswiki.org/emacs/TabBarMode)
@@ -86,8 +86,8 @@
 
 ;; 1) Put this file somewhere in your Emacs load-path.
 
-;; 2)  Add  a (require ’sunrise‐x‐tabs) expression to your .emacs file somewhere
-;; after the (require ’sunrise‐commander) one.
+;; 2)  Add  a (require 'sunrise‐x‐tabs) expression to your .emacs file somewhere
+;; after the (require 'sunrise‐commander) one.
 
 ;; 3) Evaluate the new expression, or reload your .emacs file, or restart emacs.
 
@@ -104,7 +104,7 @@
   :type 'boolean)
 
 (defcustom sr-tabs-max-tabsize 10
-  "Maximum length of a tab in the Sunrise Commander FM."
+  "Maximum width of a Sunrise Commander tab."
   :group 'sunrise
   :type 'integer)
 
@@ -144,7 +144,7 @@
   "Max number of tab labels cached for reuse.")
 
 (defvar sr-tabs '((left)(right)))
-(defvar sr-tabs-labels-cache '((left) (right))) 
+(defvar sr-tabs-labels-cache '((left) (right)))
 (defvar sr-tabs-line-cache '((left)(right)))
 (defvar sr-tabs-mode nil)
 (defvar sr-tabs-on nil)
@@ -153,8 +153,8 @@
 ;;; Core functions:
 
 (defun sr-tabs-add ()
-  "Assigns  the  current  buffer to exactly one tab in the active pane, or calls
-  interactively sr-tabs-rename if a tab already exists for the current  buffer."
+  "Assign the current buffer to exactly one tab in the active pane.
+If a tab for the current buffer already exists, invoke `sr-tabs-rename'."
   (interactive)
   (let ((tab-name (buffer-name))
         (tab-set (assq sr-selected-window sr-tabs)))
@@ -164,9 +164,9 @@
   (sr-tabs-refresh))
 
 (defun sr-tabs-remove (&optional tab-buffer side)
-  "Removes  the tab to which the given buffer is assigned in the active pane. If
-  the optional argument is nil, removes the tab to which the current  buffer  is
-  assigned, if any."
+  "Remove the tab to which TAB-BUFFER is assigned in the active pane.
+If TAB-BUFFER is nil, removes the tab to which the current buffer
+is assigned, if any."
   (interactive "P")
   (let* ((side (or side sr-selected-window))
          (tab-name (if (integerp tab-buffer)
@@ -182,15 +182,16 @@
   (sr-tabs-refresh))
 
 (defun sr-tabs-clean ()
-  "Removes all tabs from the current pane."
+  "Remove all tabs from the current pane."
   (interactive)
   (let ((tab))
     (while (setq tab (nth 1 (assoc sr-selected-window sr-tabs)))
       (sr-tabs-remove 1))))
 
 (defun sr-tabs-kill (&optional name side)
-  "Removes  the tab  with the  given name  from the  active pane  and  kills its
-  assigned buffer, unless it's currently visible or it's assigned to other tab."
+  "Remove the tab named NAME from the active pane and kill its buffer.
+The buffer is not killed when currently visible or assigned to
+another tab."
   (interactive)
   (let ((to-kill (or (and name (get-buffer name)) (current-buffer))) (stack)
         (side (or side sr-selected-window)))
@@ -201,22 +202,22 @@
     (sr-tabs-refresh)))
 
 (defun sr-tabs-next (&optional n)
-  "Moves focus to the next tab (left to right) in the active pane. When prefixed
-  with an integer moves focus to the tab n places ahead, or to the last  one  if
-  there are fewer tabs than requested."
+  "Move focus to the next tab (left to right) in the active pane.
+With a prefix argument N, moves focus to the tab N places ahead,
+or to the last one if there are fewer tabs than requested."
   (interactive "p")
   (sr-tabs-step n))
 
 (defun sr-tabs-prev (&optional n)
-  "Moves  focus  to  the  previous  tab (right to left) in the active pane. When
-  prefixed with an integer moves focus to the tab n places  behind,  or  to  the
-  first one if there are fewer tabs than requested."
+  "Move focus to the previous tab (right to left) in the active pane.
+With a prefix argument N, moves focus to the tab N places behind,
+or to the first one if there are fewer tabs than requested."
   (interactive "p")
   (sr-tabs-step n t))
 
 (defun sr-tabs-step (count &optional back)
-  "Moves  focus from the current tab to the one ``count'' places ahead or behind
-  (depending on the value of ``back'')."
+  "Move focus from the current tab to the one COUNT places ahead or behind.
+The direction depends on the value of BACK."
   (let* ((stack (cdr (assq sr-selected-window sr-tabs)))
          (stack (if back (reverse stack) stack))
          (target (member (buffer-name) stack)))
@@ -228,8 +229,7 @@
         (sr-tabs-switch-to-buffer (car stack))))))
 
 (defun sr-tabs-switch-to-buffer (to-buffer)
-  "Takes  care of correctly changing the context of the active Sunrise pane when
-  switching buffers."
+  "Change context of the active Sunrise pane when switching buffers."
   (let ((from-buffer (current-buffer)))
     (unless (eq from-buffer to-buffer)
       (switch-to-buffer to-buffer)
@@ -243,15 +243,17 @@
   (sr-tabs-refresh))
 
 (defun sr-tabs-focus (name side)
-  "Gives focus to the tab with the given name in the given pane."
+  "Give focus to the tab with name NAME in SIDE pane."
   (unless (eq side sr-selected-window)
     (sr-change-window))
   (sr-tabs-switch-to-buffer name))
 
 (defun sr-tabs-kill-and-go ()
-  "Kills the current Sunrise buffer, removes its assigned tab (if any) and moves
-  to the next buffer tabbed in the active pane, unless there are no more  tabbed
-  buffers to fall back, in which case just removes the tab."
+  "Kill the current Sunrise buffer and move to the next one.
+This kills the buffer, removes its assigned tab (if any) and
+moves to the next buffer tabbed in the active pane, unless there
+are no more tabbed buffers to fall back to, in which case just
+removes the tab."
   (interactive)
   (let ((to-kill (current-buffer))
         (stack (cdr (assq sr-selected-window sr-tabs))))
@@ -274,7 +276,7 @@
         (sr-tabs-redefine-label key new-name))))
 
 (defun sr-tabs-transpose ()
-  "Swaps the sets of tabs from one pane to the other."
+  "Swap the sets of tabs from one pane to the other."
   (interactive)
   (setq sr-tabs (mapc (lambda (x)
                         (if (eq 'left (car x))
@@ -283,33 +285,29 @@
   (sr-in-other (sr-tabs-refresh))
   (sr-tabs-refresh))
 
-;; This synchronizes the tabs with the panes if so required (see variable
-;; sr-tabs-follow-panes). Activated in method sr-tabs-engage.
-(defadvice sr-transpose-panes
-  (after sr-tabs-advice-sr-transpose-panes ())
+(defadvice sr-transpose-panes (after sr-tabs-advice-sr-transpose-panes ())
+  "Synchronize the tabs with the panes if so required (see the variable
+`sr-tabs-follow-panes'). Activated in the function `sr-tabs-engage'."
   (if sr-tabs-follow-panes (sr-tabs-transpose)))
 
 ;;; ============================================================================
 ;;; Graphical interface:
 
 (defun sr-tabs-focus-cmd (name side)
-  "Returns  an anonymous function that can be used to give focus to the tab with
-  the given name in the given pane."
+  "Return a function to give focus to the named NAME in the SIDE pane."
   (let ((selector (if (eq side (caar sr-tabs)) #'caar #'caadr)))
     `(lambda ()
        (interactive)
        (sr-tabs-focus ,name (funcall ',selector sr-tabs)))))
 
 (defun sr-tabs-rename-cmd (name)
-  "Returns  an  anonymous  function  that can be used to rename the tab with the
-  given name in both panes."
+  "Return a function to rename the tab named NAME in both panes."
   `(lambda (&optional new-name)
      (interactive "sRename tab to: ")
      (sr-tabs-redefine-label ,name new-name)))
 
 (defun sr-tabs-kill-cmd (name side)
-  "Returns  an  anonymous  function  that can be used to delete the tab with the
-  given name in the given pane."
+  "Return a function to delete the tab named NAME in the SIDE pane."
   (let ((selector (if (eq side (caar sr-tabs)) #'caar #'caadr)))
     `(lambda ()
        (interactive)
@@ -319,17 +317,17 @@
           (sr-tabs-kill ,name))))))
 
 (defsubst sr-tabs-propertize-tag (string face keymap)
-  "Propertizes the given string with the given face and keymap so it can be used
-  as a tab tag."
+  "Propertize STRING with FACE and KEYMAP so it can be used as a tab tag."
   (propertize string
               'face face
               'help-echo "mouse-1: select tab\n\mouse-2: rename tab\n\mouse-3: kill tab"
-              'local-map keymap))                
+              'local-map keymap))
 
 (defun sr-tabs-make-tag (name as-active &optional tag)
-  "Prepares and returns a propertized string for decorating a tab with the given
-  name in the given state (nil = passive, t =  active).  The  optional  argument
-  allows to provide a pretty name to label the tag."
+  "Return a propertized string for decorating a tab named NAME.
+AS-ACTIVE determines whether to propertize it as an active or a
+passive tab (nil = passive, t = active). The optional argument
+TAG allows to provide a pretty name to label the tab."
   (let ((tag (or tag name))
         (side sr-selected-window)
         (keymap (make-sparse-keymap)))
@@ -344,10 +342,10 @@
       (sr-tabs-propertize-tag tag 'sr-tabs-inactive-face keymap))))
 
 (defun sr-tabs-make-label (name &optional alias)
-  "Prepares  and returns a new label for decorating a tab with the given name. A
-  label is a dotted pair of tags, for active and passive state. The new label is
-  put in cache for later reuse. The optional argument allows to provide a pretty
-  name to label the tab."
+  "Return a new label for decorating a tab named NAME.
+A label is a dotted pair of tags, for active and passive state.
+The new label is put in cache for later reuse. The optional
+argument ALIAS allows to provide a pretty name to label the tab."
   (let* ((alias (or alias name))
          (label (cons (sr-tabs-make-tag name t alias)
                       (sr-tabs-make-tag name nil alias)))
@@ -363,7 +361,8 @@
                             (substring-no-properties label)))
 
 (defun sr-tabs-redefine-label (name alias)
-  "Allows to modify the pretty name (alias) of the label with the given name."
+  ;; FIXME better docstring, explain the arguments
+  "Modify the pretty name (alias) of the label with the given name."
   (let* ((alias (sr-tabs-trim-label (or alias ""))) (cache))
     (if (string= "" alias)
         (error "Cancelled: invalid tab name")
@@ -377,8 +376,8 @@
         (sr-tabs-refresh)))))
 
 (defun sr-tabs-get-tag (name is-active)
-  "Retrieves  the  cached tag for the tab with the given name in the given state
-  (nil = inactive, t = active), creating new labels when needed."
+  "Retrieve the cached tag for the tab named NAME in state IS-ACTIVE.
+nil = inactive, t = active. Creates new labels when needed."
   (let* ((cache (assq sr-selected-window sr-tabs-labels-cache))
          (label (cdr (assoc name (cdr cache)))))
     (if (null label)
@@ -388,7 +387,7 @@
     (if is-active (car label) (cdr label))))
 
 (defun sr-tabs-make-line ()
-  "Assembles a new tab line from cached tags and puts it in the line cache."
+  "Assemble a new tab line from cached tags and put it in the line cache."
   (if (memq major-mode '(sr-mode sr-virtual-mode sr-tree-mode))
       (let ((tab-set (cdr (assq sr-selected-window sr-tabs)))
             (tab-line (if (or (cdar sr-tabs)
@@ -413,13 +412,13 @@
   (if (sr-tabs-empty-p line) nil line))
 
 (defun has-nonempty-p (line-list)
-  "Tells whether the given list contains at least one non-nil element."
+  "Return non-nil if LINE-LIST contains at least one non-nil element."
   (or (not (sr-tabs-empty-p (car line-list)))
       (and (cdr line-list) (has-nonempty-p (cdr line-list)))))
 
 (defun sr-tabs-xor (list1 list2)
-  "Replacement for function set-exclusive-or, written exclusively to eliminate
-  a soft dependency on cl-seq.el (isn't this getting a bit ridiculous?)"
+  "Replacement for function `set-exclusive-or'.
+Used to avoid dependency on cl-seq.el."
   (cond ((null list1) list2)
         ((null list2) list1)
         ((equal list1 list2) nil)
@@ -433,10 +432,11 @@
            result))))
 
 (defun sr-tabs-refresh ()
-  "Updates  the  header-line-format variable in the buffers on both panes, using
-  the line cache for the passive one, and assembling a  new  tab  line  for  the
-  active  one.  In  the  (corner)  case when both panes contain the same buffer,
-  glues together the tab lines with a ``double bar'' separator."
+  "Update `header-line-format' in both panes.
+Uses the line cache for the passive one, and assembles a new tab
+line for the active one. In the (corner) case when both panes
+contain the same buffer, glues together the tab lines with a
+``double bar'' separator."
   (setq sr-tabs-mode sr-tabs-on)
   (sr-tabs-make-line)
   (let ((line-list (mapcar 'cdr sr-tabs-line-cache))
@@ -463,20 +463,21 @@
 ;;; Private interface:
 
 (defun sr-tabs-bury-all ()
-  "Buries all currently tabbed buffers."
+  "Bury all currently tabbed buffers."
   (let ((all-buffers (apply 'append (mapcar 'cdr sr-tabs))))
     (if all-buffers
         (mapc 'bury-buffer all-buffers))))
 
 (defun sr-tabs-protect-buffer ()
-  "Protects the current buffer from being automatically disposed by Sunrise when
-  moving to another directory (called from kill-buffer-query-functions hook.)"
+  "Protect the current buffer from being automatically disposed
+by Sunrise when moving to another directory (called from
+`kill-buffer-query-functions' hook.)"
   (let ((tab-name (buffer-name)))
     (not (or (member tab-name (car sr-tabs))
              (member tab-name (cadr sr-tabs))))))
 
 (defun sr-tabs-engage ()
-  "Enables the Sunrise Tabs extension."
+  "Enable the Sunrise Tabs extension."
   (setq sr-tabs-on t)
   (add-hook 'sr-refresh-hook 'sr-tabs-refresh)
   (add-hook 'sr-quit-hook 'sr-tabs-bury-all)
@@ -485,7 +486,7 @@
   (sr-tabs-refresh))
 
 (defun sr-tabs-disengage ()
-  "Disables the Sunrise Tabs extension."
+  "Disable the Sunrise Tabs extension."
   (setq sr-tabs-on nil)
   (remove-hook 'sr-refresh-hook 'sr-tabs-refresh)
   (remove-hook 'sr-quit-hook 'sr-tabs-bury-all)
@@ -513,7 +514,7 @@
   (lambda () (interactive) (sr-in-other (sr-tabs-prev))))
 (define-key sr-tabs-mode-map [(control meta ?n)]
   (lambda () (interactive) (sr-in-other (sr-tabs-next))))
-(define-key sr-tabs-mode-map [(control meta tab)] 
+(define-key sr-tabs-mode-map [(control meta tab)]
   (lambda () (interactive) (sr-in-other (sr-tabs-next))))
 (define-key sr-tabs-mode-map "*\C-\M-k"
   (lambda () (interactive) (sr-in-other (sr-tabs-clean))))
@@ -522,8 +523,8 @@
 (define-key sr-tabs-mode-map "\M-T"  'sr-tabs-transpose)
 
 (define-minor-mode sr-tabs-mode
-  "Tabs support for the Sunrise Commander file manager. This minor mode provides
-  the following keybindings:
+  "Tabs support for the Sunrise Commander file manager.
+This minor mode provides the following keybindings:
 
         C-j ........... Create new tab (or rename existing tab) in active pane.
         C-k ........... Kill the tab of the current buffer in the active pane.
@@ -551,7 +552,7 @@
 ;;; Bootstrap:
 
 (defun sr-tabs-menu-init ()
-  "Initializes the Sunrise Tabs extension menu."
+  "Initialize the Sunrise Tabs extension menu."
   (unless (lookup-key sr-mode-map [menu-bar Sunrise])
     (define-key sr-mode-map [menu-bar Sunrise]
       (cons "Sunrise" (make-sparse-keymap))))
@@ -566,10 +567,10 @@
     (define-key menu-map [prev]      '("Previous"     . sr-tabs-prev))
     (define-key menu-map [remove]    '("Remove"       . sr-tabs-remove))
     (define-key menu-map [add]       '("Add/Rename"   . sr-tabs-add))))
-
+;;; FIXME
 (defun sr-tabs-start-once ()
-  "Bootstraps  the  tabs  mode  on the first execution of the Sunrise Commander,
-  after module installation."
+  "Bootstrap the tabs mode on the first execution of the Sunrise Commander,
+after module installation."
   (sr-tabs-mode t)
   (sr-tabs-menu-init)
   (remove-hook 'sr-start-hook 'sr-tabs-start-once)
@@ -581,8 +582,7 @@
 ;;; Desktop support:
 
 (defun sr-tabs-desktop-save-buffer (desktop-dirname)
-  "Returns the additional data for saving the tabs of the current sunrise buffer
-  into a desktop file."
+  "Return additional desktop data for saving tabs of the current Sunrise buffer."
   (let* ((left-tab (car (member (buffer-name) (assoc 'left sr-tabs))))
          (left-cache (cdr (assq 'left sr-tabs-labels-cache)))
          (left-label (cadr (assoc left-tab left-cache)))
@@ -598,8 +598,7 @@
 (defun sr-tabs-desktop-restore-buffer (desktop-buffer-file-name
                                        desktop-buffer-name
                                        desktop-buffer-misc)
-  "Restores  all  the  tabs  in  a  Sunrise  (normal  or  VIRTUAL) buffer from a
-  description in a desktop file."
+  "Restore all tabs in a Sunrise (normal or VIRTUAL) buffer from a desktop file."
   (mapc (lambda (side)
           (let* ((sr-selected-window side)
                  (tab-symbol (intern (concat (symbol-name side) "-tab")))
@@ -614,8 +613,8 @@
     (sr-tabs-engage)))
 
 (defun sr-tabs-reset-state ()
-  "Resets  some  environment  variables that control the behavior of tabs in the
-  Sunrise Commander (used for desktop support.)"
+  "Reset some environment variables that control the behavior of
+tabs in the Sunrise Commander (used for desktop support)."
   (mapc (lambda (x) (setcdr x nil)) sr-tabs-labels-cache)
   (mapc (lambda (x) (setcdr x nil)) sr-tabs)
   nil)

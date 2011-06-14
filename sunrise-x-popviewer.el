@@ -66,22 +66,21 @@
 (define-key sr-mode-map "v" 'sr-popviewer-quick-view)
 
 (defcustom sr-popviewer-reuse-frame nil
-  "Whether to display the viewer window always in the same frame (as long as it 
-  remains open)."
+  "If non-nil, always display the viewer window in the same frame (if any)."
   :group 'sunrise
   :type 'boolean)
 
-(defun sr-setup-windows()
-  "Setup the Sunrise window configuration (two windows in sr-mode.)"
+(defun sr-setup-windows ()
+  "Set up the Sunrise window configuration (two windows in `sr-mode')."
 
   (bury-buffer)
   (delete-other-windows)
 
-  (cond 
+  (cond
    ((equal sr-window-split-style 'horizontal) (split-window-horizontally))
    ((equal sr-window-split-style 'vertical)   (split-window-vertically))
    ((equal sr-window-split-style 'top)        (ignore))
-   (t (error "ERROR: Don't know how to split this window: %s" sr-window-split-style)))
+   (t (error "Sunrise: don't know how to split this window: %s" sr-window-split-style)))
 
   ;;setup sunrise on both panes
   (sr-setup-pane left)
@@ -96,10 +95,11 @@
   (run-hooks 'sr-start-hook))
 
 (defun sr-popviewer-quick-view (&optional arg)
-  "Allows to quick-view the currently selected  item: on regular files, it opens
-  the file in a separate frame,  on directories visits the selected directory in
-  the passive pane, and  on symlinks follows the file the link  points to in the
-  passive pane."
+  "Quickly view the currently selected item.
+On regular files, it opens the file in a separate frame, on
+directories visits the selected directory in the passive pane,
+and on symlinks follows the file the link points to in the
+passive pane."
   (interactive "P")
   (let ((sr-popviewer-reuse-frame
          (if arg (not sr-popviewer-reuse-frame) sr-popviewer-reuse-frame)))
@@ -107,7 +107,7 @@
     (sr-select-window sr-selected-window)))
 
 (defun sr-select-viewer-window (&optional force-setup)
-  "Tries to select a window that is not a SC pane in a separate frame."
+  "Try to select a window that is not a SC pane in a separate frame."
   (interactive)
   (if (null window-system)
       (let ((sr-selected-window sr-selected-window))
