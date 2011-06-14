@@ -15,41 +15,42 @@
 
 ;; This program is free software: you can redistribute it and/or modify it under
 ;; the terms of the GNU General Public License as published by the Free Software
-;; Foundation,  either  version  3 of the License, or (at your option) any later
+;; Foundation, either version 3 of the License, or (at your option) any later
 ;; version.
 ;;
-;; This  program  is distributed in the hope that it will be useful, but WITHOUT
+;; This program is distributed in the hope that it will be useful, but WITHOUT
 ;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-;; FOR  A  PARTICULAR  PURPOSE.  See the GNU General Public License for more de-
+;; FOR A PARTICULAR PURPOSE. See the GNU General Public License for more de-
 ;; tails.
 
-;; You  should have received a copy of the GNU General Public License along with
+;; You should have received a copy of the GNU General Public License along with
 ;; this program. If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;; Beginning with version 4 of the Sunrise Commander, checkpoints were redefined
 ;; to be a special form of bookmarks. Unfortunately, the differences between the
-;; bookmarks  frameworks in Emacs 22 and Emacs 23 are so big that including this
+;; bookmarks frameworks in Emacs 22 and Emacs 23 are so big that including this
 ;; code directly in the sunrise-commander script would make it incompatible with
-;; Emacs  22.  For  this reason both versions of checkpoints are now provided as
-;; dynamically loaded extensions, so that you can decide which of them  to  use.
-;; To  be  sure,  this  is  the version I intend to further develop, as it has a
-;; richer set of functions and integrates more nicely to the rest of Emacs.  The
-;; other  one is deprecated and will eventually disappear once Emacs 23+ becomes
+;; Emacs 22. For this reason both versions of checkpoints are now provided as
+;; dynamically loaded extensions, so that you can decide which of them to use.
+;; To be sure, this is the version I intend to further develop, as it has a
+;; richer set of functions and integrates more nicely to the rest of Emacs. The
+;; other one is deprecated and will eventually disappear once Emacs 23+ becomes
 ;; the "stable" release.
 
 ;; This is version 1 $Rev: 345 $ of the Sunrise Commander Checkpoints Extension.
 
-;; It  was  written and tested on GNU Emacs 23 on Linux.
+;; It was written and tested on GNU Emacs 23 on Linux.
 
 ;;; Installation and Usage:
 
-;; 1) Put this file somewhere in your Emacs load-path. (Optionally) compile it.
+;; 1) Put this file somewhere in your Emacs `load-path'. (Optionally) compile
+;; it.
 
-;; 2)  Enjoy  ;-) -- Sunrise should pick the correct extension automatically. On
-;; Emacs 23 it will look for sunrise-x-checkpoints, while on Emacs 22 it'll  try
-;; to  load  sunrise-x-old-checkpoints. Only if you *really* want to use the old
+;; 2) Enjoy ;-) -- Sunrise should pick the correct extension automatically. On
+;; Emacs 23 it will look for sunrise-x-checkpoints, while on Emacs 22 it'll try
+;; to load sunrise-x-old-checkpoints. Only if you *really* want to use the old
 ;; extensions on Emacs 23 you may add a new (require 'sunrise-x-old-checkpoints)
 ;; expression to your .emacs file somewhere after (require 'sunrise-commander).
 

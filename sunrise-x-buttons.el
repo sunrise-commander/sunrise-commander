@@ -28,32 +28,32 @@
 
 ;;; Commentary:
 
-;; Here  is  a  small extension that may be of help to new users who want to get
-;; acquainted fast with  the  most  frequent  functions  found  in  the  Sunrise
-;; Commander  and  their  keybindings.  Once installed, it displays a panel with
-;; mouse clickable buttons that show some of the most useful  actions  performed
-;; by  Sunrise and their respective bindings in the bottom window (a.k.a. viewer
-;; window here) every time the main panels are invoked. You can execute  any  of
-;; these  functions  by  clicking  the appropriate button, but the extension was
-;; conceived more as a simple cheat sheet (a very, very limited one, as you  can
-;; easily  learn  by pressing the last button, labeled "More...") than as a real
-;; interface to Sunrise and Dired functions. Eventually, if you like  this  kind
+;; Here is a small extension that may be of help to new users who want to get
+;; acquainted fast with the most frequent functions found in the Sunrise
+;; Commander and their keybindings. Once installed, it displays a panel with
+;; mouse clickable buttons that show some of the most useful actions performed
+;; by Sunrise and their respective bindings in the bottom window (a.k.a. viewer
+;; window here) every time the main panels are invoked. You can execute any of
+;; these functions by clicking the appropriate button, but the extension was
+;; conceived more as a simple cheat sheet (a very, very limited one, as you can
+;; easily learn by pressing the last button, labeled "More...") than as a real
+;; interface to Sunrise and Dired functions. Eventually, if you like this kind
 ;; of interaction with the program you can add your own commands to the list and
 ;; let this extension manage the creation and layout of the buttons for you.
 
 ;; This is version 1 $Rev: 315 $ of the Sunrise Commander Buttons Extension.
 
-;; It  was  written  on GNU Emacs 23 on Linux, and tested on GNU Emacs 22 and 23
-;; for Linux and on EmacsW32 (version 22) for  Windows.
+;; It was written on GNU Emacs 23 on Linux, and tested on GNU Emacs 22 and 23
+;; for Linux and on EmacsW32 (version 22) for Windows.
 
 ;;; Installation and Usage:
 
-;; 1) Put this file somewhere in your emacs load-path.
+;; 1) Put this file somewhere in your Emacs `load-path'.
 
-;; 2)  Add  a (require 'sunrise-x-buttons) to your .emacs file, preferably right
+;; 2) Add a (require 'sunrise-x-buttons) to your .emacs file, preferably right
 ;; after (require 'sunrise-commander).
 
-;; 3) Evaluate the new expression, or reload your .emacs file, or restart emacs.
+;; 3) Evaluate the new expression, or reload your .emacs file, or restart Emacs.
 
 ;; That's it - the next time you activate Sunrise you'll see a nice button panel
 ;; in the viewer window.

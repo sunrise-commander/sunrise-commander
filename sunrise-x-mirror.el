@@ -15,54 +15,54 @@
 
 ;; This program is free software: you can redistribute it and/or modify it under
 ;; the terms of the GNU General Public License as published by the Free Software
-;; Foundation,  either  version  3 of the License, or (at your option) any later
+;; Foundation, either version 3 of the License, or (at your option) any later
 ;; version.
 ;;
-;; This  program  is distributed in the hope that it will be useful, but WITHOUT
+;; This program is distributed in the hope that it will be useful, but WITHOUT
 ;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-;; FOR  A  PARTICULAR  PURPOSE.  See the GNU General Public License for more de-
+;; FOR A PARTICULAR PURPOSE. See the GNU General Public License for more de-
 ;; tails.
 
-;; You  should have received a copy of the GNU General Public License along with
+;; You should have received a copy of the GNU General Public License along with
 ;; this program. If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;; This is an extension for the Sunrise Commander file manager (for more details
 ;; visit http://www.emacswiki.org/emacs/Sunrise_Commander), that allows browsing
-;; compressed  archives  in  full  read-write mode. Sunrise does offer means for
-;; transparent browsing archives (using AVFS), but they just  provide  read-only
+;; compressed archives in full read-write mode. Sunrise does offer means for
+;; transparent browsing archives (using AVFS), but they just provide read-only
 ;; navigation -- if you want to edit a file inside the virtual filesystem, copy,
-;; remove, or rename anything, you still have to uncompress the archive, do  the
+;; remove, or rename anything, you still have to uncompress the archive, do the
 ;; stuff and compress it back yourself.
 
-;; It  uses one of funionfs or unionfs-fuse to create a writeable overlay on top
-;; of the read-only filesystem provided by AVFS. You can freely add,  remove  or
-;; modify  anything  inside  the  resulting union filesystem (a.k.a. the "mirror
-;; area"), and then commit all modifications (or not) to  the  original  archive
+;; It uses one of funionfs or unionfs-fuse to create a writeable overlay on top
+;; of the read-only filesystem provided by AVFS. You can freely add, remove or
+;; modify anything inside the resulting union filesystem (a.k.a. the "mirror
+;; area"), and then commit all modifications (or not) to the original archive
 ;; with a single keystroke. There is no preliminary uncompressing of the archive
-;; and nothing happens if you don't make changes (or if you don't commit  them).
-;; On  commit,  the contents of the union fs are compressed to create an updated
+;; and nothing happens if you don't make changes (or if you don't commit them).
+;; On commit, the contents of the union fs are compressed to create an updated
 ;; archive to replace the original one (optionally after making a backup copy of
 ;; it, just in case).
 
 ;; Navigating outside a mirror area will automatically close it, so if you do it
 ;; you may be asked whether to commit or not to the archive all your changes. In
 ;; nested archives (e.g. a jar inside a zip inside a tgz), partial modifications
-;; are committed silently on the fly if moving out from a  modified  archive  to
-;; one  that  contains it. Only if you leave the topmost mirror area you will be
+;; are committed silently on the fly if moving out from a modified archive to
+;; one that contains it. Only if you leave the topmost mirror area you will be
 ;; asked for confirmation whether to modify the resulting archive.
 
 ;; Be warned, though, that this method may be impractical for very large or very
-;; deeply nested archives  with  strong  compression,  since  the  uncompressing
-;; happens  in  the  final stage and requires multiple access operations through
+;; deeply nested archives with strong compression, since the uncompressing
+;; happens in the final stage and requires multiple access operations through
 ;; AVFS. What this means is that probably you'll have to wait a looooong time if
-;; you  try  to  commit  changes  to  a  tar.bz2  file  with several hundreds of
+;; you try to commit changes to a tar.bz2 file with several hundreds of
 ;; megabytes in size, or under five or six other layers of strong compression.
 
 ;; For this extension to work you must have:
 
-;; 1) FUSE + AVFS support in your Sunrise Commander.  If you can navigate (read-
+;; 1) FUSE + AVFS support in your Sunrise Commander. If you can navigate (read-
 ;; only) inside compressed archives you already have this.
 
 ;; 2) One of funionfs or unionfs-fuse. Debian lenny (stable distribution) offers
@@ -71,48 +71,48 @@
 
 ;; 3) Programs required for repacking archives -- at least zip and tar.
 
-;; 4)  Your AVFS mount point (and the value of variable sr-avfs-root) must be in
-;; a directory where you have writing access.
+;; 4) Your AVFS mount point (and the value of variable `sr-avfs-root') must be
+;; in a directory where you have writing access.
 
-;; All  this means is that most probably this extension will work out-of-the-box
-;; on Linux (or MacOS, or other unices), but you'll have a hard time to make  it
-;; work  on  Windows.  It was written on GNU Emacs 23 on Linux and tested on GNU
+;; All this means is that most probably this extension will work out-of-the-box
+;; on Linux (or MacOS, or other unices), but you'll have a hard time to make it
+;; work on Windows. It was written on GNU Emacs 23 on Linux and tested on GNU
 ;; Emacs 22 and 23 for Linux.
 
 ;; This is version 2 $Rev: 350 $ of the Sunrise Commander Mirror Extension.
 
 ;;; Installation and Usage:
 
-;; 1) Put this file somewhere in your emacs load-path.
+;; 1) Put this file somewhere in your Emacs `load-path'.
 
-;; 2)  Add a (require 'sunrise-x-mirror) to your .emacs file, anywhere after the
+;; 2) Add a (require 'sunrise-x-mirror) to your .emacs file, anywhere after the
 ;; (require 'sunrise-commander) sexp.
 
-;; 3) Evaluate the new expression, or reload your .emacs file, or restart emacs.
+;; 3) Evaluate the new expression, or reload your .emacs file, or restart Emacs.
 
-;; 4)  Customize  the  variable sr-mirror-unionfs-impl and select your preferred
+;; 4) Customize the variable `sr-mirror-unionfs-impl' and select your preferred
 ;; unionfs implementation (either funionfs or unionfs-fuse).
 
-;; 5)  Run  the Sunrise Commander (M-x sunrise), select (or navigate inside) any
-;; compressed directory in  the  active  pane  and  press  C-c  C-b.  This  will
-;; automatically  take  you to the mirror area for the selected archive. You can
-;; make any modifications you want to the contents of the archive,  or  navigate
-;; inside  directories or other compressed archives inside it. When you're done,
-;; press again C-c C-b anywhere inside the mirror area, or simply  navigate  out
+;; 5) Run the Sunrise Commander (M-x sunrise), select (or navigate inside) any
+;; compressed directory in the active pane and press C-c C-b. This will
+;; automatically take you to the mirror area for the selected archive. You can
+;; make any modifications you want to the contents of the archive, or navigate
+;; inside directories or other compressed archives inside it. When you're done,
+;; press again C-c C-b anywhere inside the mirror area, or simply navigate out
 ;; of it. If there are any changes to commit (*and* if you confirm) the original
-;; archive will be replaced with a new one with the contents of the mirror  area
-;; you've  just  been working on. If you don't change the defaults, the original
+;; archive will be replaced with a new one with the contents of the mirror area
+;; you've just been working on. If you don't change the defaults, the original
 ;; will be renamed with a ".bak" extension added.
 
-;; 6)  You  can add support for new archive formats by adding new entries to the
-;; sr-mirror-pack-commands-alist  custom  variable,  which  contains  a  regular
-;; expression  to  match against the name of the archive and a string containing
-;; the shell command to  execute  for  packing  back  the  mirror  area  into  a
+;; 6) You can add support for new archive formats by adding new entries to the
+;; `sr-mirror-pack-commands-alist' custom variable, which contains a regular
+;; expression to match against the name of the archive and a string containing
+;; the shell command to execute for packing back the mirror area into a
 ;; compressed archive.
 
-;; 7)  Once  you've  gained enough confidence using this extension you can reset
-;; the sr-mirror-keep-backups flag to get rid of all the backup copies  produced
-;; by it.
+;; 7) Once you've gained enough confidence using this extension you can reset
+;; the `sr-mirror-keep-backups' flag to get rid of all the backup copies
+;; produced by it.
 
 ;; 8) Enjoy ;)
 

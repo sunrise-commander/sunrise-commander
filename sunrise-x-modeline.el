@@ -15,25 +15,25 @@
 
 ;; This program is free software: you can redistribute it and/or modify it under
 ;; the terms of the GNU General Public License as published by the Free Software
-;; Foundation,  either  version  3 of the License, or (at your option) any later
+;; Foundation, either version 3 of the License, or (at your option) any later
 ;; version.
 ;;
-;; This  program  is distributed in the hope that it will be useful, but WITHOUT
+;; This program is distributed in the hope that it will be useful, but WITHOUT
 ;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-;; FOR  A  PARTICULAR  PURPOSE.  See the GNU General Public License for more de-
+;; FOR A PARTICULAR PURPOSE. See the GNU General Public License for more de-
 ;; tails.
 
-;; You  should have received a copy of the GNU General Public License along with
+;; You should have received a copy of the GNU General Public License along with
 ;; this program. If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
-;; This  extension  modifies  the  format  of  the  mode lines under the Sunrise
+;; This extension modifies the format of the mode lines under the Sunrise
 ;; Commander panes so they display only the paths to the current directories (or
 ;; the tail if the whole path is too long) and a row of three small icons. These
 ;; icons are by default plain ASCII characters, but nicer semigraphical versions
-;; (in Unicode) can also be used by customizing the sr-modeline-use-utf8-marks
-;; variable.
+;; (in Unicode) can also be used by customizing the variable
+;; `sr-modeline-use-utf8-marks'.
 ;;
 ;; Here is the complete list of indicator icons (in ASCII and Unicode) and their
 ;; respective meanings:
@@ -48,27 +48,27 @@
 ;;
 ;; 3. Transient states:    #        ♥     Contents snapshot available.
 ;;
-;; (if you can't see the icons on the right don't use utf8 marks)
+;; (if you can't see the icons on the right, don't use utf8 marks)
 
 ;; The regular mode line format remains available: press C-c m to toggle between
 ;; one format and the other.
 
-;; The  extension  is  provided  as a minor mode, so you can enable / disable it
-;; totally by issuing the command (M-x) sr-modeline.
+;; The extension is provided as a minor mode, so you can enable / disable it
+;; totally by issuing the command `sr-modeline'.
 
 ;; This is version 2 $Rev: 345 $ of the Sunrise Commander Modeline Extension.
 
-;; It  was  written  on GNU Emacs 23 on Linux, and tested on GNU Emacs 22 and 23
-;; for Linux and on EmacsW32 (version 22) for  Windows.
+;; It was written on GNU Emacs 23 on Linux, and tested on GNU Emacs 22 and 23
+;; for Linux and on EmacsW32 (version 22) for Windows.
 
 ;;; Installation and Usage:
 
-;; 1) Put this file somewhere in your emacs load-path.
+;; 1) Put this file somewhere in your Emacs `load-path'.
 
-;; 2)  Add  a  (require  'sunrise‐x‐modeline)  expression  to  your  .emacs file
+;; 2) Add a (require 'sunrise‐x‐modeline) expression to your .emacs file
 ;; somewhere after the (require 'sunrise‐commander) one.
 
-;; 3) Evaluate the new expression, or reload your .emacs file, or restart emacs.
+;; 3) Evaluate the new expression, or reload your .emacs file, or restart Emacs.
 
 ;; 4) Enjoy ;-)
 

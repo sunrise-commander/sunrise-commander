@@ -15,59 +15,59 @@
 
 ;; This program is free software: you can redistribute it and/or modify it under
 ;; the terms of the GNU General Public License as published by the Free Software
-;; Foundation,  either  version  3 of the License, or (at your option) any later
+;; Foundation, either version 3 of the License, or (at your option) any later
 ;; version.
 ;;
-;; This  program  is distributed in the hope that it will be useful, but WITHOUT
+;; This program is distributed in the hope that it will be useful, but WITHOUT
 ;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-;; FOR  A  PARTICULAR  PURPOSE.  See the GNU General Public License for more de-
+;; FOR A PARTICULAR PURPOSE. See the GNU General Public License for more de-
 ;; tails.
 
-;; You  should have received a copy of the GNU General Public License along with
+;; You should have received a copy of the GNU General Public License along with
 ;; this program. If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
-;; Here  is  another two-pane mc emulation layer for emacs. It's built on top of
-;; Dired and takes advantage of all its features, offering at the same time  the
-;; double  pane  interface I'd been missing so badly since I started using regu-
-;; larly emacs (for everything!). I tried  both  Ilya  Zakharevich's  nc.el  and
-;; Kevin  Burton's  mc.el,  but  none of them was what I was looking for (though
+;; Here is another two-pane mc emulation layer for Emacs. It's built on top of
+;; Dired and takes advantage of all its features, offering at the same time the
+;; double pane interface I'd been missing so badly since I started using regu-
+;; larly Emacs (for everything!). I tried both Ilya Zakharevich's nc.el and
+;; Kevin Burton's mc.el, but none of them was what I was looking for (though
 ;; mc.el was near the ideal).
 
-;; A  lot  of  this code was once adapted from Kevin's mc.el, but it has evolved
+;; A lot of this code was once adapted from Kevin's mc.el, but it has evolved
 ;; quite a bit since then. Another part (the code for file copying and renaming)
-;; derives originally from the dired extensions written by Kurt Nørmark for LAML
+;; derives originally from the Dired extensions written by Kurt Nørmark for LAML
 ;; (http://www.cs.aau.dk/~normark/scheme/distribution/laml/).
 
 ;; I have added to the mix several useful functions:
 
-;; *  Sunrise  is  implemented  as a derived major mode confined inside the pane
-;; buffers, so its buffers and dired ones can live together without easymenu  or
+;; * Sunrise is implemented as a derived major mode confined inside the pane
+;; buffers, so its buffers and Dired ones can live together without easymenu or
 ;; viper to avoid key binding collisions.
 
-;; *  It  automatically  closes unused buffers and tries to never keep open more
+;; * It automatically closes unused buffers and tries to never keep open more
 ;; than the one or two used to display the panes.
 
-;; *  Each pane has its own history ring: press M-y / M-u for moving backwards /
+;; * Each pane has its own history ring: press M-y / M-u for moving backwards /
 ;; forwards in the history of directories.
 
 ;; * Press M-t to swap (transpose) the panes.
 
-;; * Press C-= for "smart" file comparison using ediff. It compares together the
-;; first two files marked on each pane or, if no files have been marked, it  as-
-;; sumes that the second pane contains a file with the same name as the selected
-;; one and tries to compare these two. You can also mark whole lists of files to
-;; be compared and then just press C-= for comparing the next pair.
+;; * Press C-= for "smart" file comparison using `ediff'. It compares together
+;; the first two files marked on each pane or, if no files have been marked, it
+;; as- sumes that the second pane contains a file with the same name as the
+;; selected one and tries to compare these two. You can also mark whole lists of
+;; files to be compared and then just press C-= for comparing the next pair.
 
-;; *  Press  = for fast "smart" file comparison -- like above, but using regular
+;; * Press = for fast "smart" file comparison -- like above, but using regular
 ;; diff.
 
 ;; * Press C-M-= for directory comparison (by date / size / contents of files).
 
 ;; * Press C-c C-s to change the layout of the panes (horizontal/vertical/top)
 
-;; * Press C-c / to interactively refine  the contents of the current pane using
+;; * Press C-c / to interactively refine the contents of the current pane using
 ;; fuzzy (a.k.a. flex) matching, then:
 ;;    - press Delete or Backspace to revert the buffer to its previous state
 ;;    - press Return, C-n or C-p to exit and accept the current narrowed state
@@ -76,16 +76,16 @@
 ;; Once narrowed and accepted, you can restore the original contents of the pane
 ;; by pressing g (revert-buffer).
 
-;; *  Press  C-x C-q   to put the current pane in Editable Dired mode (allows to
-;; edit the pane as if it were a regular file -- press C-c C-c  to  commit  your
+;; * Press C-x C-q to put the current pane in Editable Dired mode (allows to
+;; edit the pane as if it were a regular file -- press C-c C-c to commit your
 ;; changes to the filesystem, or C-c C-k to abort).
 
 ;; * Press y to recursively calculate the total size (in bytes) of all files and
 ;; directories currently selected/marked in the active pane.
 
-;; *  Sunrise VIRTUAL mode integrates dired-virtual mode to Sunrise, allowing to
-;; capture find and locate results in regular files and to use them later as  if
-;; they  were  directories  with  all  Dired  and  Sunrise  operations  at  your
+;; * Sunrise VIRTUAL mode integrates dired-virtual mode to Sunrise, allowing to
+;; capture find and locate results in regular files and to use them later as if
+;; they were directories with all Dired and Sunrise operations at your
 ;; fingertips.
 ;; The results of the following operations are displayed in VIRTUAL mode:
 ;;    - find-name-dired (press C-c C-n),
@@ -97,7 +97,7 @@
 
 ;; * Supports AVFS (http://www.inf.bme.hu/~mszeredi/avfs/) for transparent navi-
 ;; gation inside compressed archives (*.zip, *.tgz, *.tar.bz2, *.deb, etc. etc.)
-;; You  need to have AVFS with coda or fuse installed and running on your system
+;; You need to have AVFS with coda or fuse installed and running on your system
 ;; for this to work, though.
 
 ;; * Opening terminals directly from Sunrise:
@@ -107,13 +107,13 @@
 ;;    - Press C-c T to switch to the last opened terminal and change directory
 ;;      to the one in the current directory.
 
-;; *  Terminal  integration  and Command line expansion: integrates tightly with
-;; eshell or term-mode to allow interaction between terminal emulators  in  line
-;; mode  (C-c  C-j)  and  the panes: the most important navigation commands (up,
-;; down, mark, unmark, go to parent dir) can be  executed  on  the  active  pane
-;; directly  from  the  terminal  by  pressing the usual keys with Meta: <M-up>,
-;; <M-down>,  etc.  Additionally,  the following substitutions are automagically
-;; performed in term-line-mode:
+;; * Terminal integration and Command line expansion: integrates tightly with
+;; `eshell' or `term-mode' to allow interaction between terminal emulators in
+;; line mode (C-c C-j) and the panes: the most important navigation commands
+;; (up, down, mark, unmark, go to parent dir) can be executed on the active pane
+;; directly from the terminal by pressing the usual keys with Meta: <M-up>,
+;; <M-down>, etc. Additionally, the following substitutions are automagically
+;; performed in `term-line-mode':
 ;;     %f - expands to the currently selected file in the left pane
 ;;     %F - expands to the currently selected file in the right pane
 ;;     %m - expands to the list of paths of all marked files in the left pane
@@ -123,10 +123,10 @@
 ;;     %d - expands to the current directory in the left pane
 ;;     %D - expands to the current directory in the right pane
 
-;; *  Cloning  of  complete directory trees: press K to clone the selected files
-;; and directories into the passive pane. Cloning is a  more  general  operation
-;; than  copying, in which all directories are recursively created with the same
-;; names and structures at the destination, while  what  happens  to  the  files
+;; * Cloning of complete directory trees: press K to clone the selected files
+;; and directories into the passive pane. Cloning is a more general operation
+;; than copying, in which all directories are recursively created with the same
+;; names and structures at the destination, while what happens to the files
 ;; within them depends on the option you choose:
 ;;    - "(D)irectories only" ignores all files, copies only directories,
 ;;    - "(C)opies" performs a regular recursive copy of all files and dirs,
@@ -135,14 +135,14 @@
 ;;    - "(R)elative symlinks” creates relative symbolic links.
 
 ;; * Passive navigation: the usual navigation keys (n, p, Return, U, ;) combined
-;; with Meta allow to move across the passive pane without  actually  having  to
+;; with Meta allow to move across the passive pane without actually having to
 ;; switch to it.
 
-;; * Synchronized navigation:  press  C-c C-z  to enable / disable  synchronized
-;; navigation. In this mode, the passive navigation keys  (M-n,  M-p,  M-Return,
-;; etc.)  operate on both panes simultaneously. I've found this quite useful for
-;; comparing hierarchically small to medium-sized directory trees (for large  to
-;; very  large  directory  trees  one  needs  something  on the lines of diff -r
+;; * Synchronized navigation: press C-c C-z to enable / disable synchronized
+;; navigation. In this mode, the passive navigation keys (M-n, M-p, M-Return,
+;; etc.) operate on both panes simultaneously. I've found this quite useful for
+;; comparing hierarchically small to medium-sized directory trees (for large to
+;; very large directory trees one needs something on the lines of diff -r
 ;; though).
 
 ;; * Sticky search: press C-c s to launch an interactive search that will remain
@@ -151,17 +151,17 @@
 
 ;; * etc. ;-)
 
-;; It  doesn't  even  try to look like MC, so the help window is gone (you're in
-;; emacs, so you know your bindings, right?), though if you really  miss it just
+;; It doesn't even try to look like MC, so the help window is gone (you're in
+;; Emacs, so you know your bindings, right?), though if you really miss it, just
 ;; get and install the sunrise-x-buttons extension.
 
-;; It  was  written  on GNU Emacs 23 on Linux, and tested on GNU Emacs 22 and 23
-;; for Linux and on EmacsW32 (version 23) for  Windows.  I  have  also  received
-;; feedback  from a user reporting it works OK on the Mac (GNU Emacs 22.2 on Mac
-;; OS X Leopard). I *am* aware that  there  are  several  functions  (including,
-;; alas,  file  and directory comparison) that simply will not work on GNU Emacs
-;; 21, but unfortunately I do not have the time to port them  back.  It  doesn't
-;; work  either  on  XEmacs  --  please drop me a line if you would like to help
+;; It was written on GNU Emacs 23 on Linux, and tested on GNU Emacs 22 and 23
+;; for Linux and on EmacsW32 (version 23) for Windows. I have also received
+;; feedback from a user reporting it works OK on the Mac (GNU Emacs 22.2 on Mac
+;; OS X Leopard). I *am* aware that there are several functions (including,
+;; alas, file and directory comparison) that simply will not work on GNU Emacs
+;; 21, but unfortunately I do not have the time to port them back. It doesn't
+;; work either on XEmacs -- please drop me a line if you would like to help
 ;; porting it. All contributions and/or bug reports will be very welcome.
 
 ;; For more details on the file manager, extensions and cool tips & tricks visit
@@ -169,25 +169,25 @@
 
 ;;; Installation and Usage:
 
-;; 1) Put this file somewhere in your emacs load-path.
+;; 1) Put this file somewhere in your Emacs `load-path'.
 
 ;; 2) Add a (require 'sunrise-commander) to your .emacs file.
 
-;; 3)  Choose  some  unused  extension for files to be opened in Sunrise VIRTUAL
-;; mode and add it to auto-mode-alist, e.g. if you want  to  name  your  virtual
-;; directories  like  *.svrm  just  add  to  your  .emacs  file  a line like the
+;; 3) Choose some unused extension for files to be opened in Sunrise VIRTUAL
+;; mode and add it to `auto-mode-alist', e.g. if you want to name your virtual
+;; directories like *.svrm just add to your .emacs file a line like the
 ;; following:
 ;;
 ;;     (add-to-list 'auto-mode-alist '("\\.srvm\\'" . sr-virtual-mode))
 
-;; 4) Evaluate the new lines, or reload your .emacs file, or restart emacs.
+;; 4) Evaluate the new lines, or reload your .emacs file, or restart Emacs.
 
 ;; 5) Type M-x sunrise to invoke the Sunrise Commander (or much better: bind the
-;; function to your favorite key combination). The  command  sunrise-cd  invokes
-;; Sunrise  and  automatically  selects  the  current file wherever it is in the
+;; function to your favorite key combination). The command `sunrise-cd' invokes
+;; Sunrise and automatically selects the current file wherever it is in the
 ;; filesystem. Type h at any moment for information on available key bindings.
 
-;; 6)  Type  M-x customize-group <RET> sunrise <RET> to customize options, fonts
+;; 6) Type M-x customize-group <RET> sunrise <RET> to customize options, fonts
 ;; and colors (activate AVFS support here, too).
 
 ;; 7) Enjoy :)
@@ -460,8 +460,8 @@ Indicates that a CLEX substitution may be about to happen."
   :group 'sunrise)
 
 ;;; ============================================================================
-;;; This is the core of Sunrise: the main idea is to apply sr-mode only inside
-;;; Sunrise buffers while keeping all of dired-mode untouched.
+;;; This is the core of Sunrise: the main idea is to apply `sr-mode' only inside
+;;; Sunrise buffers while keeping all of `dired-mode' untouched.
 
 (define-derived-mode sr-mode dired-mode "Sunrise Commander"
   "Two-pane file manager for Emacs based on Dired and inspired by MC.

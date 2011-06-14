@@ -15,22 +15,22 @@
 
 ;; This program is free software: you can redistribute it and/or modify it under
 ;; the terms of the GNU General Public License as published by the Free Software
-;; Foundation,  either  version  3 of the License, or (at your option) any later
+;; Foundation, either version 3 of the License, or (at your option) any later
 ;; version.
 ;;
-;; This  program  is distributed in the hope that it will be useful, but WITHOUT
+;; This program is distributed in the hope that it will be useful, but WITHOUT
 ;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-;; FOR  A  PARTICULAR  PURPOSE.  See the GNU General Public License for more de-
+;; FOR A PARTICULAR PURPOSE. See the GNU General Public License for more de-
 ;; tails.
 
-;; You  should have received a copy of the GNU General Public License along with
+;; You should have received a copy of the GNU General Public License along with
 ;; this program. If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
-;; This  extension adds to the Sunrise Commander file manager a directories-only
-;; tree view that can be used for fast navigation, as well as for several  basic
-;; operations  on  files and directories. It uses the excellent "tree-widget.el"
+;; This extension adds to the Sunrise Commander file manager a directories-only
+;; tree view that can be used for fast navigation, as well as for several basic
+;; operations on files and directories. It uses the excellent "tree-widget.el"
 ;; library written by David Ponce and works the same in text consoles as well as
 ;; in graphical environments, using either the mouse or just the keyboard.
 
@@ -39,25 +39,25 @@
 
 ;; This is version 1 $Rev: 345 $ of the Sunrise Commander Tree Extension.
 
-;;  It was developed on GNU Emacs 24 on Linux, and tested on GNU Emacs 22 and 24
+;; It was developed on GNU Emacs 24 on Linux, and tested on GNU Emacs 22 and 24
 ;; for Linux, and on EmacsW32 (version 23) for Windows.
 
 ;;; Installation:
 
-;; 1) Put this file somewhere in your emacs load-path.
+;; 1) Put this file somewhere in your Emacs `load-path'.
 
-;; 2)  Add  a (require 'sunrise‐x‐tree) expression to your .emacs file somewhere
+;; 2) Add a (require 'sunrise‐x‐tree) expression to your .emacs file somewhere
 ;; after the (require 'sunrise‐commander) one.
 
-;; 3) Evaluate the new expression, or reload your .emacs file, or restart emacs.
+;; 3) Evaluate the new expression, or reload your .emacs file, or restart Emacs.
 
-;; 4) You may  have to customize the `tree-widget-image-enable'  variable if all
-;; you  get  are text-only  icons  (e.g.  "[+]"  and  "[X]") in  your  graphical
+;; 4) You may have to customize the `tree-widget-image-enable' variable if all
+;; you get are text-only icons (e.g. "[+]" and "[X]") in your graphical
 ;; environment, while you'd rather prefer looking at pretty graphical ones.
 
 ;; WARNING: If you use Slime be aware that some versions of this package include
 ;; an older version of tree-widget.el that may clobber the one in Emacs and make
-;; this extension work improperly.  At least that's the case in Debian for i386:
+;; this extension work improperly. At least that's the case in Debian for i386:
 ;; slime comes with version 21.4 of tree-widget, but the extension requires 22.1
 ;; or better.
 
@@ -135,24 +135,24 @@
 ;;   the "Quick View" operation required by the OFM standard.
 
 ;; * C-u C-s, C-u C-r - "sticky" interactive search. This works like the regular
-;; isearch, but  when the current search  is finished with a  Return, the folder
-;; the  cursor ends  on  is automatically  opened and  a  new (forward)  isearch
+;; isearch, but when the current search is finished with a Return, the folder
+;; the cursor ends on is automatically opened and a new (forward) Isearch
 ;; starts, so one can continue searching among the children of that folder. This
 ;; allows for extremely fast navigation across lengthy paths of directories with
-;; just  a few  keystrokes. To  terminate a  sticky search,  press C-g  or (once
-;; again)  Return.  Sticky  searches  can  be made  default  in  tree  panes  by
-;; customizing the  variable `sr-tree-isearch-always-sticky' - when  set, prefix
+;; just a few keystrokes. To terminate a sticky search, press C-g or (once
+;; again) Return. Sticky searches can be made default in tree panes by
+;; customizing the variable `sr-tree-isearch-always-sticky' - when set, prefix
 ;; the command to start a regular (non-sticky) interactive search.
 
-;; *  When AVFS support is active, press "#" to toggle the display of compressed
+;; * When AVFS support is active, press "#" to toggle the display of compressed
 ;; archives in Tree View panes.
 
-;; Additionally, most of  the original keybindings from  Sunrise apply (wherever
-;; it  makes sense,  of course).  For instance  switching/transposing/laying out
-;; panes  (Tab, M-Tab,  C-c, C-s),  showing /  hiding hidden  directories (C-o),
-;; jumping to  parent/arbitrary directory  (J, j) and  many more,  including the
+;; Additionally, most of the original keybindings from Sunrise apply (wherever
+;; it makes sense, of course). For instance switching/transposing/laying out
+;; panes (Tab, M-Tab, C-c, C-s), showing / hiding hidden directories (C-o),
+;; jumping to parent/arbitrary directory (J, j) and many more, including the
 ;; following file manipulation commands: copy (C), clone (K), rename (R), delete
-;; (D), symlink (S),  relative symlink (Y), create a new  directory (+) and show
+;; (D), symlink (S), relative symlink (Y), create a new directory (+) and show
 ;; file size (y).
 
 ;; All directory commands from the Sunrise Buttons extension are also supported.

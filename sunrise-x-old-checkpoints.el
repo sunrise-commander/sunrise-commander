@@ -15,40 +15,41 @@
 
 ;; This program is free software: you can redistribute it and/or modify it under
 ;; the terms of the GNU General Public License as published by the Free Software
-;; Foundation,  either  version  3 of the License, or (at your option) any later
+;; Foundation, either version 3 of the License, or (at your option) any later
 ;; version.
 ;;
-;; This  program  is distributed in the hope that it will be useful, but WITHOUT
+;; This program is distributed in the hope that it will be useful, but WITHOUT
 ;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-;; FOR  A  PARTICULAR  PURPOSE.  See the GNU General Public License for more de-
+;; FOR A PARTICULAR PURPOSE. See the GNU General Public License for more de-
 ;; tails.
 
-;; You  should have received a copy of the GNU General Public License along with
+;; You should have received a copy of the GNU General Public License along with
 ;; this program. If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;; Beginning with version 4 of the Sunrise Commander, checkpoints were redefined
-;; to be a special form of bookmarks.  Unfortunately,  creating  bookmarks  with
-;; custom  handlers  isn't  supported in the version of bookmarks.el distributed
-;; with emacs 22, so if you use Sunrise checkpoints and you don't want to update
-;; your  bookmarks.el, just add this extension to your .emacs.el to get back the
+;; to be a special form of bookmarks. Unfortunately, creating bookmarks with
+;; custom handlers isn't supported in the version of bookmarks.el distributed
+;; with Emacs 22, so if you use Sunrise checkpoints and you don't want to update
+;; your bookmarks.el, just add this extension to your .emacs.el to get back the
 ;; original functionality.
 
 ;; This is version 1 $Rev: 309 $ of the Old Checkpoints Extension.
 
-;; It  was  written  on GNU Emacs 23 on Linux, and tested on GNU Emacs 22 and 23
-;; for Linux and on EmacsW32 (version 22) for  Windows.
+;; It was written on GNU Emacs 23 on Linux, and tested on GNU Emacs 22 and 23
+;; for Linux and on EmacsW32 (version 22) for Windows.
 
 ;;; Installation and Usage:
 
-;; 1) Put this file somewhere in your Emacs load-path. (Optionally) compile it.
+;; 1) Put this file somewhere in your Emacs `load-path'. (Optionally) compile
+;; it.
 
-;; 2)  Enjoy  ;-) -- Sunrise should pick the correct extension automatically. On
-;; Emacs 23 it will look for sunrise-x-checkpoints, while on Emacs 22 it'll  try
-;; to  load  sunrise-x-old-checkpoints. Only if you *really* want to use the old
-;; extensions with a more recent version of bookmarks.el than  the  one  bundled
-;; with  Emacs 22 you may add a new (require 'sunrise-x-old-checkpoints) to your
+;; 2) Enjoy ;-) -- Sunrise should pick the correct extension automatically. On
+;; Emacs 23 it will look for sunrise-x-checkpoints, while on Emacs 22 it'll try
+;; to load sunrise-x-old-checkpoints. Only if you *really* want to use the old
+;; extensions with a more recent version of bookmarks.el than the one bundled
+;; with Emacs 22 you may add a new (require 'sunrise-x-old-checkpoints) to your
 ;; .emacs file somewhere after (require 'sunrise-commander).
 
 ;;; Code:

@@ -15,31 +15,31 @@
 
 ;; This program is free software: you can redistribute it and/or modify it under
 ;; the terms of the GNU General Public License as published by the Free Software
-;; Foundation,  either  version  3 of the License, or (at your option) any later
+;; Foundation, either version 3 of the License, or (at your option) any later
 ;; version.
 ;;
-;; This  program  is distributed in the hope that it will be useful, but WITHOUT
+;; This program is distributed in the hope that it will be useful, but WITHOUT
 ;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-;; FOR  A  PARTICULAR  PURPOSE.  See the GNU General Public License for more de-
+;; FOR A PARTICULAR PURPOSE. See the GNU General Public License for more de-
 ;; tails.
 
-;; You  should have received a copy of the GNU General Public License along with
+;; You should have received a copy of the GNU General Public License along with
 ;; this program. If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;; This extension implements a listing of all Windows drives and special folders
-;; inside the Sunrise Commander, as well  as support for *.lnk shortcuts for all
-;; file system  operations inside Sunrise.  Only standard Windows  shortcuts are
+;; inside the Sunrise Commander, as well as support for *.lnk shortcuts for all
+;; file system operations inside Sunrise. Only standard Windows shortcuts are
 ;; currently supported.
 
 ;; *WARNING!* this extension is targeted at Emacs ports that run directly on the
-;; Windows file system (like EmacsW32 and...  are there any others?) if yours is
+;; Windows file system (like EmacsW32 and... are there any others?) if yours is
 ;; running on top of some simulation layer (like Cygwin does) that maps the file
 ;; system this code is of no use to you.
 
 ;; It was developed on EmacsW32 (version 23.1.50.1, patched) for Windows, during
-;; the Hackergarten session at the GeeCon 2011 conference in Cracow.   Thanks go
+;; the Hackergarten session at the GeeCon 2011 conference in Cracow. Thanks go
 ;; to Andreas Ames for beta-testing this code.
 
 ;;; Installation:
@@ -47,12 +47,12 @@
 ;; (These are generic installation instructions -- if you installed via ELPA you
 ;; don't need to follow them).
 
-;; 1) Put this file somewhere in your emacs load-path.
+;; 1) Put this file somewhere in your Emacs `load-path'.
 
 ;; 2) Add a (require 'sunrise‐x‐w32-addons) expression to your .emacs file after
 ;; the (require 'sunrise‐commander) one.
 
-;; 3) Evaluate the new expression, or reload your .emacs file, or restart emacs.
+;; 3) Evaluate the new expression, or reload your .emacs file, or restart Emacs.
 
 ;;; Usage:
 
@@ -64,13 +64,13 @@
 ;; * Windows shortcuts are resolved automatically and, as long as a shortcut can
 ;; be resolved to an existing file, all operations (*INCLUDING DELETION!!!*) are
 ;; performed directly on that file. If you want to operate on shortcuts you must
-;; first disable shortcut resolution by customizing the  sr-w32-follow-shortcuts
-;; flag and setting it to false.
+;; first disable shortcut resolution by customizing the
+;; `sr-w32-follow-shortcuts' flag and setting it to false.
 
 ;; * Virtual directories (i.e. directories containing a "target.lnk" shortcut to
 ;; another directory) are also dereferenced automatically. If you need to modify
-;; the properties (Desktop.ini) of such a folder use the sr-w32-follow-shortcuts
-;; flag as described above.
+;; the properties (Desktop.ini) of such a folder use the
+;; `sr-w32-follow-shortcuts' flag as described above.
 
 ;; Enjoy ;-)
 

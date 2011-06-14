@@ -15,30 +15,30 @@
 
 ;; This program is free software: you can redistribute it and/or modify it under
 ;; the terms of the GNU General Public License as published by the Free Software
-;; Foundation,  either  version  3 of the License, or (at your option) any later
+;; Foundation, either version 3 of the License, or (at your option) any later
 ;; version.
 ;;
-;; This  program  is distributed in the hope that it will be useful, but WITHOUT
+;; This program is distributed in the hope that it will be useful, but WITHOUT
 ;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-;; FOR  A  PARTICULAR  PURPOSE.  See the GNU General Public License for more de-
+;; FOR A PARTICULAR PURPOSE. See the GNU General Public License for more de-
 ;; tails.
 
-;; You  should have received a copy of the GNU General Public License along with
+;; You should have received a copy of the GNU General Public License along with
 ;; this program. If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
-;; This  extension brings tab‐based navigation to the Sunrise Commander. It adds
-;; to the list of optional mechanisms already available in  Sunrise  for  moving
-;; around  the  file system (like regular bookmarks, checkpoints, history rings,
+;; This extension brings tab‐based navigation to the Sunrise Commander. It adds
+;; to the list of optional mechanisms already available in Sunrise for moving
+;; around the file system (like regular bookmarks, checkpoints, history rings,
 ;; materialized virtual buffers, navigable paths and file‐following) another way
-;; to  maintain a list of selected locations one wants to return later on, or to
+;; to maintain a list of selected locations one wants to return later on, or to
 ;; compose "breadcrumb trails" for complex repetitive operations.
 
-;; The  main  difference between tabs and other mechanisms is that once a buffer
-;; has been assigned to a tab, it will not be killed automatically  by  Sunrise,
-;; so  it’s  possible  to keep it around as long as necessary with all its marks
-;; and state untouched.  Tabs can be persisted across sessions using the DeskTop
+;; The main difference between tabs and other mechanisms is that once a buffer
+;; has been assigned to a tab, it will not be killed automatically by Sunrise,
+;; so it's possible to keep it around as long as necessary with all its marks
+;; and state untouched. Tabs can be persisted across sessions using the DeskTop
 ;; feature.
 
 ;; Creating, using and destroying tabs are fast and easy operations, either with
@@ -52,44 +52,44 @@
 ;; by relative order (e.g. 2 C-k kills the second tab in the current pane, while
 ;; 4 M-C-k kills the fourth tab in the passive pane).
 
-;; *  Press  C‐n and C‐p to move from tab to tab ("Next", "Previous"), or simply
+;; * Press C‐n and C‐p to move from tab to tab ("Next", "Previous"), or simply
 ;; left‐click on the tab to focus its assigned buffer. These two keybindings can
 ;; be prefixed with an integer to move faster.
 
-;; * The last four bindings can be  combined with Meta (i.e. M‐C‐j, M‐C‐k, M‐C‐n
-;; and M‐C‐p) to  perform the equivalent operation on the  passive pane or (when
+;; * The last four bindings can be combined with Meta (i.e. M‐C‐j, M‐C‐k, M‐C‐n
+;; and M‐C‐p) to perform the equivalent operation on the passive pane or (when
 ;; in synchronized navigation mode) on both panes simultaneously.
 
-;; * Press * C-k to kill in one go all the tabs in the current pane.  Similarly,
+;; * Press * C-k to kill in one go all the tabs in the current pane. Similarly,
 ;; press * M-C-k to wipe all the tabs off the passive pane or (when synchronized
 ;; mode is active) on both panes simultaneously.
 
-;; *  Killing  the  current  buffer with C‐x k automatically switches to the one
+;; * Killing the current buffer with C‐x k automatically switches to the one
 ;; assigned to the first available tab (if any).
 
-;; The  extension  is  provided  as a minor mode, so you can enable / disable it
+;; The extension is provided as a minor mode, so you can enable / disable it
 ;; totally by using the command `sr-tabs-mode'.
 
-;; It does *not* pretend to be a generic solution for tabs in emacs. If you need
-;; one, have a look at TabBar  mode  (http://www.emacswiki.org/emacs/TabBarMode)
+;; It does *not* pretend to be a generic solution for tabs in Emacs. If you need
+;; one, have a look at TabBar mode (http://www.emacswiki.org/emacs/TabBarMode)
 ;; by David Ponce. I wrote this just because it turned out to be easier to write
-;; this than to customize tabbar to behave exactly  like  I  wanted  inside  the
-;; Sunrise  panes.  It’s meant to be simple and to work nicely with Sunrise with
+;; this than to customize tabbar to behave exactly like I wanted inside the
+;; Sunrise panes. It's meant to be simple and to work nicely with Sunrise with
 ;; just a few tabs (up to 10‐15 per pane, maybe).
 
 ;; This is version 1 $Rev: 345 $ of the Sunrise Commander Tabs Extension.
 
-;; It  was  written  on GNU Emacs 23 on Linux, and tested on GNU Emacs 22 and 23
-;; for Linux and on EmacsW32 (version 23) for  Windows.
+;; It was written on GNU Emacs 23 on Linux, and tested on GNU Emacs 22 and 23
+;; for Linux and on EmacsW32 (version 23) for Windows.
 
 ;;; Installation and Usage:
 
-;; 1) Put this file somewhere in your Emacs load-path.
+;; 1) Put this file somewhere in your Emacs `load-path'.
 
-;; 2)  Add  a (require 'sunrise‐x‐tabs) expression to your .emacs file somewhere
+;; 2) Add a (require 'sunrise‐x‐tabs) expression to your .emacs file somewhere
 ;; after the (require 'sunrise‐commander) one.
 
-;; 3) Evaluate the new expression, or reload your .emacs file, or restart emacs.
+;; 3) Evaluate the new expression, or reload your .emacs file, or restart Emacs.
 
 ;; 4) Enjoy ;-)
 
