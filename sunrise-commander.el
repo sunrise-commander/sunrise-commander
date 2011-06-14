@@ -2822,17 +2822,6 @@ Broken links are *not* considered regular files."
       (setq x (cdr x)))
     (reverse res-list)))
 
-(defun sr-find-last-point (str)
-  "Return the position of the last point in the string str. Do not allow to pass
-  '/' while looking for the point. If no point is found under these  conditions,
-  return nil."
-  (let ((idx (- (length str) 1)))
-    (while (and (>= idx 0)
-                (not (eq (aref str idx) ?.))
-                (not (eq (aref str idx) ?/)))
-      (setq idx (- idx 1)))
-    (if (and (>= idx 0) (eq (aref str idx) ?.)) idx nil)))
-
 (defun sr-directory-name-proper (file-path)
   "Return the proper name of the directory FILE-PATH, without initial path.
 FILE-PATH should be an absolute or relative, forward slash
