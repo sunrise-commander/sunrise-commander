@@ -121,22 +121,21 @@ Depends on whether UTF-8 has been enabled in the mode line via
 the variable `sr-modeline-use-utf8-marks'."
   (let ((select (if sr-modeline-use-utf8-marks #'cdr #'car))
         (slot (or slot 0)))
-    (cond ((eq slot 0)
-           (funcall select (cond ((eq mark 'edit) sr-modeline-edit-mark)
-                                 ((eq mark 'virt) sr-modeline-virt-mark)
-                                 ((eq mark 'tree) sr-modeline-tree-mark)
-                                 (t sr-modeline-norm-mark))))
-          ((eq slot 1)
-           (cond ((or (memq 'sr-sticky-post-isearch isearch-mode-end-hook)
-                      (memq 'sr-tree-post-isearch isearch-mode-end-hook))
-                  (funcall select sr-modeline-srch-mark))
-                 (sr-synchronized
-                  (funcall select sr-modeline-sync-mark))
-                 (t " ")))
-          (t
-           (if (buffer-live-p sr-backup-buffer)
-               (funcall select sr-modeline-bkup-mark)
-             " ")))))
+    (case slot
+      (0 (funcall select (case mark
+                           (edit sr-modeline-edit-mark)
+                           (virt sr-modeline-virt-mark)
+                           (tree sr-modeline-tree-mark)
+                           (t sr-modeline-norm-mark))))
+      (1 (cond ((or (memq 'sr-sticky-post-isearch isearch-mode-end-hook)
+                    (memq 'sr-tree-post-isearch isearch-mode-end-hook))
+                (funcall select sr-modeline-srch-mark))
+               (sr-synchronized
+                (funcall select sr-modeline-sync-mark))
+               (t " ")))
+      (t (if (buffer-live-p sr-backup-buffer)
+             (funcall select sr-modeline-bkup-mark)
+           " ")))))
 
 (defun sr-modeline-select-mode (mode)
   "Assemble the indicators section on the left of the modeline."
@@ -150,12 +149,13 @@ the variable `sr-modeline-use-utf8-marks'."
 On success, sets the mode line format by calling
 `sr-modeline-set'."
   (let ((mode nil))
-    (cond ((eq major-mode 'sr-mode)
-           (setq mode (sr-modeline-select-mode (if buffer-read-only 'norm 'edit))))
-          ((eq major-mode 'sr-tree-mode)
-           (setq mode (sr-modeline-select-mode 'tree)))
-          ((eq major-mode 'sr-virtual-mode)
-           (setq mode (sr-modeline-select-mode 'virt))))
+    (case major-mode
+      (sr-mode
+       (setq mode (sr-modeline-select-mode (if buffer-read-only 'norm 'edit))))
+      (sr-tree-mode
+       (setq mode (sr-modeline-select-mode 'tree)))
+      (sr-virtual-mode
+       (setq mode (sr-modeline-select-mode 'virt))))
     (if mode (sr-modeline-set mode))))
 
 (defun sr-modeline-set (mark)

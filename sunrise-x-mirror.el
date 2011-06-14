@@ -237,13 +237,14 @@ corresponding mirror area."
          (mirror (concat sr-mirror-home base))
          (overlay (concat sr-mirror-home "." base))
          (command
-          (cond ((eq 'funionfs sr-mirror-unionfs-impl)
-                 (concat "cd ~; funionfs " overlay " " mirror
-                         " -o dirs=" virtual "=ro"))
+          (case sr-mirror-unionfs-impl
+            (funionfs
+             (concat "cd ~; funionfs " overlay " " mirror
+                     " -o dirs=" virtual "=ro"))
 
-                ((eq 'unionfs-fuse sr-mirror-unionfs-impl)
-                 (concat "cd ~; unionfs-fuse -o cow,kernel_cache -o allow_other "
-                         overlay "=RW:" virtual "=RO " mirror)))))
+            (unionfs-fuse
+             (concat "cd ~; unionfs-fuse -o cow,kernel_cache -o allow_other "
+                     overlay "=RW:" virtual "=RO " mirror)))))
     (if (null virtual)
         (error (concat "Sunrise: sorry, don't know how to mirror " path)))
     (unless (file-directory-p mirror)

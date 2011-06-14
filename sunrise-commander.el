@@ -1404,9 +1404,10 @@ With optional argument REVERT, executes `revert-buffer' on the passive buffer."
 (defun sr-get-panes-size (&optional size)
   "Tell what the maximal, minimal and normal pane sizes should be."
   (let ((frame (frame-height)))
-    (cond ((eq size 'max) (max (- frame window-min-height 1) 5))
-          ((eq size 'min) (min (1+ window-min-height) 5))
-          (t  (/ (* 2 (frame-height)) 3)))))
+    (case size
+      (max (max (- frame window-min-height 1) 5))
+      (min (min (1+ window-min-height) 5))
+      (t  (/ (* 2 (frame-height)) 3)))))
 
 (defun sr-enlarge-panes ()
   "Enlarge both panes vertically."
@@ -2109,11 +2110,12 @@ order than when sorted alphabetically by name."
   (interactive "cSort by (n)ame, n(u)mber, (s)ize, (t)ime or e(x)tension? ")
   (if (>= order 97)
       (setq order (- order 32)))
-  (cond ((eq order ?U) (sr-sort-by-number))
-        ((eq order ?T) (sr-sort-by-time))
-        ((eq order ?S) (sr-sort-by-size))
-        ((eq order ?X) (sr-sort-by-extension))
-        (t             (sr-sort-by-name))))
+  (case order
+    (?U (sr-sort-by-number))
+    (?T (sr-sort-by-time))
+    (?S (sr-sort-by-size))
+    (?X (sr-sort-by-extension))
+    (t  (sr-sort-by-name))))
 
 (defun sr-reverse-pane (&optional interactively)
   "Reverse the contents of the active pane."
@@ -2130,21 +2132,18 @@ order than when sorted alphabetically by name."
 (defun sr-sort-virtual (option)
   "Manage sorting of buffers in Sunrise VIRTUAL mode."
   (let ((opt (string-to-char option)) (inhibit-read-only t) (beg) (end))
-    (cond ((eq opt ?X)
-           (sr-end-of-buffer)
-           (setq end (point-at-eol))
-           (sr-beginning-of-buffer)
-           (setq beg (point-at-bol))
-           (sort-regexp-fields nil "^.*$" "[/.][^/.]+$" beg end))
-          ((eq opt ?t)
-           (sr-sort-by-operation
-            (lambda (x) (sr-attribute-sort-op 5 t x)) "TIME"))
-          ((eq opt ?S)
-           (sr-sort-by-operation
-            (lambda (x) (sr-attribute-sort-op 7 t x)) "SIZE"))
-          (t
-           (sr-sort-by-operation
-            (lambda (x) (sr-attribute-sort-op -1 nil x)) "NAME")))))
+    (case opt
+      (?X (sr-end-of-buffer)
+          (setq end (point-at-eol))
+          (sr-beginning-of-buffer)
+          (setq beg (point-at-bol))
+          (sort-regexp-fields nil "^.*$" "[/.][^/.]+$" beg end))
+      (?t (sr-sort-by-operation
+           (lambda (x) (sr-attribute-sort-op 5 t x)) "TIME"))
+      (?S (sr-sort-by-operation
+           (lambda (x) (sr-attribute-sort-op 7 t x)) "SIZE"))
+      (t (sr-sort-by-operation
+          (lambda (x) (sr-attribute-sort-op -1 nil x)) "NAME")))))
 
 (defun sr-sort-by-operation (operation &optional label)
   "General function for reordering the contents of a Sunrise pane.
@@ -2603,12 +2602,14 @@ See `dired-make-relative-symlink'."
 
   (let ((target sr-other-directory) clone-op items progress)
     (if (and mode (>= mode 97)) (setq mode (- mode 32)))
-    (cond ((eq ?D mode) (setq clone-op nil))
-          ((eq ?C mode) (setq clone-op #'copy-file))
-          ((eq ?H mode) (setq clone-op #'add-name-to-file))
-          ((eq ?S mode) (setq clone-op #'make-symbolic-link))
-          ((eq ?R mode) (setq clone-op #'dired-make-relative-symlink))
-          (t (error (format "Invalid cloning mode: %c" mode))))
+    (setq clone-op
+          (case mode
+            (?D nil)
+            (?C #'copy-file)
+            (?H #'add-name-to-file)
+            (?S #'make-symbolic-link)
+            (?R #'dired-make-relative-symlink)
+            (t (error "Invalid cloning mode: %c" mode))))
     (setq items (dired-get-marked-files nil))
     (setq progress (sr-make-progress-reporter
                     "cloning" (sr-files-size items)))
@@ -2783,9 +2784,10 @@ symbol `ALWAYS' if the answer is a/A."
       (setq prompt "Please answer [y]es, [n]o or [a]lways "))
     (if (>= resp 97)
         (setq resp (- resp 32)))
-    (cond ((eq resp ?Y) t)
-          ((eq resp ?A) 'ALWAYS)
-          (t nil))))
+    (case resp
+      (?Y t)
+      (?A 'ALWAYS)
+      (t nil))))
 
 (defun sr-overlapping-paths-p (dir1 dir2)
   "Return non-nil if directory DIR2 is located inside directory DIR1."
@@ -2875,16 +2877,12 @@ or (c)ontents? ")
  (n)ame or (c)ontents? "))
     (if (>= response 97)
         (setq response (- response 32)))
-    (cond ((eq response ?D)
-           `(not (= mtime1 mtime2)))
-          ((eq response ?S)
-           `(not (= size1 size2)))
-          ((eq response ?N)
-           nil)
-          ((eq response ?C)
-           `(not (string= (sr-md5 file1 t) (sr-md5 file2 t))))
-          (t
-           `(or (not (= mtime1 mtime2)) (not (= size1 size2)))))))
+    (case response
+      (?D `(not (= mtime1 mtime2)))
+      (?S `(not (= size1 size2)))
+      (?N nil)
+      (?C `(not (string= (sr-md5 file1 t) (sr-md5 file2 t))))
+      (t `(or (not (= mtime1 mtime2)) (not (= size1 size2)))))))
 
 (defun sr-files-attributes ()
   "Return a list of all file names and attributes in the current pane.
@@ -3106,10 +3104,11 @@ current directory and all its subdirectories in the active pane."
   (interactive "cFlatten branch showing: (E)verything, (D)irectories,\
  (N)on-directories or (F)iles only?")
   (if (and mode (>= mode 97)) (setq mode (- mode 32)))
-  (cond ((eq ?E mode) (sr-find-name "*"))
-        ((eq ?D mode) (sr-find "-type d"))
-        ((eq ?N mode) (sr-find "-not -type d"))
-        ((eq ?F mode) (sr-find "-type f"))))
+  (case mode
+    (?E (sr-find-name "*"))
+    (?D (sr-find "-type d"))
+    (?N (sr-find "-not -type d"))
+    (?F (sr-find "-type f"))))
 
 (defun sr-prune-paths (regexp)
   "Kill all lines (not files) in the current pane matching REGEXP."
@@ -3199,30 +3198,27 @@ Used to notify about the termination status of the process."
         (setq next-char (read-next filter))
         (sr-backup-buffer)
         (while next-char
-          (cond ((memq next-char '(?\e ?\C-g))
-                 (setq next-char nil) (sr-revert-buffer))
-                ((eq next-char ?\C-n)
-                 (setq next-char nil) (sr-beginning-of-buffer))
-                ((eq next-char ?\C-p)
-                 (setq next-char nil) (sr-end-of-buffer))
-                ((memq next-char '(?\n ?\r))
-                 (setq next-char nil))
-                ((memq next-char '(?\b ?\d))
-                 (revert-buffer)
-                 (setq stack (cdr stack) filter (caar stack) regex (cdar stack))
-                 (unless stack (setq next-char nil)))
-                (t
-                 (setq filter (concat filter (char-to-string next-char)))
-                 (if (not (eq next-char sr-fuzzy-negation-character))
-                     (setq next-char (char-to-string next-char)
-                           regex (if (string= "" regex) ".*" regex)
-                           regex (concat regex (regexp-quote next-char) ".*"))
-                   (setq next-char (char-to-string (read-next filter))
-                         filter (concat filter next-char)
-                         regex (replace-regexp-in-string "\\.\\*\\'" "" regex)
-                         regex (concat regex "[^"(regexp-quote next-char)"]*")
-                         regex (replace-regexp-in-string "\\]\\*\\[\\^" "" regex)))
-                 (setq stack (cons (cons filter regex) stack))))
+          (case next-char
+            ((?\e ?\C-g) (setq next-char nil) (sr-revert-buffer))
+            (?\C-n (setq next-char nil) (sr-beginning-of-buffer))
+            (?\C-p (setq next-char nil) (sr-end-of-buffer))
+            ((?\n ?\r) (setq next-char nil))
+            ((?\b ?\d)
+             (revert-buffer)
+             (setq stack (cdr stack) filter (caar stack) regex (cdar stack))
+             (unless stack (setq next-char nil)))
+            (t
+             (setq filter (concat filter (char-to-string next-char)))
+             (if (not (eq next-char sr-fuzzy-negation-character))
+                 (setq next-char (char-to-string next-char)
+                       regex (if (string= "" regex) ".*" regex)
+                       regex (concat regex (regexp-quote next-char) ".*"))
+               (setq next-char (char-to-string (read-next filter))
+                     filter (concat filter next-char)
+                     regex (replace-regexp-in-string "\\.\\*\\'" "" regex)
+                     regex (concat regex "[^"(regexp-quote next-char)"]*")
+                     regex (replace-regexp-in-string "\\]\\*\\[\\^" "" regex)))
+             (setq stack (cons (cons filter regex) stack))))
           (when next-char
             (dired-mark-files-regexp (concat "^" regex "$"))
             (dired-toggle-marks)
@@ -3648,18 +3644,17 @@ by `sr-clex-start'."
       (progn
         (setq sr-clex-on nil)
         (delete-overlay sr-clex-hotchar-overlay)
-        (let ((xchar (char-before))
-              (expansion))
-          (setq expansion
-                (cond ((eq xchar ?m) (sr-clex-marked       'left))
-                      ((eq xchar ?f) (sr-clex-file         'left))
-                      ((eq xchar ?n) (sr-clex-marked-nodir 'left))
-                      ((eq xchar ?d) (sr-clex-dir          'left))
-                      ((eq xchar ?M) (sr-clex-marked       'right))
-                      ((eq xchar ?F) (sr-clex-file         'right))
-                      ((eq xchar ?N) (sr-clex-marked-nodir 'right))
-                      ((eq xchar ?D) (sr-clex-dir          'right))
-                      (t nil)))
+        (let* ((xchar (char-before))
+               (expansion (case xchar
+                            (?m (sr-clex-marked       'left))
+                            (?f (sr-clex-file         'left))
+                            (?n (sr-clex-marked-nodir 'left))
+                            (?d (sr-clex-dir          'left))
+                            (?M (sr-clex-marked       'right))
+                            (?F (sr-clex-file         'right))
+                            (?N (sr-clex-marked-nodir 'right))
+                            (?D (sr-clex-dir          'right))
+                            (t nil))))
           (if expansion
               (progn
                 (kill-backward-chars 2)
