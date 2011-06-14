@@ -2058,10 +2058,10 @@ Used by `sr-toggle-truncate-lines'."
     truncate-partial-width-windows))
 
 (defun sr-truncate-v (active)
-  (or (and (<= 23 (string-to-number (substring emacs-version 0 2)))
   "Return the appropriate value for `truncate-partial-width-widows'.
 Depends on the Emacs version being used. Used by
 `sr-toggle-truncate-lines'."
+  (or (and (version<= "23" emacs-version)
            (or (and active 3000) 0))
       active))
 
