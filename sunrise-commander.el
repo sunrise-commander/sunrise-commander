@@ -1755,9 +1755,9 @@ depending on the version of bookmark.el being used."
      (not (featurep 'sunrise-commander))
      (require feature nil t)
      noerror
-     (error (format "Feature %s not found!\
- For checkpoints to work download http://joseito.republika.pl/%s.el.gz\
- and add it to your load-path" name name)))))
+     (error "Feature `%s' not found!\
+For checkpoints to work, download http://joseito.republika.pl/%s.el.gz\
+and add it to your `load-path'" name name))))
 
 (defmacro sr-checkpoint-command (function-name &optional function-args)
   `(defun ,function-name ,function-args
