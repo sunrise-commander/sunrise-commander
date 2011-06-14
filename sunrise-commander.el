@@ -1334,8 +1334,8 @@ With optional argument REVERT, executes `revert-buffer' on the passive buffer."
     (bury-buffer)))
 
 (add-hook 'delete-frame-functions
-          '(lambda (frame)
-             (if (and sr-running (eq frame sr-current-frame)) (sr-quit))))
+          (lambda (frame)
+            (if (and sr-running (eq frame sr-current-frame)) (sr-quit))))
 
 (defun sr-save-directories ()
   "Save current directories in the panes to use them at the next startup."
@@ -2718,12 +2718,12 @@ IN-DIR/D => TO-DIR/D using CLONE-OP to clone the files."
   (if (sr-virtual-target)
       (error "Cannot link files to a VIRTUAL buffer, try (C)opying instead.")
     (dired-create-files creator action (dired-get-marked-files nil)
-                        #'(lambda (from)
-                            (setq from (replace-regexp-in-string "/$" "" from))
-                            (if (file-directory-p from)
-                                (setq from (sr-directory-name-proper from))
-                              (setq from (file-name-nondirectory from)))
-                            (expand-file-name from sr-other-directory))
+                        (lambda (from)
+                          (setq from (replace-regexp-in-string "/$" "" from))
+                          (if (file-directory-p from)
+                              (setq from (sr-directory-name-proper from))
+                            (setq from (file-name-nondirectory from)))
+                          (expand-file-name from sr-other-directory))
                         marker)))
 
 (defun sr-virtual-target ()
@@ -3424,14 +3424,14 @@ the one current in the active pane."
   (if (string= sr-terminal-program "eshell")
       (progn
         (add-hook 'eshell-mode-hook
-                  '(lambda () (sr-define-ti-keys eshell-mode-map)))
+                  (lambda () (sr-define-ti-keys eshell-mode-map)))
         (defun sr-term (&optional cd newterm)
           (interactive)
           (sr-term-eshell cd newterm)))
     (progn
       (require 'term)
       (add-hook 'term-mode-hook
-                '(lambda () (sr-define-ti-keys term-mode-map)))
+                (lambda () (sr-define-ti-keys term-mode-map)))
       (defun sr-term (&optional cd newterm)
         (interactive)
         (sr-term-extern cd newterm))))

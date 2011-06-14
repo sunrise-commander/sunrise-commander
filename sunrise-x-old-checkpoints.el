@@ -80,7 +80,7 @@
       (error (concat "No such checkpoint: " name)))
     (if (eq sr-selected-window 'right)
         (setq dirs-list (reverse dirs-list)))
-    (mapc '(lambda (x) (sr-goto-dir x) (sr-change-window)) dirs-list)))
+    (mapc (lambda (x) (sr-goto-dir x) (sr-change-window)) dirs-list)))
 
 (defun sr-checkpoint-handler (&optional arg)
   "Dummy function for compatilibity with the new checkpoints interface."
