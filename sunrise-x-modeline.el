@@ -1,4 +1,4 @@
-;;; sunrise-x-modeline.el --- Navigable mode line for the Sunrise Commander File Manager.
+;;; sunrise-x-modeline.el --- navigable mode line for the Sunrise Commander File Manager
 
 ;; Copyright (C) 2009-2010 José Alfredo Romero Latouche.
 
@@ -324,4 +324,4 @@ the Sunrise Commander, after module installation."
 (provide 'sunrise-x-modeline)
 ;;;###autoload (require 'sunrise-x-modeline)
 
-;;; sunrise-x-modeline.el ends here.
+;;; sunrise-x-modeline.el ends here

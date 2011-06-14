@@ -1,4 +1,4 @@
-;;; sunrise-x-buttons.el --- Mouse-clickable shortcut buttons for the Sunrise Commander File Manager.
+;;; sunrise-x-buttons.el --- mouse-clickable shortcut buttons for the Sunrise Commander File Manager
 
 ;; Copyright (C) 2008-2010 José Alfredo Romero Latouche.
 
@@ -289,4 +289,4 @@ Used inside the Sunrise Buttons buffer."
 
 ;;;###autoload (require 'sunrise-x-buttons)
 
-;;; sunrise-x-buttons.el ends here.
+;;; sunrise-x-buttons.el ends here

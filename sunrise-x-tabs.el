@@ -1,4 +1,4 @@
-;;; sunrise-x-tabs.el --- Tabs for the Sunrise Commander File Manager.
+;;; sunrise-x-tabs.el --- tabs for the Sunrise Commander File Manager
 
 ;; Copyright (C) 2009-2010 José Alfredo Romero Latouche.
 
@@ -635,4 +635,4 @@ tabs in the Sunrise Commander (used for desktop support)."
 
 ;;;###autoload (require 'sunrise-x-tabs)
 
-;;; sunrise-x-tabs.el ends here.
+;;; sunrise-x-tabs.el ends here

@@ -1,4 +1,4 @@
-;;; sunrise-x-old-checkpoints.el --- Backward compatibility checkpoint functions for the Sunrise Commander File Manager.
+;;; sunrise-x-old-checkpoints.el --- backward compatibility checkpoint functions for the Sunrise Commander File Manager
 
 ;; Copyright (C) 2009-2010 José Alfredo Romero Latouche.
 
@@ -88,4 +88,4 @@
 
 (provide 'sunrise-x-old-checkpoints)
 
-;;; sunrise-x-old-checkpoints.el ends here.
+;;; sunrise-x-old-checkpoints.el ends here

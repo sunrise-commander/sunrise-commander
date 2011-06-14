@@ -1,4 +1,4 @@
-;;; sunrise-x-checkpoints.el --- Checkpoint bookmarks for the Sunrise Commander File Manager.
+;;; sunrise-x-checkpoints.el --- checkpoint bookmarks for the Sunrise Commander File Manager
 
 ;; Copyright (C) 2009-2010 José Alfredo Romero Latouche.
 
@@ -123,4 +123,4 @@
 
 (provide 'sunrise-x-checkpoints)
 
-;;; sunrise-x-checkpoints.el ends here.
+;;; sunrise-x-checkpoints.el ends here

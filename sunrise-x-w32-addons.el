@@ -1,4 +1,4 @@
-;;; sunrise-x-w32-addons --- MS-Windows-specific utilities for the Sunrise Commander File Manager.
+;;; sunrise-x-w32-addons --- MS-Windows-specific utilities for the Sunrise Commander File Manager
 
 ;; Copyright (C) 2011 José Alfredo Romero Latouche.
 

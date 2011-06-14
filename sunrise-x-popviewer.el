@@ -1,4 +1,4 @@
-;;; sunrise-x-popviewer.el --- Floating viewer window for the Sunrise Commander.
+;;; sunrise-x-popviewer.el --- floating viewer window for the Sunrise Commander
 
 ;; Copyright (C) 2008-2010 José Alfredo Romero L.
 
@@ -130,4 +130,4 @@ passive pane."
 
 ;;;###autoload (require 'sunrise-x-popviewer)
 
-;;; sunrise-x-popviewer.el ends here.
+;;; sunrise-x-popviewer.el ends here

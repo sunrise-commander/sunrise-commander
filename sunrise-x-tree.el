@@ -1,4 +1,4 @@
-;;; sunrise-x-tree.el --- Tree View for the Sunrise Commander File Manager.
+;;; sunrise-x-tree.el --- Tree View for the Sunrise Commander File Manager
 
 ;; Copyright (C) 2010 José Alfredo Romero Latouche.
 
@@ -1202,4 +1202,4 @@ switch to normal mode, then execute."
 
 ;;;###autoload (require 'sunrise-x-tree)
 
-;;; sunrise-x-tree.el ends here.
+;;; sunrise-x-tree.el ends here

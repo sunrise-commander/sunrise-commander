@@ -1,4 +1,4 @@
-;;; sunrise-commander.el --- Two-pane file manager for Emacs based on Dired and inspired by MC.
+;;; sunrise-commander.el --- two-pane file manager for Emacs based on Dired and inspired by MC
 
 ;; Copyright (C) 2007-2011 José Alfredo Romero Latouche.
 
@@ -3913,4 +3913,4 @@ when any of the options -p or -F is used with ls."
 
 (provide 'sunrise-commander)
 
-;;; sunrise-commander.el ends here.
+;;; sunrise-commander.el ends here
