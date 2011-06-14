@@ -667,12 +667,13 @@ automatically:
   (define-key sr-virtual-mode-map "\C-c\C-c" 'sr-virtual-dismiss))
 
 (defmacro sr-within (dir form)
-  `(progn
-     (setq sr-dired-directory
-           (file-name-as-directory (abbreviate-file-name dir)))
-     (ad-activate 'dired-find-buffer-nocreate)
-     ,form
   "Evaluate FORM in Sunrise context."
+  `(unwind-protect
+       (progn
+         (setq sr-dired-directory
+               (file-name-as-directory (abbreviate-file-name dir)))
+         (ad-activate 'dired-find-buffer-nocreate)
+         ,form)
      (ad-deactivate 'dired-find-buffer-nocreate)
      (setq sr-dired-directory "")))
 
