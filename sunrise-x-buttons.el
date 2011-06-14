@@ -240,14 +240,12 @@ Centers it if necessary."
 
 (defun sr-buttons-maxtaglen ()
   "Calculate the length of the longest tag in `sr-buttons-list'."
-  (let (chopfun)
-    (if (sr-buttons-mc-keys-p)
-        (setq chopfun (lambda (x)
-                        (if x (replace-regexp-in-string "\\[\\|\\]" "" x) "")))
-      (setq chopfun (lambda (x)
-                      (if x (replace-regexp-in-string "\\[.*\\]" "" x)))))
-    (reduce (lambda (x y) (if (> x y) x y))
-            (mapcar 'length (mapcar chopfun (mapcar 'car sr-buttons-list))))))
+  (let* ((regexp (if (sr-buttons-mc-keys-p) "\\[\\|\\]" "\\[.*\\]"))
+         (lenfun (lambda (x)
+                   (if x
+                       (length (replace-regexp-in-string regexp "" (car x)))
+                     0))))
+    (apply 'max (mapcar lenfun sr-buttons-list))))
 
 (defun sr-buttons-normalize-tag (tag total-length fill-char)
   "Lengthen the given tag to TOTAL-LENGTH.
