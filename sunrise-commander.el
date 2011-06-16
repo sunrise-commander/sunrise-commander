@@ -860,11 +860,12 @@ This is done so all its dired-filename attributes are kept in the file."
 (defadvice other-window
   (around sr-advice-other-window (count &optional all-frames))
   "Selects the correct (selected) pane when switching from other windows."
-  (let ((from-window (selected-window)))
-    ad-do-it
-    (unless (member from-window (list sr-left-window sr-right-window))
-      (if (member (selected-window) (list sr-left-window sr-right-window))
-          (sr-select-window sr-selected-window)))))
+  ad-do-it
+  (when sr-running
+    (let ((from-window (selected-window)))
+      (unless (member from-window (list sr-left-window sr-right-window))
+        (if (member (selected-window) (list sr-left-window sr-right-window))
+            (sr-select-window sr-selected-window))))))
 (ad-activate 'other-window)
 
 (defadvice delete-directory
