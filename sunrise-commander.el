@@ -1185,7 +1185,8 @@ buffer or window."
     (horizontal (split-window-horizontally))
     (vertical   (split-window-vertically))
     (top        (ignore))
-    (t (error "Don't know how to split this window: %s" sr-window-split-style)))
+    (t (error "Unrecognised `sr-window-split-style' value: %s"
+              sr-window-split-style)))
 
   ;;setup sunrise on all visible panes
   (sr-setup-pane left)
