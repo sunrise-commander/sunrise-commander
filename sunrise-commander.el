@@ -1203,22 +1203,23 @@ buffer or window."
 (defun sr-lock-window (frame)
   "Resize the left Sunrise pane to have the \"right\" size."
   (when sr-running
-    (if (> window-min-height (- (frame-height) (window-height sr-left-window)))
+    (let ((sr-windows-locked sr-windows-locked))
+      (when (> window-min-height (- (frame-height) (window-height sr-left-window)))
         (setq sr-windows-locked nil))
-    (if (and sr-windows-locked
-             (not sr-ediff-on)
-             (not (eq sr-window-split-style 'vertical))
-             (window-live-p sr-left-window))
-        (save-selected-window
-          (select-window sr-left-window)
-          (let* ((my-style-factor
-                  (if (eq sr-window-split-style 'horizontal) 2 1))
-                 (my-delta (- sr-panes-height (window-height))))
-            (enlarge-window my-delta))
-          (scroll-right)
-          (when (window-live-p sr-right-window)
-            (select-window sr-right-window)
-            (scroll-right))))))
+      (and sr-windows-locked
+           (not sr-ediff-on)
+           (not (eq sr-window-split-style 'vertical))
+           (window-live-p sr-left-window)
+           (save-selected-window
+             (select-window sr-left-window)
+             (let* ((my-style-factor
+                     (if (eq sr-window-split-style 'horizontal) 2 1))
+                    (my-delta (- sr-panes-height (window-height))))
+               (enlarge-window my-delta))
+             (scroll-right)
+             (when (window-live-p sr-right-window)
+               (select-window sr-right-window)
+               (scroll-right)))))))
 
 ;; This keeps the size of the Sunrise panes constant:
 (add-hook 'window-size-change-functions 'sr-lock-window)
