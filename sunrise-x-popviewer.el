@@ -63,6 +63,11 @@
 
 (require 'sunrise-commander)
 
+(defcustom sr-popviewer-enabled t
+  "Whether the popviewer extension should be active at startup."
+  :group 'sunrise
+  :type 'boolean)
+
 (defcustom sr-popviewer-reuse-frame nil
   "If non-nil, always display the viewer window in the same frame (if any).
 Only makes sense when `sr-popviewer-mode' is enabled."
@@ -142,12 +147,14 @@ passive pane."
     (funcall hookfun 'window-size-change-functions 'sr-lock-window)
     (define-key sr-mode-map "o" viewfun)
     (define-key sr-mode-map "v" viewfun)
-    (funcall adfun "^sr-popviewer-")))
+    (funcall adfun "^sr-popviewer-")
+    (if sr-running (sr-setup-windows))))
 
 (defun sunrise-x-popviewer-unload-function ()
   (sr-popviewer-mode -1)
   (sr-ad-disable "^sr-popviewer-"))
 
+(sr-popviewer-mode sr-popviewer-enabled)
 (provide 'sunrise-x-popviewer)
 
 ;;;###autoload (require 'sunrise-x-popviewer)
