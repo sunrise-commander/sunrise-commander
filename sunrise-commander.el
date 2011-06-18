@@ -868,14 +868,6 @@ This is done so all its dired-filename attributes are kept in the file."
             (sr-select-window sr-selected-window))))))
 (ad-activate 'other-window)
 
-(defadvice delete-directory
-  (around sr-advice-delete-directory (directory &optional recursive trash))
-  (if (file-symlink-p directory)
-  "For some strange reason `delete-directory' does not follow symlinks."
-      (delete-file directory)
-    ad-do-it))
-(ad-activate 'delete-directory)
-
 (defadvice use-hard-newlines
   (around sr-advice-use-hard-newlines (&optional arg insert))
   "Stop pestering me with questions whether I want hard lines, just guess."
