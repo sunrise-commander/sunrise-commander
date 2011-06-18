@@ -1076,7 +1076,7 @@ these values uses the default, ie. $HOME."
         (sr-setup-windows)
         (if filename
             (condition-case description
-                (sr-focus-filename (replace-regexp-in-string ".*/" "" filename))
+                (sr-focus-filename (file-name-nondirectory filename))
               (error (setq welcome (cadr description)))))
         (setq sr-this-directory default-directory)
         (setq sr-current-frame (window-frame (selected-window)))
