@@ -100,7 +100,8 @@ Only makes sense when `sr-popviewer-mode' is enabled."
   (sr-force-passive-highlight)
   (run-hooks 'sr-start-hook))
 
-(defadvice sr-setup-windows (around sr-popviewer-advice-setup-windows)
+(defadvice sr-setup-windows
+  (around sr-popviewer-advice-setup-windows)
   "Set up the Sunrise window configuration (two windows in `sr-mode')."
   (sr-popviewer-setup-windows))
 
@@ -155,7 +156,7 @@ passive pane."
   (sr-popviewer-mode -1)
   (sr-ad-disable "^sr-popviewer-"))
 
-(sr-popviewer-mode sr-popviewer-enabled)
+(sr-popviewer-mode (if sr-popviewer-enabled 1 -1))
 (provide 'sunrise-x-popviewer)
 
 ;;;###autoload (require 'sunrise-x-popviewer)
