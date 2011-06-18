@@ -3,10 +3,11 @@
 ;; Copyright (C) 2009-2010 José Alfredo Romero Latouche.
 
 ;; Author: José Alfredo Romero L. <escherdragon@gmail.com>
+;;	Štěpán Němec <stepnem@gmail.com>
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 29 Dec 2009
 ;; Version: 1
-;; RCS Version: $Rev: 345 $
+;; RCS Version: $Rev: 374 $
 ;; Keywords: sunrise commander, checkpoints, bookmarks
 ;; URL: http://www.emacswiki.org/emacs/sunrise-x-checkpoints.el
 ;; Compatibility: GNU Emacs 23+
@@ -39,7 +40,7 @@
 ;; other one is deprecated and will eventually disappear once Emacs 23+ becomes
 ;; the "stable" release.
 
-;; This is version 1 $Rev: 345 $ of the Sunrise Commander Checkpoints Extension.
+;; This is version 1 $Rev: 374 $ of the Sunrise Commander Checkpoints Extension.
 
 ;; It was written and tested on GNU Emacs 23 on Linux.
 

@@ -3,10 +3,11 @@
 ;; Copyright (C) 2008-2010 José Alfredo Romero L.
 
 ;; Author: José Alfredo Romero L. <escherdragon@gmail.com>
+;;	Štěpán Němec <stepnem@gmail.com>
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 20 Aug 2008
-;; Version: 1
-;; RCS Version: $Rev: 364 $
+;; Version: 2
+;; RCS Version: $Rev: 374 $
 ;; Keywords: sunrise commander, windows, accessibility, viewer
 ;; URL: http://www.emacswiki.org/emacs/sunrise-x-popviewer.el
 ;; Compatibility: GNU Emacs 22+

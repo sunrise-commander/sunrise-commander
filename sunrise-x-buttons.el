@@ -3,10 +3,11 @@
 ;; Copyright (C) 2008-2010 José Alfredo Romero Latouche.
 
 ;; Author: José Alfredo Romero L. <escherdragon@gmail.com>
+;;	Štěpán Němec <stepnem@gmail.com>
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 11 Jun 2008
 ;; Version: 1
-;; RCS Version: $Rev: 315 $
+;; RCS Version: $Rev: 374 $
 ;; Keywords: sunrise commander, shortcut buttons
 ;; URL: http://www.emacswiki.org/emacs/sunrise-x-buttons.el
 ;; Compatibility: GNU Emacs 22+
@@ -41,7 +42,7 @@
 ;; of interaction with the program you can add your own commands to the list and
 ;; let this extension manage the creation and layout of the buttons for you.
 
-;; This is version 1 $Rev: 315 $ of the Sunrise Commander Buttons Extension.
+;; This is version 1 $Rev: 374 $ of the Sunrise Commander Buttons Extension.
 
 ;; It was written on GNU Emacs 23 on Linux, and tested on GNU Emacs 22 and 23
 ;; for Linux and on EmacsW32 (version 22) for Windows.

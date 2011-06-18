@@ -3,10 +3,11 @@
 ;; Copyright (C) 2009-2010 José Alfredo Romero Latouche.
 
 ;; Author: José Alfredo Romero L. <escherdragon@gmail.com>
+;;	Štěpán Němec <stepnem@gmail.com>
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 28 Dec 2009
 ;; Version: 1
-;; RCS Version: $Rev: 309 $
+;; RCS Version: $Rev: 374 $
 ;; Keywords: sunrise commander, old checkpoints
 ;; URL: http://www.emacswiki.org/emacs/sunrise-x-old-checkpoints.el
 ;; Compatibility: GNU Emacs 22
@@ -35,7 +36,7 @@
 ;; your bookmarks.el, just add this extension to your .emacs.el to get back the
 ;; original functionality.
 
-;; This is version 1 $Rev: 309 $ of the Old Checkpoints Extension.
+;; This is version 1 $Rev: 374 $ of the Old Checkpoints Extension.
 
 ;; It was written on GNU Emacs 23 on Linux, and tested on GNU Emacs 22 and 23
 ;; for Linux and on EmacsW32 (version 22) for Windows.

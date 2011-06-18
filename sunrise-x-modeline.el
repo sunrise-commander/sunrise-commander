@@ -3,10 +3,11 @@
 ;; Copyright (C) 2009-2010 José Alfredo Romero Latouche.
 
 ;; Author: José Alfredo Romero L. <escherdragon@gmail.com>
+;;	Štěpán Němec <stepnem@gmail.com>
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 10 Oct 2009
 ;; Version: 2
-;; RCS Version: $Rev: 345 $
+;; RCS Version: $Rev: 374 $
 ;; Keywords: sunrise commander, modeline, path mode line
 ;; URL: http://www.emacswiki.org/emacs/sunrise-x-modeline.el
 ;; Compatibility: GNU Emacs 22+
@@ -56,7 +57,7 @@
 ;; The extension is provided as a minor mode, so you can enable / disable it
 ;; totally by issuing the command `sr-modeline'.
 
-;; This is version 2 $Rev: 345 $ of the Sunrise Commander Modeline Extension.
+;; This is version 2 $Rev: 374 $ of the Sunrise Commander Modeline Extension.
 
 ;; It was written on GNU Emacs 23 on Linux, and tested on GNU Emacs 22 and 23
 ;; for Linux and on EmacsW32 (version 22) for Windows.

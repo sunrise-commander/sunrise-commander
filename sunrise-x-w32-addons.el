@@ -3,10 +3,11 @@
 ;; Copyright (C) 2011 José Alfredo Romero Latouche.
 
 ;; Author: José Alfredo Romero L. <escherdragon@gmail.com>
+;;	Štěpán Němec <stepnem@gmail.com>
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 14 May 2011
 ;; Version: 1
-;; RCS Version: $Rev: 368 $
+;; RCS Version: $Rev: 374 $
 ;; Keywords: sunrise commander, w32, ms windows
 ;; URL: http://www.emacswiki.org/emacs/sunrise-x-w32-addons.el
 ;; Compatibility: GNU Emacs 23+
