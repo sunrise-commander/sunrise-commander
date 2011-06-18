@@ -2967,7 +2967,10 @@ as its first argument."
         (sr-change-window)
         (setq other (sr-pop-mark))
         (sr-change-window)
-        (setq other (or other (file-name-nondirectory this)))))
+        (setq other (or other
+                        (if (file-exists-p (concat sr-other-directory this))
+                            this
+                          (file-name-nondirectory this))))))
     (setq this (concat default-directory this)
           other (concat sr-other-directory other))
     (list fun this other)))
