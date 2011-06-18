@@ -631,6 +631,9 @@ tabs in the Sunrise Commander (used for desktop support)."
      (add-to-list 'desktop-globals-to-clear
                   '(sr-tabs-on . (sr-tabs-reset-state))))))
 
+(defun sunrise-x-tabs-unload-function ()
+  (sr-ad-disable "^sr-tabs-"))
+
 (provide 'sunrise-x-tabs)
 
 ;;;###autoload (require 'sunrise-x-tabs)

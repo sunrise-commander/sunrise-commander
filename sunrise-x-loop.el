@@ -341,6 +341,9 @@ a loop scope."
                          sr-clone-files
                          sr-move-files)))
 
+(defun sunrise-x-loop-unload-function ()
+  (sr-ad-disable "^sr-loop-"))
+
 (sr-loop-engage)
 (provide 'sunrise-x-loop)
 

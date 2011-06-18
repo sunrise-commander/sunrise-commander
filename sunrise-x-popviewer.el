@@ -28,7 +28,7 @@
 
 ;;; Commentary:
 
-;; This extension redefines several Sunrise Commander functions in order to make
+;; This extension advises several Sunrise Commander functions in order to make
 ;; the viewer window "float", i.e. instead of having a dedicated window sitting
 ;; under the panes all the time, a new frame is displayed whenever the user
 ;; requests to view a file (by pressing "o" or "v") or to open a command line in
@@ -50,29 +50,29 @@
 
 ;; 3) Evaluate the new expression, or reload your .emacs file, or restart Emacs.
 
-;; 4) The next time you invoke the Sunrise Commander, only two panes will be
+;; 4) Use `sr-popviewer-mode' to toggle the functionality.
+
+;; 5) The next time you invoke the Sunrise Commander, only two panes will be
 ;; displayed. If you press o (or v) on a file inside any of them, it will be
 ;; displayed in a new frame. If you press C-c t to open a terminal in the
 ;; current directory, it'll be opened in a new frame too.
 
-;; 5) Enjoy ;-)
+;; 6) Enjoy ;-)
 
 ;;; Code:
 
 (require 'sunrise-commander)
 
-(remove-hook 'window-size-change-functions 'sr-lock-window)
-(define-key sr-mode-map "o" 'sr-popviewer-quick-view)
-(define-key sr-mode-map "v" 'sr-popviewer-quick-view)
-
 (defcustom sr-popviewer-reuse-frame nil
-  "If non-nil, always display the viewer window in the same frame (if any)."
+  "If non-nil, always display the viewer window in the same frame (if any).
+Only makes sense when `sr-popviewer-mode' is enabled."
   :group 'sunrise
   :type 'boolean)
 
-(defun sr-setup-windows ()
-  "Set up the Sunrise window configuration (two windows in `sr-mode')."
-
+;; Putting this directly into the advice definition would produce a runtime
+;; error due to mysterious behaviour of the byte-compiler. Advice welcome.
+(defun sr-popviewer-setup-windows ()
+  "`sr-setup-windows' replacement for `sr-popviewer-mode'."
   (bury-buffer)
   (delete-other-windows)
 
@@ -94,6 +94,10 @@
   (sr-force-passive-highlight)
   (run-hooks 'sr-start-hook))
 
+(defadvice sr-setup-windows (around sr-popviewer-advice-setup-windows)
+  "Set up the Sunrise window configuration (two windows in `sr-mode')."
+  (sr-popviewer-setup-windows))
+
 (defun sr-popviewer-quick-view (&optional arg)
   "Quickly view the currently selected item.
 On regular files, it opens the file in a separate frame, on
@@ -106,13 +110,14 @@ passive pane."
     (sr-quick-view (and (null window-system) arg))
     (sr-select-window sr-selected-window)))
 
-(defun sr-select-viewer-window (&optional force-setup)
+(defadvice sr-select-viewer-window
+  (around sr-popviewer-advice-select-viewer-window)
   "Try to select a window that is not a SC pane in a separate frame."
   (interactive)
   (if (null window-system)
       (let ((sr-selected-window sr-selected-window))
         (sr-select-window (sr-other)))
-    (let* ((frame-name "Sunrise Viewer Frame")
+    (let* ((frame-name "Sunrise Viewer")
            (vframe  (cdr (assoc frame-name (make-frame-names-alist))))
            (target-frame))
       (when vframe
@@ -125,6 +130,23 @@ passive pane."
         (setq target-frame (make-frame `((name . ,frame-name)))))
       (select-frame target-frame)
       (raise-frame))))
+
+(define-minor-mode sr-popviewer-mode "Use a floating viewer window."
+  :global t
+  :group 'sunrise
+  :lighter ""
+  (let ((hookfun (if sr-popviewer-mode 'remove-hook 'add-hook))
+        (viewfun (if sr-popviewer-mode 'sr-popviewer-quick-view
+                   'sr-quick-view))
+        (adfun (if sr-popviewer-mode 'sr-ad-enable 'sr-ad-disable)))
+    (funcall hookfun 'window-size-change-functions 'sr-lock-window)
+    (define-key sr-mode-map "o" viewfun)
+    (define-key sr-mode-map "v" viewfun)
+    (funcall adfun "^sr-popviewer-")))
+
+(defun sunrise-x-popviewer-unload-function ()
+  (sr-popviewer-mode -1)
+  (sr-ad-disable "^sr-popviewer-"))
 
 (provide 'sunrise-x-popviewer)
 

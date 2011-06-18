@@ -115,12 +115,15 @@
   (sr-checkpoint-handler bookmark))
 
 (defadvice bookmark-relocate
-  (around sr-advice-bookmark-relocate (bookmark))
+  (around sr-checkpoint-advice-bookmark-relocate (bookmark))
   (let ((bmk (bookmark-get-bookmark bookmark)))
     (if (assq 'sr-directories bmk)
         (sr-checkpoint-relocate bmk)
       ad-do-it)))
 (ad-activate 'bookmark-relocate)
+
+(defun sunrise-x-checkpoints-unload-function ()
+  (sr-ad-disable "^sr-checkpoint-"))
 
 (provide 'sunrise-x-checkpoints)
 

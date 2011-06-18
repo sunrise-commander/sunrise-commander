@@ -3888,6 +3888,32 @@ when any of the options -p or -F is used with ls."
 (add-hook 'sr-init-hook 'sr-fix-listing-switches)
 
 ;;; ============================================================================
+;;; Advice
+(defun sr-ad-enable (regexp &optional function)
+  "Put all or FUNCTION-specific advice matching REGEXP into effect.
+If provided, only update FUNCTION itself, otherwise all functions
+with advice matching REGEXP."
+  (if function
+      (progn (ad-enable-advice function 'any regexp)
+             (ad-activate function))
+    (ad-enable-regexp regexp)
+    (ad-activate-regexp regexp)))
+
+(defun sr-ad-disable (regexp &optional function)
+  "Stop all FUNCTION-specific advice matching REGEXP from taking effect.
+If provided, only update FUNCTION itself, otherwise all functions
+with advice matching REGEXP."
+  (if function
+      (progn (ad-disable-advice function 'any regexp)
+             (ad-update function))
+    (ad-disable-regexp regexp)
+    (ad-update-regexp regexp)))
+
+
+(defun sunrise-commander-unload-function ()
+  (sr-ad-disable "^sr-advice-"))
+
+;;; ============================================================================
 ;;; Font-Lock colors & styles:
 
 (defmacro sr-rainbow (symbol spec regexp)
