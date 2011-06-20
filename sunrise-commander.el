@@ -7,7 +7,7 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 24 Sep 2007
 ;; Version: 5
-;; RCS Version: $Rev: 374 $
+;; RCS Version: $Rev: 375 $
 ;; Keywords: files, dired, midnight commander, norton, orthodox
 ;; URL: http://www.emacswiki.org/emacs/sunrise-commander.el
 ;; Compatibility: GNU Emacs 22+
@@ -861,9 +861,9 @@ This is done so all its dired-filename attributes are kept in the file."
 (defadvice other-window
   (around sr-advice-other-window (count &optional all-frames))
   "Selects the correct (selected) pane when switching from other windows."
-  ad-do-it
-  (when sr-running
-    (let ((from-window (selected-window)))
+  (let ((from-window (selected-window)))
+    ad-do-it
+    (when sr-running
       (unless (member from-window (list sr-left-window sr-right-window))
         (if (member (selected-window) (list sr-left-window sr-right-window))
             (sr-select-window sr-selected-window))))))
