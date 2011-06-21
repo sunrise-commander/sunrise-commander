@@ -319,7 +319,7 @@ initially."
     (let ((path (or (cdr sr-tree-cursor) "-"))
           (inhibit-read-only t))
       (goto-char (point-min))
-      (kill-line)
+      (delete-region (point) (line-end-position))
       (widget-insert (sr-tree-path-line nil) " ")
       (forward-line 1)
       (kill-region (line-beginning-position) (line-end-position))

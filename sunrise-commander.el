@@ -2748,7 +2748,7 @@ Otherwise returns nil."
             (sr-insert-directory file sr-virtual-listing-switches))
           fileset)
     (unwind-protect
-        (kill-line)
+        (delete-region (point) (line-end-position))
       (progn
         (revert-buffer)
         (sr-change-window)
