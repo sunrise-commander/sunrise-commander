@@ -131,9 +131,9 @@
 ;;   happens to be at that moment.
 ;; * C-c C-c - dismiss tree view and return to normal mode.
 
-;; * C-q -  is simply another  binding for  the usual pane  synchronization (C-c
-;;   C-z) already present in Sunrise Commander Core, which in tree mode performs
-;;   the "Quick View" operation required by the OFM standard.
+;; * C-q is simply another binding for the usual pane synchronization (C-c C-z)
+;;   already present in Sunrise Commander Core, which in tree mode performs the
+;;   "Quick View" operation required by the OFM standard.
 
 ;; * C-u C-s, C-u C-r - "sticky" interactive search. This works like the regular
 ;; isearch, but when the current search is finished with a Return, the folder
