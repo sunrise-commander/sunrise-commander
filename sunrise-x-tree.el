@@ -322,7 +322,7 @@ initially."
       (delete-region (point) (line-end-position))
       (widget-insert (sr-tree-path-line nil) " ")
       (forward-line 1)
-      (kill-region (line-beginning-position) (line-end-position))
+      (delete-region (line-beginning-position) (line-end-position))
       (widget-insert
        (format "%s" (if sr-tree-omit-archives "" "virtual directories: ON ")))
       (sr-highlight))))

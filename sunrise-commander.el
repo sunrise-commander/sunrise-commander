@@ -3656,7 +3656,7 @@ by `sr-clex-start'."
                             (t nil))))
           (if expansion
               (progn
-                (kill-backward-chars 2)
+                (delete-char -2)
                 (insert expansion)))))))
 
 (defvar sr-term-keys '(([M-up]        . sr-ti-previous-line)
