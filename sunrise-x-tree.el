@@ -7,7 +7,7 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 4 May 2010
 ;; Version: 1
-;; RCS Version: $Rev: 374 $
+;; RCS Version: $Rev: 376 $
 ;; Keywords: sunrise commander, directories tree navigation
 ;; URL: http://www.emacswiki.org/emacs/sunrise-x-tree.el
 ;; Compatibility: GNU Emacs 22+
@@ -38,7 +38,7 @@
 ;; For more information on the Sunrise Commander, other extensions and cool tips
 ;; & tricks visit http://www.emacswiki.org/emacs/Sunrise_Commander
 
-;; This is version 1 $Rev: 374 $ of the Sunrise Commander Tree Extension.
+;; This is version 1 $Rev: 376 $ of the Sunrise Commander Tree Extension.
 
 ;; It was developed on GNU Emacs 24 on Linux, and tested on GNU Emacs 22 and 24
 ;; for Linux, and on EmacsW32 (version 23) for Windows.
@@ -311,7 +311,7 @@ initially."
 (defun sr-tree-path-line (&optional path)
   "Transform PATH into a suitable path line for displaying at the pane top."
   (let ((path (expand-file-name (or path (cdr sr-tree-cursor) ""))))
-    (replace-regexp-in-string "/?$" "" path)))
+    (replace-regexp-in-string "\\(..*\\)/$" "\\1" path)))
 
 (defun sr-tree-highlight ()
   "Set up the path line in the current Sunrise Tree buffer."
@@ -935,18 +935,17 @@ Moves files from the active pane to the passive pane."
 If DESKTOP-MODE is non-nil, do not kill the current
 buffer (necessary during `desktop-read')."
   (interactive)
-  (let ((default-directory (or (dired-default-directory) default-directory)))
-    (sr-save-aspect
-     (if desktop-mode
-         (switch-to-buffer (generate-new-buffer "Sunrise Tree"))
-       (sr-alternate-buffer
-        (switch-to-buffer (generate-new-buffer "Sunrise Tree"))))
-     (sr-tree-mode))
-    (if (fboundp 'sr-modeline-setup)
-        (sr-modeline-setup))
-    (if (fboundp 'sr-tabs-engage)
-        (sr-tabs-engage))
-    (sr-force-passive-highlight)))
+  (sr-save-aspect
+   (if desktop-mode
+       (switch-to-buffer (generate-new-buffer "Sunrise Tree"))
+     (sr-alternate-buffer
+      (switch-to-buffer (generate-new-buffer "Sunrise Tree"))))
+   (sr-tree-mode))
+  (if (fboundp 'sr-modeline-setup)
+      (sr-modeline-setup))
+  (if (fboundp 'sr-tabs-engage)
+      (sr-tabs-engage))
+  (sr-force-passive-highlight))
 
 (defun sr-tree-mouse-view (e)
   "Switch from Sunrise normal mode to Tree View using the mouse."
