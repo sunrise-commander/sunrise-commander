@@ -7,7 +7,7 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 24 Sep 2007
 ;; Version: 5
-;; RCS Version: $Rev: 377 $
+;; RCS Version: $Rev: 378 $
 ;; Keywords: files, dired, midnight commander, norton, orthodox
 ;; URL: http://www.emacswiki.org/emacs/sunrise-commander.el
 ;; Compatibility: GNU Emacs 22+
@@ -1576,7 +1576,8 @@ Returns nil if AVFS cannot manage this kind of file."
     (unless (and (eq major-mode 'sr-mode) (sr-equal-dirs dir default-directory))
       (if (and sr-avfs-root
                (null (posix-string-match "#" dir)))
-          (setq dir (replace-regexp-in-string sr-avfs-root "" dir)))
+          (setq dir (replace-regexp-in-string
+					 (expand-file-name sr-avfs-root) "" dir)))
       (sr-save-aspect
        (sr-within dir (sr-alternate-buffer (dired dir))))
       (sr-history-push default-directory)
