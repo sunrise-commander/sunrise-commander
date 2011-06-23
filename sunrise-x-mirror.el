@@ -119,7 +119,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'sunrise-commander))
+(require 'sunrise-commander)
 
 (defcustom sr-mirror-keep-backups t
   "If non-nil, keep backup files when committing changes to read-only archives."

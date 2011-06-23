@@ -85,7 +85,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'sunrise-commander))
+(require 'sunrise-commander)
 
 (defcustom sr-loop-debug nil
   "Activate debug mode in the Sunrise Loop extension.
