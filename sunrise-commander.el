@@ -7,7 +7,7 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 24 Sep 2007
 ;; Version: 5
-;; RCS Version: $Rev: 376 $
+;; RCS Version: $Rev: 377 $
 ;; Keywords: files, dired, midnight commander, norton, orthodox
 ;; URL: http://www.emacswiki.org/emacs/sunrise-commander.el
 ;; Compatibility: GNU Emacs 22+
@@ -1620,7 +1620,7 @@ Very useful inside Sunrise VIRTUAL buffers."
     (setq target-file (file-name-nondirectory target-path))
 
     (when target-dir ;; <-- nil in symlinks to other files in same directory:
-      (setq target-dir (replace-regexp-in-string "/$" "" target-dir))
+      (setq target-dir (sr-chop ?/ target-dir))
       (sr-goto-dir target-dir))
     (sr-focus-filename target-file)))
 
@@ -1648,8 +1648,7 @@ pane. When alternative projections of the directory exist,
 repeated invocations of this command allow to visit all matches
 consecutively."
   (interactive)
-  (let* ((path (expand-file-name (dired-current-directory)))
-         (path (replace-regexp-in-string "/*$" "" path))
+  (let* ((path (sr-chop ?/ (expand-file-name (dired-current-directory))))
          (pos (if (< 0 (length path)) 1)) (candidate) (next-key))
     (while pos
       (setq candidate (concat sr-other-directory (substring path pos))
@@ -1674,10 +1673,8 @@ consecutively."
            (len (length hist)))
       (if (>= len sr-history-length)
           (nbutlast hist (- len sr-history-length)))
-      (if (< 1 (length element))
-          (setq element (abbreviate-file-name
-                         (replace-regexp-in-string "/?$" "" element))))
-      (setq hist (delete element hist))
+      (setq element (abbreviate-file-name (sr-chop ?/ element))
+            hist (delete element hist))
       (push element hist)
       (setcdr pane hist))))
 
@@ -1818,8 +1815,7 @@ and add it to your `load-path'" name name))))
   (if (and dired-omit-mode
            (string-match (dired-omit-regexp) filename))
       (dired-omit-mode -1))
-  (let ((expr filename))
-    (setq expr (replace-regexp-in-string "/$" "" expr))
+  (let ((expr (sr-chop ?/ filename)))
     (cond ((file-symlink-p filename)
            (setq expr (concat (regexp-quote expr) " ->")))
           ((file-directory-p filename)
@@ -2218,8 +2214,7 @@ alphabetical. SORT-LISTS is a list of positions obtained from
        (mapcar
         (lambda (x)
           (let* ((key (buffer-substring-no-properties (car x) (cddr x)))
-                 (key (replace-regexp-in-string "/?$" "" key))
-                 (key (replace-regexp-in-string " -> .*$" "" key))
+                 (key (sr-chop ?/ (replace-regexp-in-string " -> .*$" "" key)))
                  (attrs (assoc-default key attributes))
                  (index))
             (when attrs
@@ -2645,7 +2640,7 @@ FILE-PATHS should be a list of full paths."
       (sr-progress-reporter-update progress (nth 7 (file-attributes f)))
       (let* ((name (file-name-nondirectory f))
              (target-file (concat target-dir name))
-             (symlink-to (file-symlink-p (replace-regexp-in-string "/*$" "" f)))
+             (symlink-to (file-symlink-p (sr-chop ?/ f)))
              (clone-args (list f target-file t)))
         (cond
          (symlink-to
@@ -2719,7 +2714,7 @@ IN-DIR/D => TO-DIR/D using CLONE-OP to clone the files."
       (error "Cannot link files to a VIRTUAL buffer, try (C)opying instead.")
     (dired-create-files creator action (dired-get-marked-files nil)
                         (lambda (from)
-                          (setq from (replace-regexp-in-string "/$" "" from))
+                          (setq from (sr-chop ?/ from))
                           (if (file-directory-p from)
                               (setq from (sr-directory-name-proper from))
                             (setq from (file-name-nondirectory from)))
@@ -2743,8 +2738,8 @@ Otherwise returns nil."
     (goto-char (point-max))
     (mapc (lambda (file)
             (insert-char 32 2)
-            (setq file (dired-make-relative file default-directory))
-            (setq file (replace-regexp-in-string "/$" "" file))
+            (setq file (dired-make-relative file default-directory)
+                  file (sr-chop ?/ file))
             (sr-insert-directory file sr-virtual-listing-switches))
           fileset)
     (unwind-protect
@@ -3256,8 +3251,8 @@ Used to notify about the termination status of the process."
      (dolist (dir hist)
        (condition-case nil
            (when dir
-             (setq dir (replace-regexp-in-string "\\(.\\)/?$" "\\1" dir))
-             (setq beg (point))
+             (setq dir (sr-chop ?/ (expand-file-name dir))
+                   beg (point))
              (sr-insert-directory dir switches nil nil))
          (error (ignore))))
      (sr-virtual-mode))))
@@ -3882,6 +3877,13 @@ when any of the options -p or -F is used with ls."
         '(sr-listing-switches sr-virtual-listing-switches))
   (remove-hook 'sr-init-hook 'sr-fix-listing-switches))
 (add-hook 'sr-init-hook 'sr-fix-listing-switches)
+
+(defun sr-chop (char path)
+  "Remove all trailing instances of character CHAR from the given string PATH."
+  (while (and (< 1 (length path))
+           (eq (string-to-char (substring path -1)) ?/))
+    (setq path (substring path 0 -1)))
+  path)
 
 ;;; ============================================================================
 ;;; Advice
