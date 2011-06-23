@@ -3878,9 +3878,9 @@ when any of the options -p or -F is used with ls."
 (add-hook 'sr-init-hook 'sr-fix-listing-switches)
 
 (defun sr-chop (char path)
-  "Remove all trailing instances of character CHAR from the given string PATH."
+  "Remove all trailing instances of character CHAR from the string PATH."
   (while (and (< 1 (length path))
-           (eq (string-to-char (substring path -1)) ?/))
+              (eq (string-to-char (substring path -1)) char))
     (setq path (substring path 0 -1)))
   path)
 
