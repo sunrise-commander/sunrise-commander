@@ -273,12 +273,12 @@ operations to the background interpreter."
       (concat "Sunrise Loop: " op-name "... ")
     (concat "Sunrise: " op-name "... ")))
 
-(defadvice y-or-n-p
-  (before sr-loop-advice-y-or-n-p (prompt))
+(defadvice y-or-n-p (before sr-loop-advice-y-or-n-p)
   "Modify all confirmation request messages inside a loop scope."
   (when sr-loop-scope
-    (setq prompt (replace-regexp-in-string
-                  "\?" " in the background? (overwrites ALWAYS!)" prompt))))
+    (setq (ad-get-arg 0)
+          (replace-regexp-in-string
+           "\?" " in the background? (overwrites ALWAYS!)" (ad-get-arg 0)))))
 
 (defadvice dired-mark-read-file-name
   (before sr-loop-advice-dired-mark-read-file-name
