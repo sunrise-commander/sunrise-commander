@@ -1640,13 +1640,18 @@ Very useful inside Sunrise VIRTUAL buffers."
       (if target-file (sr-focus-filename target-file)))))
 
 (defun sr-project-path ()
-  ;; FIXME
-  "Find a directory with a path similar to the one in the active pane,
-but under the directory currently displayed in the passive pane.
-On success, displays the contents of that directory in the passive
-pane. When alternative projections of the directory exist,
-repeated invocations of this command allow to visit all matches
-consecutively."
+  "Locate interactively all descendants of the directory in the passive pane
+that have a path similar to the directory in the active pane.
+
+For instance, if the active pane is displaying directory /a/b/c and the passive
+one is displaying /x/y, this command will check for the existence of any of the
+following: /x/y/a/b/c, /x/y/b/c, /x/y/c and /x/y. Each (existing) directory
+located according to this schema will be known hereafter as a 'projection of
+the directory /a/b/c over /x/y'.
+
+If many projections of the active directory over the passive one exist, one can
+rotate among all of them by invoking `sr-project-path' repeatedly : they will be
+visited in order, from longest path to shortest."
   (interactive)
   (let* ((path (sr-chop ?/ (expand-file-name (dired-current-directory))))
          (pos (if (< 0 (length path)) 1)) (candidate) (next-key))
@@ -1935,10 +1940,11 @@ If the buffer is non-virtual the backup buffer is killed."
 
 (defun sr-quick-view (&optional arg)
   "Quickly view the currently selected item.
-On regular files, opens the file in quick-view mode (see
-`sr-quick-view-file' for more details), on directories, visits
-the selected directory in the passive pane, and on symlinks
-follows the file the link points to in the passive pane."
+On regular files, opens the file in quick-view mode (see `sr-quick-view-file'
+for more details), on directories, visits the selected directory in the passive
+pane, and on symlinks follows the file the link points to in the passive pane.
+With optional argument kills the last quickly viewed file without opening a new
+buffer."
   (interactive "P")
   (if arg
       (sr-quick-view-kill)
@@ -1968,11 +1974,8 @@ follows the file the link points to in the passive pane."
       (error "Sunrise: file is a symlink to a nonexistent target"))))
 
 (defun sr-quick-view-file ()
-  ;; FIXME what "optional argument"?
   "Open the selected file on the viewer window without selecting it.
-Kills any other buffer opened previously the same way. With
-optional argument kills the last quick view buffer without
-opening a new one."
+Kills any other buffer opened previously the same way."
   (let ((split-width-threshold (* 10 (window-width)))
         (filename (expand-file-name (dired-get-filename nil t))))
     (save-selected-window
@@ -2819,10 +2822,7 @@ Broken links are *not* considered regular files."
     (reverse res-list)))
 
 (defun sr-directory-name-proper (file-path)
-  "Return the proper name of the directory FILE-PATH, without initial path.
-FILE-PATH should be an absolute or relative, forward slash
-terminated path to a directory. The remaining part of FILE-PATH
-can be accessed by the function `parent-directory'." ;FIXME huh?
+  "Return the proper name of the directory FILE-PATH, without initial path."
   (if file-path
       (let (
             (file-path-1 (substring file-path 0 (- (length file-path) 1)))
@@ -3092,9 +3092,9 @@ items (as opposed to the current default directory). Removes itself from the
     (apply operation args)))
 
 (defun sr-flatten-branch (&optional mode)
-  ;; FIXME
-  "Display a partial branch view of selected items in the
-current directory and all its subdirectories in the active pane."
+  "Display a flat view of the items contained in the current directory and all
+its subdirectories, sub-subdirectories and so on (recursively) in the active
+pane."
   (interactive "cFlatten branch showing: (E)verything, (D)irectories,\
  (N)on-directories or (F)iles only?")
   (if (and mode (>= mode 97)) (setq mode (- mode 32)))
@@ -3349,8 +3349,7 @@ file)."
               (run-with-idle-timer 0.01 nil 'sr-sticky-isearch-prompt)))))))
 
 (defun sr-show-files-info (&optional deref-symlinks)
-  ;; FIXME why does `dired-show-file-type' below not linkify?
-  "Enhanced version of `dired‐show‐file‐type' from dired‐aux.
+  "Enhanced version of `dired-show-file-type' from dired‐aux.
 If at most one item is marked, print the filetype of the current
 item according to the \"file\" command, including its size in bytes.
 If more than one item is marked, print the total size in
@@ -3805,8 +3804,8 @@ layout switching."
     (set (sr-symbol side 'buffer) (window-buffer window))))
 
 (defun sr-scrollable-viewer (buffer)
-  ;; FIXME
-  "Set the `other-window-scroll-buffer' variable to BUFFER."
+  "Set the `other-window-scroll-buffer' variable to BUFFER.
+Doing so allows to scroll the given buffer directly from the active pane."
   (setq other-window-scroll-buffer buffer)
   (if buffer
       (message "QUICK VIEW: Press C-e/C-y to scroll, Space/M-Space to page, and C-u v (or C-u o) to dismiss")))
