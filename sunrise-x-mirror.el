@@ -330,8 +330,7 @@ default)."
                  (error err))))))
 
 (defun sr-mirror-unmount (mirror overlay)
-  "Unmount and delete all directories used for mirroring a
-compressed archive.
+  "Unmount and delete all directories used for mirroring a compressed archive.
 MIRROR is the union of the AVFS directory that holds the contents
 of the archive (read-only) with OVERLAY, which contains all the
 modifications made to the union in the current session."
