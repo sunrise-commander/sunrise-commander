@@ -847,9 +847,9 @@ This is done so all its dired-filename attributes are kept in the file."
 
 (defadvice dired-find-buffer-nocreate
   (before sr-advice-findbuffer (dirname &optional mode))
+  "A hack to avoid some Dired mode quirks."
   (if (sr-equal-dirs sr-dired-directory dirname)
       (setq mode 'sr-mode)))
-  "A hack to avoid some Dired mode quirks."
 
 (defadvice dired-dwim-target-directory
   (around sr-advice-dwim-target ())
