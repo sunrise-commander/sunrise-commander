@@ -3154,20 +3154,13 @@ Used to notify about the termination status of the process."
   (message (propertize "Sunrise locate (C-c C-k to kill)"
                        'face 'minibuffer-prompt)))
 
-(defun sr-locate-prompt-for-search-string ()
-  "Do `locate-prompt-for-search-string' if the `locate' feature is available."
-  (if (not (featurep 'locate))
-      (error "Sunrise: Locate feature not available!")
-    (eval '(defun sr-locate-prompt-for-search-string ()
-             (locate-prompt-for-search-string)))
-    (sr-locate-prompt-for-search-string)))
-
+(defvar locate-command)
+(autoload 'locate-prompt-for-search-string "locate")
 (defun sr-locate (search-string &optional filter arg)
   "Run locate asynchronously and display the results in Sunrise virtual mode."
   (interactive
-   (list (sr-locate-prompt-for-search-string) nil current-prefix-arg))
-  (let ((locate-command (if (featurep 'locate) (symbol-value 'locate-command)))
-        (locate-buffer (create-file-buffer "*Sunrise Locate*"))
+   (list (locate-prompt-for-search-string) nil current-prefix-arg))
+  (let ((locate-buffer (create-file-buffer "*Sunrise Locate*"))
         (process-connection-type nil)
         (locate-process nil))
     (sr-save-aspect
