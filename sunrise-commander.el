@@ -1961,13 +1961,11 @@ buffer."
 
 (defun sr-quick-view-kill ()
   "Kill the last buffer opened using quick view (if any)."
-  (let ((buf other-window-scroll-buffer) (window-configuration))
+  (let ((buf other-window-scroll-buffer))
     (when (and (buffer-live-p buf)
                (y-or-n-p (format "Kill buffer %s? " (buffer-name buf))))
-      (setq window-configuration (current-window-configuration)
-            other-window-scroll-buffer nil)
-      (kill-buffer buf)
-      (set-window-configuration window-configuration))))
+      (setq other-window-scroll-buffer nil)
+      (save-window-excursion (kill-buffer buf)))))
 
 (defun sr-quick-view-directory (name)
   "Open the directory NAME in the passive pane."
