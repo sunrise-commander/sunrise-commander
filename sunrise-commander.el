@@ -7,7 +7,7 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 24 Sep 2007
 ;; Version: 5
-;; RCS Version: $Rev: 380 $
+;; RCS Version: $Rev: 381 $
 ;; Keywords: files, dired, midnight commander, norton, orthodox
 ;; URL: http://www.emacswiki.org/emacs/sunrise-commander.el
 ;; Compatibility: GNU Emacs 22+
@@ -1452,9 +1452,15 @@ Valid values are `min' and `max'; given any other value, locks
 the panes at normal position."
   (interactive)
   (setq sr-panes-height (sr-get-panes-size height))
-  (unless height (setq sr-selected-window-width t))
-  (sr-setup-windows)
-  (setq sr-windows-locked t))
+  (let ((locked sr-windows-locked))
+    (setq sr-windows-locked t)
+    (if height
+        (shrink-window 1)
+      (setq sr-selected-window-width t)
+      (balance-windows))
+    (unless locked
+      (sit-for 0.1)
+      (setq sr-windows-locked nil))))
 
 (defun sr-max-lock-panes ()
   (interactive)
