@@ -3372,17 +3372,19 @@ If more than one item is marked, print the total size in
 bytes (calculated recursively) of all marked items."
   (interactive "P")
   (message "Calculating total size of selection... (C-g to abort)")
-  (let* ((selection (dired-get-marked-files))
+  (let* ((selection (dired-get-marked-files t))
          (size (sr-size-format (sr-files-size selection)))
-         (items (length selection)) (label))
+         (items (length selection)) (label) (regex))
     (if (>= 1 items)
         (progn
           (setq selection (car selection)
-                label (concat (file-name-nondirectory selection) ":"))
+                label (file-name-nondirectory selection)
+                regex (concat "^.*" label "[:;]")
+                label (concat label ":"))
           (dired-show-file-type selection deref-symlinks)
           (message
            "%s (%s bytes)"
-           (replace-regexp-in-string "^.*[:;]" label (current-message)) size))
+           (replace-regexp-in-string regex label (current-message)) size))
       (message "%s bytes in %d selected items" size items))
     (sit-for 0.5)))
 
