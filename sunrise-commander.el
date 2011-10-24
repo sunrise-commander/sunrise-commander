@@ -7,7 +7,7 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 24 Sep 2007
 ;; Version: 5
-;; RCS Version: $Rev: 384 $
+;; RCS Version: $Rev: 385 $
 ;; Keywords: files, dired, midnight commander, norton, orthodox
 ;; URL: http://www.emacswiki.org/emacs/sunrise-commander.el
 ;; Compatibility: GNU Emacs 22+
@@ -1454,16 +1454,17 @@ The optional argument determines the height to lock the panes at.
 Valid values are `min' and `max'; given any other value, locks
 the panes at normal position."
   (interactive)
-  (setq sr-panes-height (sr-get-panes-size height))
-  (let ((locked sr-windows-locked))
-    (setq sr-windows-locked t)
-    (if height
-        (shrink-window 1)
-      (setq sr-selected-window-width t)
-      (balance-windows))
-    (unless locked
-      (sit-for 0.1)
-      (setq sr-windows-locked nil))))
+  (when sr-running
+    (setq sr-panes-height (sr-get-panes-size height))
+    (let ((locked sr-windows-locked))
+      (setq sr-windows-locked t)
+      (if height
+          (shrink-window 1)
+        (setq sr-selected-window-width t)
+        (balance-windows))
+      (unless locked
+        (sit-for 0.1)
+        (setq sr-windows-locked nil)))))
 
 (defun sr-max-lock-panes ()
   (interactive)
@@ -1668,7 +1669,8 @@ rotate among all of them by invoking `sr-project-path' repeatedly : they will be
 visited in order, from longest path to shortest."
 
   (interactive)
-  (let* ((path (sr-chop ?/ (expand-file-name (dired-current-directory))))
+  (let* ((sr-synchronized nil)
+         (path (sr-chop ?/ (expand-file-name (dired-current-directory))))
          (pos (if (< 0 (length path)) 1)) (candidate) (next-key))
     (while pos
       (setq candidate (concat sr-other-directory (substring path pos))
