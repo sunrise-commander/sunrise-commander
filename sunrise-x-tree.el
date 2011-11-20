@@ -834,7 +834,6 @@ nil."
 Necessary so the basic Dired file manipulation commands can work
 in Sunrise Tree View mode."
   `(let ((ad-redefinition-action 'accept))
-     (ad-deactivate 'dired-get-filename)
      (flet
       ((dired-get-filename (&optional localp no-error)
                            (cdr sr-tree-cursor))
@@ -842,8 +841,7 @@ in Sunrise Tree View mode."
                              (message
                               "%s: directory"
                               (directory-file-name (car sr-tree-cursor)))))
-       ,form)
-     (ad-activate 'dired-get-filename)))
+       ,form)))
 
 (defun sr-tree-do-copy ()
   "Recursively copy all selected files and directories between panes.
