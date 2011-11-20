@@ -747,6 +747,7 @@ Helper macro for passive & synchronized navigation."
 (defun sr-dired-mode ()
   "Set Sunrise mode in every Dired buffer opened in Sunrise (called in a hook)."
   (if (and sr-running
+           (eq (selected-frame) sr-current-frame)
            (sr-equal-dirs dired-directory default-directory)
            (not (eq major-mode 'sr-mode)))
       (let ((dired-listing-switches dired-listing-switches)
@@ -869,7 +870,7 @@ This is done so all its dired-filename attributes are kept in the file."
 (defadvice dired-dwim-target-directory
   (around sr-advice-dwim-target ())
   "Tweak the target directory guessing mechanism."
-  (if sr-running
+  (if (eq (selected-frame) sr-current-frame)
       (setq ad-return-value sr-other-directory)
     ad-do-it))
 (ad-activate 'dired-dwim-target-directory)
@@ -1088,6 +1089,7 @@ these values uses the default, ie. $HOME."
             (setq sr-right-directory right-directory))
 
         (setq sr-restore-buffer (current-buffer)
+              sr-current-frame (window-frame (selected-window))
               sr-prior-window-configuration (current-window-configuration)
               sr-running t)
         (sr-setup-windows)
@@ -1096,7 +1098,6 @@ these values uses the default, ie. $HOME."
                 (sr-focus-filename (file-name-nondirectory filename))
               (error (setq welcome (cadr description)))))
         (setq sr-this-directory default-directory)
-        (setq sr-current-frame (window-frame (selected-window)))
         (message "%s" welcome)
         (sr-highlight)) ;;<-- W32Emacs needs this
     (let ((my-frame (window-frame (selected-window))))
