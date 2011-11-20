@@ -418,6 +418,7 @@ Initial value is 2/3 the viewport height.")
 
 (defvar sr-backup-buffer nil
   "Variable holding a buffer-local value of the backup buffer.")
+(make-variable-buffer-local 'sr-backup-buffer)
 
 (defvar sr-goto-dir-function nil
   "Function to use to navigate to a given directory, or nil to do the default.
@@ -837,8 +838,7 @@ calls the function `sr-setup-windows' and tries once again."
 Used as a cache during revert operations."
   (if (buffer-live-p sr-backup-buffer) (sr-kill-backup-buffer))
   (let ((buf (current-buffer)))
-    (set (make-local-variable 'sr-backup-buffer)
-         (generate-new-buffer "*Sunrise Backup*"))
+    (setq sr-backup-buffer (generate-new-buffer "*Sunrise Backup*"))
     (with-current-buffer sr-backup-buffer
       (insert-buffer-substring buf))
     (run-hooks 'sr-refresh-hook)))
