@@ -7,7 +7,7 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 24 Sep 2007
 ;; Version: 5
-;; RCS Version: $Rev: 386 $
+;; RCS Version: $Rev: 387 $
 ;; Keywords: files, dired, midnight commander, norton, orthodox
 ;; URL: http://www.emacswiki.org/emacs/sunrise-commander.el
 ;; Compatibility: GNU Emacs 22+
@@ -817,6 +817,8 @@ If no suitable active window can be found and FORCE-SETUP is set,
 calls the function `sr-setup-windows' and tries once again."
   (interactive "p")
   (let ((viewer (sr-viewer-window)))
+    (if (memq major-mode '(sr-mode sr-virtual-mode sr-tree-mode))
+        (hl-line-mode 1))
     (if viewer
         (select-window viewer)
       (when force-setup
@@ -3473,6 +3475,7 @@ and exists in `exec-path', then it will be used instead of the
 default `sr-terminal-program'."
   (interactive)
   (let ((program (or program sr-terminal-program)))
+    (hl-line-mode 1)
     (if (string= program "eshell")
         (sr-term-eshell cd newterm)
       (sr-term-extern cd newterm program))))
@@ -3543,10 +3546,12 @@ Helper macro for implementing terminal integration in Sunrise."
   `(if sr-running
        (progn
          (sr-select-window sr-selected-window)
+         (hl-line-mode 0)
          (unwind-protect
              ,form
            (progn
              (sr-highlight)
+             (hl-line-mode 1)
              (sr-select-viewer-window))))))
 
 (defun sr-ti-previous-line ()
