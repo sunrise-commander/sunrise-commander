@@ -3988,8 +3988,9 @@ with advice matching REGEXP."
 (defmacro sr-rainbow (symbol spec regexp)
   `(progn
      (defface ,symbol '((t ,spec)) "Sunrise rainbow face" :group 'sunrise)
-     (font-lock-add-keywords 'sr-mode '((,regexp 1 (quote ,symbol))))
-     (font-lock-add-keywords 'sr-virtual-mode '((,regexp 1 (quote ,symbol))))))
+     ,@(mapcar (lambda (m)
+                 `(font-lock-add-keywords ',m '((,regexp 1 ',symbol))))
+               '(sr-mode sr-virtual-mode))))
 
 (sr-rainbow sr-html-face              (:foreground "DarkOliveGreen")        "\\(^..[^d].*\\.x?html?$\\)")
 (sr-rainbow sr-xml-face               (:foreground "DarkGreen")             "\\(^..[^d].*\\.\\(xml\\|xsd\\|xslt?\\|wsdl\\)$\\)")
