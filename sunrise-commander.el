@@ -3999,13 +3999,13 @@ with advice matching REGEXP."
 (sr-rainbow sr-packaged-face          (:foreground "DarkMagenta")           "\\(^..[^d].*\\.\\(deb\\|rpm\\)$\\)")
 (sr-rainbow sr-encrypted-face         (:foreground "DarkOrange1")           "\\(^..[^d].*\\.\\(gpg\\|pgp\\)$\\)")
 
-(sr-rainbow sr-directory-face         (:foreground "blue1" :bold t)         "\\(^..d.*\\)")
-(sr-rainbow sr-symlink-face           (:foreground "DeepSkyBlue" :italic t) "\\(^..l.*[^/]$\\)")
-(sr-rainbow sr-symlink-directory-face (:foreground "blue1" :italic t)       "\\(^..l.*/$\\)")
+(sr-rainbow sr-directory-face         (:inherit dired-directory :bold t)    "\\(^..d.*\\)")
+(sr-rainbow sr-symlink-face           (:inherit dired-symlink :italic t)    "\\(^..l.*[^/]$\\)")
+(sr-rainbow sr-symlink-directory-face (:inherit dired-directory :italic t)  "\\(^..l.*/$\\)")
 (sr-rainbow sr-alt-marked-dir-face    (:foreground "DeepPink" :bold t)      "\\(^[^ *D].d.*$\\)")
 (sr-rainbow sr-alt-marked-file-face   (:foreground "DeepPink")              "\\(^[^ *D].[^d].*$\\)")
-(sr-rainbow sr-marked-dir-face        (:foreground "red" :bold t)           "\\(^[*D].d.*$\\)")
-(sr-rainbow sr-marked-file-face       (:foreground "red")                   "\\(^[*D].[^d].*$\\)")
+(sr-rainbow sr-marked-dir-face        (:inherit dired-marked)               "\\(^[*D].d.*$\\)")
+(sr-rainbow sr-marked-file-face       (:inherit dired-marked :bold nil)     "\\(^[*D].[^d].*$\\)")
 
 (provide 'sunrise-commander)
 
