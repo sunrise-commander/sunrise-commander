@@ -7,7 +7,7 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 4 May 2010
 ;; Version: 1
-;; RCS Version: $Rev: 377 $
+;; RCS Version: $Rev: 386 $
 ;; Keywords: sunrise commander, directories tree navigation
 ;; URL: http://www.emacswiki.org/emacs/sunrise-x-tree.el
 ;; Compatibility: GNU Emacs 22+
@@ -164,6 +164,7 @@
 
 (require 'sunrise-commander)
 (require 'tree-widget)
+(require 'hl-line)
 (eval-when-compile (require 'desktop))
 
 (defcustom sr-tree-explosion-ratio 3
@@ -816,7 +817,6 @@ nil."
       (select-window (sr-other 'window))
       (sr-goto-dir target)
       (if  (get side 'hidden-attrs) (sr-hide-attributes))
-      (hl-line-mode 0)
       (sr-keep-buffer side)
       (if (fboundp 'sr-tabs-refresh) (sr-tabs-refresh)))))
 
@@ -910,6 +910,7 @@ Moves files from the active pane to the passive pane."
   (set-keymap-parent sr-tree-mode-map sr-mode-map)
   (mapc 'make-local-variable '(sr-tree-open-paths
                                sr-tree-cursor
+                               hl-line-sticky-flag
                                isearch-mode-end-hook
                                desktop-save-buffer
                                revert-buffer-function
@@ -917,10 +918,12 @@ Moves files from the active pane to the passive pane."
                                sr-buttons-command-adapter))
   (add-hook 'isearch-mode-end-hook 'sr-tree-update-cursor)
   (setq desktop-save-buffer        'sr-tree-desktop-save-buffer
+        hl-line-sticky-flag        nil
         revert-buffer-function     'sr-tree-revert-buffer
         sr-goto-dir-function       'sr-tree-goto-dir
         sr-buttons-command-adapter 'sr-tree-buttons-command-adapter)
   (setq dired-omit-mode t)
+  (hl-line-mode 1)
   (unless sr-tree-root
     (sr-tree-build default-directory)))
 

@@ -7,7 +7,7 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 24 Sep 2007
 ;; Version: 5
-;; RCS Version: $Rev: 385 $
+;; RCS Version: $Rev: 386 $
 ;; Keywords: files, dired, midnight commander, norton, orthodox
 ;; URL: http://www.emacswiki.org/emacs/sunrise-commander.el
 ;; Compatibility: GNU Emacs 22+
@@ -200,6 +200,7 @@
 (require 'enriched)
 (require 'find-dired)
 (require 'font-lock)
+(require 'hl-line)
 (require 'sort)
 (require 'term)
 (eval-when-compile (require 'cl)
@@ -405,6 +406,9 @@ Initial value is 2/3 the viewport height.")
 
 (defvar sr-current-path-face 'sr-active-path-face
   "Default face of the directory path (can be overridden buffer-locally).")
+
+(defvar sr-inhibit-highlight nil
+  "Liquid variable used by Sunrise to temporarily inhibit highliting in panes.")
 
 (defvar sr-desktop-save-handlers nil
   "List of extension-defined handlers to save Sunrise buffers with desktop.")
@@ -644,6 +648,10 @@ automatically:
 
   (make-local-variable 'revert-buffer-function)
   (setq revert-buffer-function 'sr-revert-buffer)
+ 
+  (make-local-variable 'hl-line-sticky-flag)
+  (setq hl-line-sticky-flag nil)
+  (hl-line-mode 1)
 )
 
 (define-derived-mode sr-virtual-mode dired-virtual-mode "Sunrise VIRTUAL"
@@ -664,6 +672,10 @@ automatically:
 
   (make-local-variable 'revert-buffer-function)
   (setq revert-buffer-function 'sr-revert-buffer)
+ 
+  (make-local-variable 'hl-line-sticky-flag)
+  (setq hl-line-sticky-flag nil)
+  (hl-line-mode 1)
 
   (define-key sr-virtual-mode-map "\C-c\C-c" 'sr-virtual-dismiss))
 
@@ -679,12 +691,11 @@ automatically:
      (setq sr-dired-directory "")))
 
 (defmacro sr-save-aspect (&rest body)
-  "Restore omit mode, hidden attributes and highlighting after a directory transition."
+  "Restore omit mode, hidden attributes and point after a directory transition."
   `(let ((inhibit-read-only t)
          (omit (or dired-omit-mode -1))
          (hidden-attrs (not (null (get sr-selected-window 'hidden-attrs))))
          (path-face sr-current-path-face))
-     (hl-line-mode 0)
      ,@body
      (dired-omit-mode omit)
      (if path-face
@@ -716,14 +727,17 @@ automatically:
 (defmacro sr-in-other (form)
   "Execute FORM in the context of the passive pane.
 Helper macro for passive & synchronized navigation."
-  `(progn
-     (if sr-synchronized ,form)
-     (sr-change-window)
-     (condition-case description
-         ,form
-       (error (message (cadr description))))
-     (sr-change-window)
-     (sr-highlight)))
+  `(let ((home sr-selected-window))
+     (let ((sr-inhibit-highlight t))
+       (if sr-synchronized ,form)
+       (sr-change-window)
+       (condition-case description
+           ,form
+         (error (message (cadr description)))))
+     (if (not sr-running)
+         (sr-select-window home)
+       (run-hooks 'sr-refresh-hook)
+       (sr-change-window))))
 
 (eval-and-compile
   (defun sr-symbol (side type)
@@ -1194,7 +1208,6 @@ buffer or window."
   ;;select the correct window
   (sr-select-window sr-selected-window)
   (sr-restore-panes-width)
-  (sr-force-passive-highlight)
   (run-hooks 'sr-start-hook))
 
 (defun sr-lock-window (frame)
@@ -1223,17 +1236,17 @@ buffer or window."
 
 (defun sr-highlight(&optional face)
   "Set up the path line in the current buffer."
-  (when (memq major-mode '(sr-mode sr-virtual-mode sr-tree-mode))
-    (let ((inhibit-read-only t))
-      (save-excursion
-        (goto-char (point-min))
-        (sr-hide-avfs-root)
-        (sr-highlight-broken-links)
-        (sr-graphical-highlight face)
-        (unless (eq sr-window-split-style 'top)
-          (sr-force-passive-highlight))
-        (run-hooks 'sr-refresh-hook))
-      (hl-line-mode 1))))
+  (unless sr-inhibit-highlight
+    (when (memq major-mode '(sr-mode sr-virtual-mode sr-tree-mode))
+      (let ((inhibit-read-only t))
+        (save-excursion
+          (goto-char (point-min))
+          (sr-hide-avfs-root)
+          (sr-highlight-broken-links)
+          (sr-graphical-highlight face)
+          (unless (eq sr-window-split-style 'top)
+            (sr-force-passive-highlight))
+          (run-hooks 'sr-refresh-hook))))))
 
 (defun sr-hide-avfs-root ()
   "Hide the AVFS virtual filesystem root (if any) on the path line."
@@ -1310,9 +1323,7 @@ With optional argument REVERT, executes `revert-buffer' on the passive buffer."
         (select-window (sr-other 'window))
         (when (memq major-mode '(sr-mode sr-virtual-mode sr-tree-mode))
           (if revert (revert-buffer))
-          (sr-graphical-highlight 'sr-passive-path-face)
-          (unless (eq sr-left-buffer sr-right-buffer)
-            (hl-line-mode 0))))))
+          (sr-graphical-highlight 'sr-passive-path-face)))))
 
 (defun sr-quit (&optional norestore)
   "Quit Sunrise and restore Emacs to the previous state."
@@ -1837,7 +1848,8 @@ and add it to your `load-path'" name name))))
   (if (and dired-omit-mode
            (string-match (dired-omit-regexp) filename))
       (dired-omit-mode -1))
-  (let ((expr (sr-chop ?/ filename)))
+  (let ((sr-inhibit-highlight t)
+        (expr (sr-chop ?/ filename)))
     (cond ((file-symlink-p filename)
            (setq expr (concat (regexp-quote expr) " ->")))
           ((file-directory-p filename)
@@ -1895,7 +1907,7 @@ If the optional parameter REVERSE is non-nil, performs the
 opposite operation, ie. changes the directory in the current pane
 to that in the other one."
   (interactive "P")
-  (let ((target (current-buffer)))
+  (let ((target (current-buffer)) (sr-inhibit-highlight t))
     (sr-change-window)
     (if reverse
         (setq target (current-buffer))
@@ -1905,7 +1917,8 @@ to that in the other one."
     (when reverse
       (sr-alternate-buffer (switch-to-buffer target))
       (sr-history-push default-directory)
-      (revert-buffer))))
+      (revert-buffer)))
+  (sr-highlight))
 
 (defun sr-browse-pane ()
   "Browse the directory in the active pane."
