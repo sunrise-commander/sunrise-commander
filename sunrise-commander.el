@@ -468,6 +468,10 @@ Indicates that a CLEX substitution may be about to happen."
 ;;; This is the core of Sunrise: the main idea is to apply `sr-mode' only inside
 ;;; Sunrise buffers while keeping all of `dired-mode' untouched.
 
+;;; preserve this variable when switching from `dired-mode' to another mode
+(put 'dired-subdir-alist 'permanent-local t)
+
+;;;###autoload
 (define-derived-mode sr-mode dired-mode "Sunrise Commander"
   "Two-pane file manager for Emacs based on Dired and inspired by MC.
 The following keybindings are available:
@@ -655,6 +659,7 @@ automatically:
   (hl-line-mode 1)
 )
 
+;;;###autoload
 (define-derived-mode sr-virtual-mode dired-virtual-mode "Sunrise VIRTUAL"
   "Sunrise Commander Virtual Mode. Useful for reusing find and locate results."
   :group 'sunrise
@@ -3800,25 +3805,28 @@ file in the file system."
          (is-virtual (assoc 'virtual desktop-buffer-misc))
          (buffer
           (if (not is-virtual)
-              (dired-restore-desktop-buffer desktop-buffer-file-name
-                                            desktop-buffer-name
-                                            misc-data)
+              (with-current-buffer
+                  (dired-restore-desktop-buffer desktop-buffer-file-name
+                                                desktop-buffer-name
+                                                misc-data)
+                (sr-mode)
+                (current-buffer))
             (desktop-restore-file-buffer (car misc-data)
                                          desktop-buffer-name
                                          misc-data))))
-    (if is-virtual
-        (set-visited-file-name nil t))
-    (mapc (lambda (side)
-            (when (cdr (assoc side desktop-buffer-misc))
-              (set (sr-symbol side 'buffer) (current-buffer))
-              (set (sr-symbol side 'directory) default-directory)))
-          '(left right))
-    (mapc (lambda (fun)
-            (funcall fun
-                     desktop-buffer-file-name
-                     desktop-buffer-name
-                     desktop-buffer-misc))
-          sr-desktop-restore-handlers)
+    (with-current-buffer buffer
+      (when is-virtual (set-visited-file-name nil t))
+      (mapc (lambda (side)
+              (when (cdr (assq side desktop-buffer-misc))
+                (set (sr-symbol side 'buffer) buffer)
+                (set (sr-symbol side 'directory) default-directory)))
+            '(left right))
+      (mapc (lambda (fun)
+              (funcall fun
+                       desktop-buffer-file-name
+                       desktop-buffer-name
+                       desktop-buffer-misc))
+            sr-desktop-restore-handlers))
     buffer))
 
 (defun sr-reset-state ()

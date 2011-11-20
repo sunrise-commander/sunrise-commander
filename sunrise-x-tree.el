@@ -902,6 +902,7 @@ Moves files from the active pane to the passive pane."
        (file-name-as-directory (file-name-nondirectory expanded)) nil t)
       (sr-tree-update-cursor))))
 
+;;;###autoload
 (define-derived-mode sr-tree-mode nil "Sunrise Tree View"
   "Tree view for the Sunrise Commander file manager."
   :group 'sunrise
