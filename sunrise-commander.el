@@ -3331,6 +3331,29 @@ buffer in the passive pane."
   (message (propertize "Sunrise sticky I-search (C-g to exit): "
                        'face 'minibuffer-prompt)))
 
+(defvar sr-sticky-isearch-commands
+  '(nil
+    ("\C-o" . dired-omit-mode)
+    ("\M-a" . sr-beginning-of-buffer)
+    ("\M-e" . sr-end-of-buffer)
+    ("\C-v" . scroll-up-command)
+    ("\M-v" . (lambda () (interactive) (scroll-up-command '-)))
+  ) "Keybindings installed in `isearch-mode' during a sticky search.")
+
+(defun sr-sticky-isearch-remap-commands (&optional restore)
+  "Remap `isearch-mode-map' commands using `sr-sticky-isearch-commands'.
+Replace the bindings in our table with the previous ones from `isearch-mode-map'
+so we can restore them when the current sticky search operation finishes."
+  (when (eq restore (car sr-sticky-isearch-commands))
+    (setcar sr-sticky-isearch-commands (not restore))
+    (mapc (lambda (entry)
+            (let* ((binding (car entry))
+                   (old-command (lookup-key isearch-mode-map binding))
+                   (new-command (cdr entry)))
+              (define-key isearch-mode-map binding new-command)
+              (setcdr entry old-command)))
+          (cdr sr-sticky-isearch-commands))))
+
 (defun sr-sticky-isearch (&optional backward)
   "Concatenate Isearch operations to allow fast file system navigation.
 Search continues until C-g is pressed (to abort) or Return is
@@ -3338,6 +3361,7 @@ pressed on a regular file (to end the operation and visit that
 file)."
   (set (make-local-variable 'search-nonincremental-instead) nil)
   (add-hook 'isearch-mode-end-hook 'sr-sticky-post-isearch)
+  (sr-sticky-isearch-remap-commands)
   (if backward
       (isearch-backward nil t)
     (isearch-forward nil t))
@@ -3355,7 +3379,8 @@ file)."
   (sr-sticky-isearch t))
 
 (defun sr-sticky-post-isearch ()
-  "`isearch-mode-end-hook' function for sticky Isearch operations in Sunrise browse mode."
+  "`isearch-mode-end-hook' function for sticky Isearch operations in Sunrise
+browse mode."
   (and
    (dired-get-filename nil t)
    (let* ((filename (expand-file-name (dired-get-filename nil t)))
@@ -3366,6 +3391,7 @@ file)."
             (progn
               (remove-hook 'isearch-mode-end-hook 'sr-sticky-post-isearch)
               (kill-local-variable 'search-nonincremental-instead)
+              (sr-sticky-isearch-remap-commands t)
               (isearch-done)
               (if isearch-mode-end-hook-quit
                   (run-hooks 'sr-refresh-hook)
