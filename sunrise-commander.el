@@ -3506,16 +3506,18 @@ cd's to the current directory of the active pane."
 
 (defmacro sr-term-excursion (newterm form)
   "Take care of the common mechanics of launching or switching to a terminal.
-Helper macro. "
+Helper macro."
   `(let ((buffer (car sr-ti-openterms)) (new-name))
      (sr-select-viewer-window t)
      (if (buffer-live-p buffer)
          (switch-to-buffer buffer)
-       ,form)
+       ,form
+       (sr-term-minor-mode 1))
      (when (and ,newterm buffer)
        (rename-uniquely)
        (setq new-name (buffer-name))
        ,form
+       (sr-term-minor-mode 1)
        (message "Sunrise: previous terminal renamed to %s" new-name))
      (setq cd (or cd (null sr-ti-openterms)))
      (unless (eq (current-buffer) (car sr-ti-openterms))
@@ -3721,50 +3723,45 @@ by `sr-clex-start'."
                 (delete-char -2)
                 (insert expansion)))))))
 
-(defvar sr-term-keys '(([M-up]        . sr-ti-previous-line)
-                       ([A-up]        . sr-ti-previous-line)
-                       ("\M-P"        . sr-ti-previous-line)
-                       ([M-down]      . sr-ti-next-line)
-                       ([A-down]      . sr-ti-next-line)
-                       ("\M-N"        . sr-ti-next-line)
-                       ("\M-\C-m"     . sr-ti-select)
-                       ("\C-\M-j"     . sr-ti-select)
-                       ([M-return]    . sr-ti-select)
-                       ("\M-M"        . sr-ti-mark)
-                       ([M-backspace] . sr-ti-unmark)
-                       ("\M-\d"       . sr-ti-unmark)
-                       ("\M-J"        . sr-ti-prev-subdir)
-                       ("\M-U"        . sr-ti-unmark-all-marks)
-                       ([C-tab]       . sr-ti-change-window)
-                       ("\C-c\t"      . sr-ti-change-window)
-                       ("\M-\t"       . sr-ti-change-pane)
-                       ("\C-ct"       . sr-term-cd-newterm)
-                       ("\C-c;"       . sr-follow-viewer)
-                       ("\M-\S-g"     . sr-ti-revert-buffer)
-                       ("%"           . sr-clex-start)
-                       ("\t"          . term-dynamic-complete)
-                       ("\C-c\\"      . sr-ti-lock-panes)
-                       ("\C-c{"       . sr-ti-min-lock-panes)
-                       ("\C-c}"       . sr-ti-max-lock-panes))
-  "Keybindings for terminal integration and command line expansion.")
+(define-minor-mode sr-term-minor-mode "Sunrise Commander terminal add-on."
+  nil nil
+  '(([M-up]        . sr-ti-previous-line)
+    ([A-up]        . sr-ti-previous-line)
+    ("\M-P"        . sr-ti-previous-line)
+    ([M-down]      . sr-ti-next-line)
+    ([A-down]      . sr-ti-next-line)
+    ("\M-N"        . sr-ti-next-line)
+    ("\M-\C-m"     . sr-ti-select)
+    ("\C-\M-j"     . sr-ti-select)
+    ([M-return]    . sr-ti-select)
+    ("\M-M"        . sr-ti-mark)
+    ([M-backspace] . sr-ti-unmark)
+    ("\M-\d"       . sr-ti-unmark)
+    ("\M-J"        . sr-ti-prev-subdir)
+    ("\M-U"        . sr-ti-unmark-all-marks)
+    ([C-tab]       . sr-ti-change-window)
+    ("\C-c\t"      . sr-ti-change-window)
+    ("\M-\t"       . sr-ti-change-pane)
+    ("\C-ct"       . sr-term-cd-newterm)
+    ("\C-c;"       . sr-follow-viewer)
+    ("\M-\S-g"     . sr-ti-revert-buffer)
+    ("%"           . sr-clex-start)
+    ("\t"          . term-dynamic-complete)
+    ("\C-c\\"      . sr-ti-lock-panes)
+    ("\C-c{"       . sr-ti-min-lock-panes)
+    ("\C-c}"       . sr-ti-max-lock-panes))
+  :group 'sunrise)
 
-(defun sr-define-ti-keys (mode-map)
-  (mapcar (lambda (key)
-            (define-key mode-map (car key) (cdr key)))
-          sr-term-keys))
-(add-hook 'eshell-mode-hook (lambda () (sr-define-ti-keys eshell-mode-map)))
-(add-hook 'term-mode-hook (lambda () (sr-define-ti-keys term-mode-map)))
-
-(defadvice term-sentinel (around sr-advice-term-sentinel (proc msg))
-  (if (and sr-terminal-kill-buffer-on-exit
-  "Take care of killing terminal buffers on exit."
+(defadvice term-sentinel (around sr-advice-term-sentinel (proc msg) activate)
+  "Take care of killing Sunrise terminal buffers on exit."
+  (if (and sr-term-minor-mode
+           sr-terminal-kill-buffer-on-exit
            (memq (process-status proc) '(signal exit)))
       (let ((buffer (process-buffer proc)))
         ad-do-it
         (bury-buffer buffer)
         (kill-buffer buffer))
     ad-do-it))
-(ad-activate 'term-sentinel)
 
 ;;; ============================================================================
 ;;; Desktop support:
