@@ -625,7 +625,7 @@ tabs in the Sunrise Commander (used for desktop support)."
 ;; This activates the tabs support after desktop restoration:
 (add-hook
  'desktop-after-read-hook
- (lambda ()
+ (defun sr-tabs-desktop-after-read-function ()
    (unless (assq 'sr-tabs-on desktop-globals-to-clear)
      (add-to-list 'desktop-globals-to-clear
                   '(sr-tabs-on . (sr-tabs-reset-state))))))

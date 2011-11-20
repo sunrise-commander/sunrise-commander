@@ -164,10 +164,10 @@
           [triple-down-mouse-1] [triple-down-mouse-2] [triple-down-mouse-3])))
 
 (add-hook 'sr-start-hook 'sr-buttons-display)
-(add-hook 'sr-quit-hook (lambda ()
+(add-hook 'sr-quit-hook (defun sr-buttons-sr-quit-function ()
                           (bury-buffer (get-buffer sr-buttons-buffer-name))))
 (add-hook 'kill-buffer-hook
-          (lambda ()
+          (defun sr-buttons-kill-buffer-function ()
             (if (and sr-running
                      (eq (current-buffer) other-window-scroll-buffer))
                 (sr-buttons-display))))

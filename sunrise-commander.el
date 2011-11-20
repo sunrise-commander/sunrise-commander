@@ -2030,9 +2030,10 @@ Kills any other buffer opened previously the same way."
         (error (message "%s" (cadr description)))))))
 
 ;; These clean up after a quick view:
-(add-hook 'sr-quit-hook (lambda () (setq other-window-scroll-buffer nil)))
+(add-hook 'sr-quit-hook (defun sr-sr-quit-function ()
+                          (setq other-window-scroll-buffer nil)))
 (add-hook 'kill-buffer-hook
-          (lambda ()
+          (defun sr-kill-buffer-function ()
             (if (eq (current-buffer) other-window-scroll-buffer)
                 (setq other-window-scroll-buffer  nil))))
 
@@ -2974,10 +2975,11 @@ as its first argument."
   (eval (sr-diff-form 'ediff)))
 
 (add-hook 'ediff-before-setup-windows-hook
-          (lambda () (setq sr-ediff-on t)))
+          (defun sr-ediff-before-setup-windows-function ()
+            (setq sr-ediff-on t)))
 
 (add-hook 'ediff-quit-hook
-          (lambda ()
+          (defun sr-ediff-quit-function ()
             (setq sr-ediff-on nil)
             (when sr-running
               (if (buffer-live-p sr-restore-buffer)
@@ -3842,7 +3844,7 @@ Used for desktop support."
 
 ;; This initializes (and sometimes starts) Sunrise after desktop restoration:
 (add-hook 'desktop-after-read-hook
-          (lambda ()
+          (defun sr-desktop-after-read-function ()
             (unless (assoc 'sr-running desktop-globals-to-clear)
               (add-to-list 'desktop-globals-to-clear
                            '(sr-running . (sr-reset-state))))
