@@ -408,7 +408,7 @@ Initial value is 2/3 the viewport height.")
   "Default face of the directory path (can be overridden buffer-locally).")
 
 (defvar sr-inhibit-highlight nil
-  "Liquid variable used by Sunrise to temporarily inhibit highliting in panes.")
+  "Variable used to temporarily inhibit highlighting in panes.")
 
 (defvar sr-desktop-save-handlers nil
   "List of extension-defined handlers to save Sunrise buffers with desktop.")
@@ -654,7 +654,7 @@ automatically:
 
   (make-local-variable 'revert-buffer-function)
   (setq revert-buffer-function 'sr-revert-buffer)
- 
+
   (make-local-variable 'hl-line-sticky-flag)
   (setq hl-line-sticky-flag nil)
   (hl-line-mode 1)
@@ -679,7 +679,7 @@ automatically:
 
   (make-local-variable 'revert-buffer-function)
   (setq revert-buffer-function 'sr-revert-buffer)
- 
+
   (make-local-variable 'hl-line-sticky-flag)
   (setq hl-line-sticky-flag nil)
   (hl-line-mode 1)
@@ -1609,7 +1609,7 @@ Returns nil if AVFS cannot manage this kind of file."
       (if (and sr-avfs-root
                (null (posix-string-match "#" dir)))
           (setq dir (replace-regexp-in-string
-					 (expand-file-name sr-avfs-root) "" dir)))
+                     (expand-file-name sr-avfs-root) "" dir)))
       (sr-save-aspect
        (sr-within dir (sr-alternate-buffer (dired dir))))
       (sr-history-push default-directory)
@@ -3390,8 +3390,7 @@ file)."
   (sr-sticky-isearch t))
 
 (defun sr-sticky-post-isearch ()
-  "`isearch-mode-end-hook' function for sticky Isearch operations in Sunrise
-browse mode."
+  "`isearch-mode-end-hook' function for Sunrise sticky Isearch operations."
   (and
    (dired-get-filename nil t)
    (let* ((filename (expand-file-name (dired-get-filename nil t)))

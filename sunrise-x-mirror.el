@@ -201,7 +201,7 @@ contents of the original archive that is fully writeable."
   (let ((path (or (dired-get-filename nil t)
                   (concat (expand-file-name (dired-current-directory)) "/.")))
         (sr-mirror-divert-goto-dir nil)
-		(sr-avfs-root (expand-file-name sr-avfs-root))
+        (sr-avfs-root (expand-file-name sr-avfs-root))
         fname vpaths)
     (if (sr-overlapping-paths-p sr-avfs-root path)
         (unless (and sr-mirror-home (sr-overlapping-paths-p sr-mirror-home path))
