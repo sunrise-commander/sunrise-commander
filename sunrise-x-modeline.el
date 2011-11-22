@@ -315,12 +315,14 @@ the Sunrise Commander, after module installation."
 ;;; ============================================================================
 ;;; Desktop support:
 
-(defun sr-modeline-desktop-restore-buffer (desktop-buffer-file-name
-                                           desktop-buffer-name
-                                           desktop-buffer-misc)
-  "Activate the mode line when restoring Sunrise buffers using desktop."
-  (run-with-timer 0.1 nil 'sr-modeline-toggle 1))
-(add-to-list 'sr-desktop-restore-handlers 'sr-modeline-desktop-restore-buffer)
+(add-to-list 'desktop-minor-mode-table '(sr-modeline nil))
+
+(defun sr-modeline-desktop-restore-function (&rest _)
+  "Call this instead of `sr-modeline' when restoring a desktop."
+  (sr-modeline-refresh))
+
+(add-to-list 'desktop-minor-mode-handlers
+             '(sr-modeline . sr-modeline-desktop-restore-function))
 
 (provide 'sunrise-x-modeline)
 ;;;###autoload (require 'sunrise-x-modeline)
