@@ -408,7 +408,7 @@ Initial value is 2/3 the viewport height.")
   "Default face of the directory path (can be overridden buffer-locally).")
 
 (defvar sr-inhibit-highlight nil
-  "Variable used to temporarily inhibit highlighting in panes.")
+  "Liquid variable used to temporarily inhibit highlighting in panes.")
 
 (defvar sr-desktop-save-handlers nil
   "List of extension-defined handlers to save Sunrise buffers with desktop.")
