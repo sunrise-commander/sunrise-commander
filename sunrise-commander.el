@@ -786,7 +786,7 @@ Helper macro for passive & synchronized navigation."
   (interactive)
   (when (eq major-mode 'sr-mode)
     (let ((focus (dired-get-filename 'verbatim t)))
-      (sr-virtual-mode)
+      (sr-save-aspect (sr-virtual-mode))
       (if focus (sr-focus-filename focus)))))
 
 (defun sr-virtual-dismiss ()
@@ -3100,6 +3100,7 @@ made only inside subdirs."
         (kill-local-variable 'sr-find-items)))
     (sr-beginning-of-buffer)
     (sr-highlight)
+    (hl-line-mode 1)
     (sr-backup-buffer)))
 (ad-activate 'find-dired-sentinel)
 
@@ -3184,7 +3185,8 @@ Used to notify about the termination status of the process."
        (insert " at " (substring (current-time-string) 0 19))
        (forward-char 1))
      (sr-beginning-of-buffer)
-     (sr-highlight)))
+     (sr-highlight)
+     (hl-line-mode 1)))
 
 (defun sr-locate-prompt ()
   "Display the message that appears when a locate process is launched."
@@ -3483,7 +3485,8 @@ and exists in `exec-path', then it will be used instead of the
 default `sr-terminal-program'."
   (interactive)
   (let ((program (or program sr-terminal-program)))
-    (hl-line-mode 1)
+    (if (memq major-mode '(sr-mode sr-virtual-mode sr-tree-mode))
+        (hl-line-mode 1))
     (if (string= program "eshell")
         (sr-term-eshell cd newterm)
       (sr-term-extern cd newterm program))))
