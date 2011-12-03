@@ -7,7 +7,7 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 24 Sep 2007
 ;; Version: 5
-;; RCS Version: $Rev: 391 $
+;; RCS Version: $Rev: 393 $
 ;; Keywords: files, dired, midnight commander, norton, orthodox
 ;; URL: http://www.emacswiki.org/emacs/sunrise-commander.el
 ;; Compatibility: GNU Emacs 22+
@@ -123,6 +123,10 @@
 ;;     %N - expands to the list of names of all marked files in the right pane
 ;;     %d - expands to the current directory in the left pane
 ;;     %D - expands to the current directory in the right pane
+;;     %a - expands to the list of paths of all marked files in the active pane
+;;     %A - expands to the current directory in the active pane
+;;     %p - expands to the list of paths of all marked files in the passive pane
+;;     %P - expands to the current directory in the passive pane
 
 ;; * Cloning of complete directory trees: press K to clone the selected files
 ;; and directories into the passive pane. Cloning is a more general operation
@@ -632,6 +636,10 @@ automatically:
        %N - expands to the list of names of all marked files in the right pane
        %d - expands to the current directory in the left pane
        %D - expands to the current directory in the right pane
+       %a - expands to the list of paths of all marked files in the active pane
+       %A - expands to the current directory in the active pane
+       %p - expands to the list of paths of all marked files in the passive pane
+       %P - expands to the current directory in the passive pane
        %% - inserts a single % sign.
 "
   :group 'sunrise
@@ -3680,6 +3688,7 @@ Helper macro for implementing terminal integration in Sunrise."
   "Evaluate FORM in the context of PANE.
 Helper macro for implementing command line expansion in Sunrise."
   `(save-window-excursion
+     (setq pane (if (atom pane) pane (eval pane)))
      (select-window (symbol-value (sr-symbol ,pane 'window)))
      ,form))
 
@@ -3745,6 +3754,10 @@ by `sr-clex-start'."
                             (?F (sr-clex-file         'right))
                             (?N (sr-clex-marked-nodir 'right))
                             (?D (sr-clex-dir          'right))
+                            (?a (sr-clex-marked       '(sr-this)))
+                            (?A (sr-clex-dir          '(sr-this)))
+                            (?p (sr-clex-marked       '(sr-other)))
+                            (?P (sr-clex-dir          '(sr-other)))
                             (t nil))))
           (if expansion
               (progn
