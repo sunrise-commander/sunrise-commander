@@ -2373,7 +2373,9 @@ elements that are non-equal are found."
   (sr-in-other (dired-next-line -1)))
 
 (defun sr-goto-dir-other (dir)
-  (interactive "DChange directory in PASSIVE pane (file or pattern): ")
+  (interactive (list (read-directory-name
+                      "Change directory in PASSIVE pane (file or pattern): "
+                      sr-other-directory)))
   (sr-in-other (sr-goto-dir dir)))
 
 (defun sr-advertised-find-file-other ()
