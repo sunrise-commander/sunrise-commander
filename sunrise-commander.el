@@ -3769,6 +3769,7 @@ by `sr-clex-start'."
     ("\M-\C-m"     . sr-ti-select)
     ("\C-\M-j"     . sr-ti-select)
     ([M-return]    . sr-ti-select)
+    ([S-M-return]  . sr-ti-select)
     ("\M-M"        . sr-ti-mark)
     ([M-backspace] . sr-ti-unmark)
     ("\M-\d"       . sr-ti-unmark)
