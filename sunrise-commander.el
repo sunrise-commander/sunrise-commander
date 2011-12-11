@@ -3768,7 +3768,14 @@ by `sr-clex-start'."
   "Sunrise Commander terminal add-on for character (raw) mode."
   nil nil
   '(("\C-c\C-j" . sr-term-line-mode)
-    ("\C-c\C-k" . sr-term-char-mode)))
+    ("\C-c\C-k" . sr-term-char-mode)
+    ("\C-c\t"   . sr-ti-change-window)
+    ("\C-cT"    . sr-term-cd)
+    ("\C-c\C-t" . sr-term-cd-newterm)
+    ("\C-c;"    . sr-follow-viewer)
+    ("\C-c\\"   . sr-ti-lock-panes)
+    ("\C-c{"    . sr-ti-min-lock-panes)
+    ("\C-c}"    . sr-ti-max-lock-panes)))
 
 (define-minor-mode sr-term-line-minor-mode
   "Sunrise Commander terminal add-on for line (cooked) mode."
