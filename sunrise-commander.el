@@ -969,6 +969,7 @@ immediately loaded, but only if `sr-autoload-extensions' is not nil."
 (define-key sr-mode-map "\C-y"        'sr-scroll-down)
 (define-key sr-mode-map " "           'sr-scroll-quick-view)
 (define-key sr-mode-map "\M- "        'sr-scroll-quick-view-down)
+(define-key sr-mode-map [?\S- ]       'sr-scroll-quick-view-down)
 
 (define-key sr-mode-map "C"           'sr-do-copy)
 (define-key sr-mode-map "K"           'sr-do-clone)
