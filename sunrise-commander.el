@@ -7,7 +7,7 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 24 Sep 2007
 ;; Version: 5
-;; RCS Version: $Rev: 394 $
+;; RCS Version: $Rev: 395 $
 ;; Keywords: files, dired, midnight commander, norton, orthodox
 ;; URL: http://www.emacswiki.org/emacs/sunrise-commander.el
 ;; Compatibility: GNU Emacs 22+
@@ -274,8 +274,10 @@ Setting this value activates AVFS support."
 
 (defcustom sr-avfs-handlers-alist '(("\\.[jwesh]ar$"   . "#uzip/")
                                     ("\\.xpi$"         . "#uzip/")
+                                    ("\\.apk$"         . "#uzip/")
                                     ("\\.iso$"         . "#iso9660/")
                                     ("\\.patch$"       . "#/")
+                                    ("\\.tar.xz$"      . "#uxze#utar/")
                                     ("."               . "#/"))
   "List of AVFS handlers to manage specific file extensions."
   :group 'sunrise
@@ -4028,6 +4030,7 @@ when any of the options -p or -F is used with ls."
 
 ;;; ============================================================================
 ;;; Advice
+
 (defun sr-ad-enable (regexp &optional function)
   "Put all or FUNCTION-specific advice matching REGEXP into effect.
 If provided, only update FUNCTION itself, otherwise all functions
@@ -4048,7 +4051,6 @@ with advice matching REGEXP."
     (ad-disable-regexp regexp)
     (ad-update-regexp regexp)))
 
-
 (defun sunrise-commander-unload-function ()
   (sr-ad-disable "^sr-advice-"))
 
@@ -4065,7 +4067,7 @@ with advice matching REGEXP."
 (sr-rainbow sr-html-face              (:foreground "DarkOliveGreen")        "\\(^..[^d].*\\.x?html?$\\)")
 (sr-rainbow sr-xml-face               (:foreground "DarkGreen")             "\\(^..[^d].*\\.\\(xml\\|xsd\\|xslt?\\|wsdl\\)$\\)")
 (sr-rainbow sr-log-face               (:foreground "brown")                 "\\(^..[^d].*\\.log$\\)")
-(sr-rainbow sr-compressed-face        (:foreground "magenta")               "\\(^..[^d].*\\.\\(zip\\|bz2\\|t?gz\\|[zZ]\\|[jwers]?ar\\|xpi\\)$\\)")
+(sr-rainbow sr-compressed-face        (:foreground "magenta")               "\\(^..[^d].*\\.\\(zip\\|bz2\\|t?gz\\|[zZ]\\|[jwers]?ar\\|xpi\\|apk\\|xz\\)$\\)")
 (sr-rainbow sr-packaged-face          (:foreground "DarkMagenta")           "\\(^..[^d].*\\.\\(deb\\|rpm\\)$\\)")
 (sr-rainbow sr-encrypted-face         (:foreground "DarkOrange1")           "\\(^..[^d].*\\.\\(gpg\\|pgp\\)$\\)")
 
