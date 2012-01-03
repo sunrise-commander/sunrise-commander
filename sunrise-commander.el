@@ -7,7 +7,7 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 24 Sep 2007
 ;; Version: 5
-;; RCS Version: $Rev: 397 $
+;; RCS Version: $Rev: 398 $
 ;; Keywords: files, dired, midnight commander, norton, orthodox
 ;; URL: http://www.emacswiki.org/emacs/sunrise-commander.el
 ;; Compatibility: GNU Emacs 22+
@@ -1601,11 +1601,11 @@ AVFS."
   "Deactivate Sunrise and visit FILENAME as a regular file with WILDCARDS.
 \(See `find-file' for more details on wildcard expansion.)"
   (condition-case description
-      (progn
+      (let ((buff (find-file-noselect filename nil nil wildcards)))
         (sr-save-panes-width)
         (sr-quit)
         (set-window-configuration sr-prior-window-configuration)
-        (find-file filename wildcards))
+        (switch-to-buffer buff))
     (error (message "%s" (cadr description)))))
 
 (defun sr-avfs-dir (filename)
@@ -2039,10 +2039,10 @@ Kills any other buffer opened previously the same way."
     (save-selected-window
       (condition-case description
           (progn
-            (if (buffer-live-p other-window-scroll-buffer)
-                (kill-buffer other-window-scroll-buffer))
             (sr-select-viewer-window)
             (find-file filename)
+            (if (buffer-live-p other-window-scroll-buffer)
+                (kill-buffer other-window-scroll-buffer))
             (sr-scrollable-viewer (current-buffer)))
         (error (message "%s" (cadr description)))))))
 
