@@ -310,6 +310,12 @@ May be `horizontal', `vertical' or `top'."
   :group 'sunrise
   :type 'integer)
 
+(defcustom sr-confirm-kill-viewer t
+  "Whether to ask for confirmation before killing a buffer opened in quick-view
+mode."
+  :group 'sunrise
+  :type 'boolean)
+
 (defcustom sr-fuzzy-negation-character ?!
   "Character to use for negating patterns when fuzzy-narrowing a pane."
   :group 'sunrise
@@ -2015,7 +2021,8 @@ buffer."
   "Kill the last buffer opened using quick view (if any)."
   (let ((buf other-window-scroll-buffer))
     (when (and (buffer-live-p buf)
-               (y-or-n-p (format "Kill buffer %s? " (buffer-name buf))))
+               (or (not sr-confirm-kill-viewer)
+                   (y-or-n-p (format "Kill buffer %s? " (buffer-name buf)))))
       (setq other-window-scroll-buffer nil)
       (save-window-excursion (kill-buffer buf)))))
 
