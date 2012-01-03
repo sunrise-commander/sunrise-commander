@@ -305,6 +305,17 @@ May be `horizontal', `vertical' or `top'."
   :group 'sunrise
   :type 'boolean)
 
+(defcustom sr-windows-default-ratio 66
+  "Percentage of the total height of the frame to use by default for the Sunrise
+Commander panes."
+  :group 'sunrise
+  :type 'integer
+  :set (defun sr-set-windows-default-ratio (symbol value)
+         "Setter function for the `sr-windows-default-ratio' custom option."
+         (if (and (integerp value) (>= value 0) (<= value 100))
+             (set-default symbol value)
+           (error "Invalid value: %s" value))))
+
 (defcustom sr-history-length 20
   "Number of entries to keep in each pane's history rings."
   :group 'sunrise
@@ -1086,20 +1097,18 @@ immediately loaded, but only if `sr-autoload-extensions' is not nil."
     ([(control prior)] . sr-dired-prev-subdir))
   "Traditional commander-style keybindings for the Sunrise Commander.")
 
-(defun sr-set-commander-keys (symbol value)
-  "Setter function for the `sr-use-commander-keys' custom option."
-  (if value
-      (mapc (lambda (x)
-              (define-key sr-mode-map (car x) (cdr x))) sr-commander-keys)
-    (mapc (lambda (x)
-            (define-key sr-mode-map (car x) nil)) sr-commander-keys))
-  (set-default symbol value))
-
 (defcustom sr-use-commander-keys t
   "Whether to use the traditional commander-style keys (F5 = copy, etc)."
   :group 'sunrise
   :type 'boolean
-  :set 'sr-set-commander-keys)
+  :set (defun sr-set-commander-keys (symbol value)
+         "Setter function for the `sr-use-commander-keys' custom option."
+         (if value
+             (mapc (lambda (x)
+                     (define-key sr-mode-map (car x) (cdr x))) sr-commander-keys)
+           (mapc (lambda (x)
+                   (define-key sr-mode-map (car x) nil)) sr-commander-keys))
+         (set-default symbol value)))
 
 ;; These are for backward compatibility:
 (defun sunrise-mc-keys () "Currently does nothing" (interactive) (ignore))
@@ -1451,7 +1460,7 @@ With optional argument REVERT, executes `revert-buffer' on the passive buffer."
     (case size
       (max (max (- frame window-min-height 1) 5))
       (min (min (1+ window-min-height) 5))
-      (t  (/ (* 2 (frame-height)) 3)))))
+      (t  (/ (* sr-windows-default-ratio (frame-height)) 100)))))
 
 (defun sr-enlarge-panes ()
   "Enlarge both panes vertically."
