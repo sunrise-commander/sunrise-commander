@@ -7,7 +7,7 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 24 Sep 2007
 ;; Version: 5
-;; RCS Version: $Rev: 399 $
+;; RCS Version: $Rev: 400 $
 ;; Keywords: files, dired, midnight commander, norton, orthodox
 ;; URL: http://www.emacswiki.org/emacs/sunrise-commander.el
 ;; Compatibility: GNU Emacs 22+
@@ -104,7 +104,8 @@
 ;; * Opening terminals directly from Sunrise:
 ;;    - Press C-c C-t to inconditionally open a new terminal into the currently
 ;;      selected directory in the active pane.
-;;    - Press C-c t to switch to the last opened terminal.
+;;    - Use C-c t to switch to the last opened terminal, or (when already inside
+;;      a terminal) to cycle through all open terminals.
 ;;    - Press C-c T to switch to the last opened terminal and change directory
 ;;      to the one in the current directory.
 ;;    - Press C-c M-t to be prompted for a program name, and then open a new
@@ -638,6 +639,7 @@ Some more bindings are available in terminals opened using any of the Sunrise
 functions (i.e. one of: C-c t, C-c T, C-c C-t, C-c M-t):
 
         C-c Tab ....... switch focus to the active pane
+        C-c t ......... cycle through all currently open terminals
         C-c T ......... cd to the directory in the active pane
         C-c C-t ....... open new terminal, cd to directory in the active pane
         C-c ; ......... follow the current directory in the active pane
@@ -3556,18 +3558,19 @@ cd's to the current directory of the active pane."
 (defmacro sr-term-excursion (newterm form)
   "Take care of the common mechanics of launching or switching to a terminal.
 Helper macro."
-  `(let ((buffer (car sr-ti-openterms)) (new-name))
+  `(let* ((start-buffer (current-buffer)) (term-buffer (car sr-ti-openterms))
+          (new-term (or (null term-buffer) ,newterm)) (new-name))
      (sr-select-viewer-window t)
-     (if (buffer-live-p buffer)
-         (switch-to-buffer buffer)
-       ,form)
-     (when (and ,newterm buffer)
-       (rename-uniquely)
-       (setq new-name (buffer-name))
+     (if (not new-term)
+         (switch-to-buffer (or (cadr (memq start-buffer sr-ti-openterms))
+                               (car sr-ti-openterms)))
+       (when (buffer-live-p term-buffer)
+         (switch-to-buffer term-buffer)
+         (rename-uniquely)
+         (setq new-name (buffer-name)))
        ,form
-       (message "Sunrise: previous terminal renamed to %s" new-name))
-     (setq cd (or cd (null sr-ti-openterms)))
-     (unless (eq (current-buffer) (car sr-ti-openterms))
+       (when new-name
+         (message "Sunrise: previous terminal renamed to %s" new-name))
        (push (current-buffer) sr-ti-openterms))))
 
 (defun sr-term-line-mode ()
@@ -3599,7 +3602,7 @@ See `sr-term' for a description of the arguments."
     (sr-term-char-mode)
     (when (or line-mode (term-in-line-mode))
       (sr-term-line-mode))
-    (when cd
+    (when (or cd (null sr-ti-openterms))
       (term-send-raw-string
        (concat "cd " (shell-quote-wildcard-pattern dir) "")))))
 
@@ -3608,7 +3611,7 @@ See `sr-term' for a description of the arguments."
   (let ((dir (expand-file-name
               (if sr-running sr-this-directory default-directory))))
     (sr-term-excursion newterm (eshell))
-    (when cd
+    (when (or cd (null sr-ti-openterms))
       (insert (concat "cd " (shell-quote-wildcard-pattern dir)))
       (eshell-send-input))
     (sr-term-line-mode)))
@@ -3675,18 +3678,16 @@ Helper macro for implementing terminal integration in Sunrise."
   "Rename the last open terminal (if any) to the default terminal buffer name."
   (let ((found nil)
         (name (buffer-name)))
-    (while (and sr-ti-openterms
-                (not (buffer-live-p (car sr-ti-openterms))))
-      (pop sr-ti-openterms))
-      (when (and (string= (buffer-name (car sr-ti-openterms)) name)
-                 (car sr-ti-openterms)
-                 (pop sr-ti-openterms)
-                 (buffer-live-p (car sr-ti-openterms)))
-        (rename-uniquely)
-        (set-buffer (car sr-ti-openterms))
-        (when (string-match "<[0-9]+>\\'" (buffer-name))
-          (setq name (substring (buffer-name) 0 (match-beginning 0)))
-          (rename-buffer name)))))
+    (setq sr-ti-openterms (delete (current-buffer) sr-ti-openterms))
+    (when (and (string= (buffer-name (car sr-ti-openterms)) name)
+               (car sr-ti-openterms)
+               (pop sr-ti-openterms)
+               (buffer-live-p (car sr-ti-openterms)))
+      (rename-uniquely)
+      (set-buffer (car sr-ti-openterms))
+      (when (string-match "<[0-9]+>\\'" (buffer-name))
+        (setq name (substring (buffer-name) 0 (match-beginning 0)))
+        (rename-buffer name)))))
 (add-hook 'kill-buffer-hook 'sr-ti-restore-previous-term)
 
 (defun sr-ti-revert-buffer ()
@@ -3799,6 +3800,7 @@ by `sr-clex-start'."
   '(("\C-c\C-j" . sr-term-line-mode)
     ("\C-c\C-k" . sr-term-char-mode)
     ("\C-c\t"   . sr-ti-change-window)
+    ("\C-ct"    . sr-term)
     ("\C-cT"    . sr-term-cd)
     ("\C-c\C-t" . sr-term-cd-newterm)
     ("\C-c\M-t" . sr-term-cd-program)
@@ -3828,6 +3830,7 @@ by `sr-clex-start'."
     ([C-tab]       . sr-ti-change-window)
     ([M-tab]       . sr-ti-change-pane)
     ("\C-c\t"      . sr-ti-change-window)
+    ("\C-ct"       . sr-term)
     ("\C-cT"       . sr-term-cd)
     ("\C-c\C-t"    . sr-term-cd-newterm)
     ("\C-c\M-t"    . sr-term-cd-program)
