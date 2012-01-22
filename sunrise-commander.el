@@ -3189,13 +3189,11 @@ pane."
 (defun sr-prune-paths (regexp)
   "Kill all lines (not files) in the current pane matching REGEXP."
   (interactive "sPrune paths matching: ")
-  (dired-unmark-all-marks)
   (save-excursion
-    (goto-char (point-min))
-    (while (search-forward-regexp regexp nil t)
-      (dired-mark 1)
-      (beginning-of-line)))
-  (dired-do-kill-lines))
+    (sr-beginning-of-buffer)
+    (while (if (string-match regexp (dired-get-filename t))
+               (dired-kill-line)
+             (dired-next-line 1)))))
 
 (defun sr-locate-filter (locate-buffer search-string)
   "Return a filter function for the background `locate' process."
