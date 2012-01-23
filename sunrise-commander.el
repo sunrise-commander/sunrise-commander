@@ -1061,6 +1061,8 @@ immediately loaded, but only if `sr-autoload-extensions' is not nil."
 (define-key sr-mode-map "\C-c\C-m"    'sr-advertised-find-file-other)
 (define-key sr-mode-map "\M-^"        'sr-prev-subdir-other)
 (define-key sr-mode-map "\M-J"        'sr-prev-subdir-other)
+(define-key sr-mode-map "\M-m"        'sr-mark-other)
+(define-key sr-mode-map "\M-M"        'sr-unmark-backward-other)
 (define-key sr-mode-map "\M-U"        'sr-unmark-all-marks-other)
 (define-key sr-mode-map "\M-;"        'sr-follow-file-other)
 (define-key sr-mode-map "\C-\M-y"     'sr-history-prev-other)
@@ -2462,6 +2464,16 @@ elements that are non-equal are found."
   "Change to the next directory (if any) in the passive pane's history list."
   (interactive)
   (sr-in-other (sr-history-next)))
+
+(defun sr-mark-other (arg)
+  "Mark the current (or next ARG) files in the passive pane."
+  (interactive "P")
+  (setq arg (or arg 1))
+  (sr-in-other (dired-mark arg)))
+
+(defun sr-unmark-backward-other (arg)
+  (interactive "p")
+  (sr-in-other (dired-unmark-backward arg)))
 
 (defun sr-unmark-all-marks-other ()
   "Remove all marks from the passive pane."
