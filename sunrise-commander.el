@@ -7,7 +7,7 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 24 Sep 2007
 ;; Version: 5
-;; RCS Version: $Rev: 407 $
+;; RCS Version: $Rev: 408 $
 ;; Keywords: files, dired, midnight commander, norton, orthodox
 ;; URL: http://www.emacswiki.org/emacs/sunrise-commander.el
 ;; Compatibility: GNU Emacs 22+
@@ -212,7 +212,8 @@
                    (require 'desktop)
                    (require 'dired-aux)
                    (require 'esh-mode)
-                   (require 'recentf))
+                   (require 'recentf)
+                   (require 'tramp))
 
 (defgroup sunrise nil
   "The Sunrise Commander File Manager."
@@ -806,9 +807,10 @@ Helper macro for passive & synchronized navigation."
            (not (eq major-mode 'sr-mode)))
       (let ((dired-listing-switches dired-listing-switches)
             (sorting-options (or (get sr-selected-window 'sorting-options) "")))
-        (if (null (string-match "^/ftp:" default-directory))
-            (setq dired-listing-switches
-                  (concat sr-listing-switches sorting-options)))
+        (unless (and (featurep 'tramp)
+                     (string-match tramp-file-name-regexp default-directory))
+          (setq dired-listing-switches
+                (concat sr-listing-switches sorting-options)))
         (sr-mode)
         (dired-unadvertise dired-directory))))
 (add-hook 'dired-before-readin-hook 'sr-dired-mode)
@@ -1761,7 +1763,9 @@ visited in order, from longest path to shortest."
 
 (defun sr-history-push (element)
   "Push a new path into the history ring of the current pane."
-  (unless (null element)
+  (unless (or (null element)
+              (and (featurep 'tramp)
+                   (string-match tramp-file-name-regexp element)))
     (let* ((pane (assoc sr-selected-window sr-history-registry))
            (hist (cdr pane))
            (len (length hist)))
