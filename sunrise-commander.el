@@ -7,7 +7,7 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 24 Sep 2007
 ;; Version: 5
-;; RCS Version: $Rev: 408 $
+;; RCS Version: $Rev: 409 $
 ;; Keywords: files, dired, midnight commander, norton, orthodox
 ;; URL: http://www.emacswiki.org/emacs/sunrise-commander.el
 ;; Compatibility: GNU Emacs 22+
@@ -1286,6 +1286,12 @@ buffer or window."
   (sr-restore-panes-width)
   (run-hooks 'sr-start-hook))
 
+(defun sr-restore-prior-configuration ()
+  "Restore the configuration stored in `sr-prior-window-configuration' if any."
+  (set-window-configuration sr-prior-window-configuration)
+  (if (buffer-live-p sr-restore-buffer)
+      (set-buffer sr-restore-buffer)))
+
 (defun sr-lock-window (frame)
   "Resize the left Sunrise pane to have the \"right\" size."
   (when sr-running
@@ -1406,11 +1412,7 @@ With optional argument REVERT, executes `revert-buffer' on the passive buffer."
             (progn
               (sr-select-viewer-window)
               (delete-other-windows))
-          (progn
-            ;;restore previous window setup
-            (set-window-configuration sr-prior-window-configuration)
-            (if (buffer-live-p sr-restore-buffer)
-                (set-buffer sr-restore-buffer))))
+          (sr-restore-prior-configuration))
         (sr-bury-panes)
         (setq buffer-read-only nil)
         (run-hooks 'sr-quit-hook)
