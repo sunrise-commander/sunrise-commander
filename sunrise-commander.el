@@ -680,7 +680,8 @@ automatically:
        %% - inserts a single % sign.
 "
   :group 'sunrise
-  (rename-buffer (concat (buffer-name) " (Sunrise)") t)
+  (unless (string-match "\\(Sunrise\\)" (buffer-name))
+    (rename-buffer (concat (buffer-name) " (Sunrise)") t))
   (set-keymap-parent sr-mode-map dired-mode-map)
   (sr-highlight)
   (dired-omit-mode dired-omit-mode)
