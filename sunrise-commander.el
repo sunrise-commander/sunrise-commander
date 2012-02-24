@@ -934,10 +934,18 @@ immediately loaded, but only if `sr-autoload-extensions' is not nil."
 (ad-activate 'dired-dwim-target-directory)
 
 (defadvice other-window
-  (after sr-advice-other-window (count &optional all-frames))
-  "Selects the correct pane when switching from other windows."
-  (when (and sr-running (eq (selected-window) (sr-other 'window)))
-      (sr-change-window)))
+  (around sr-advice-other-window (count &optional all-frames))
+  "Select the correct Sunrise Commander pane when switching from other windows."
+  (if (not sr-running)
+      ad-do-it
+    (let ((from (selected-window)))
+      ad-do-it
+      (unless (memq from (list sr-left-window sr-right-window))
+        ;; switching from outside
+        (sr-select-window sr-selected-window))
+      (when (eq (selected-window) (sr-other 'window))
+        ;; switching from the other pane
+        (sr-change-window)))))
 (ad-activate 'other-window)
 
 (defadvice use-hard-newlines
