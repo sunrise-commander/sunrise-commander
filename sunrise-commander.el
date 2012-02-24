@@ -1,13 +1,13 @@
 ;;; sunrise-commander.el --- two-pane file manager for Emacs based on Dired and inspired by MC
 
-;; Copyright (C) 2007-2011 José Alfredo Romero Latouche.
+;; Copyright (C) 2007-2012 José Alfredo Romero Latouche.
 
 ;; Author: José Alfredo Romero L. <escherdragon@gmail.com>
 ;;	Štěpán Němec <stepnem@gmail.com>
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 24 Sep 2007
 ;; Version: 5
-;; RCS Version: $Rev: 410 $
+;; RCS Version: $Rev: 411 $
 ;; Keywords: files, dired, midnight commander, norton, orthodox
 ;; URL: http://www.emacswiki.org/emacs/sunrise-commander.el
 ;; Compatibility: GNU Emacs 22+
@@ -586,6 +586,7 @@ The following keybindings are available:
         C-c C-f ....... execute Find-dired in Sunrise VIRTUAL mode
         C-c C-n ....... execute find-Name-dired in Sunrise VIRTUAL mode
         C-c C-g ....... execute find-Grep-dired in Sunrise VIRTUAL mode
+        C-u C-c C-g ... execute find-Grep-dired with additional grep options
         C-c C-l ....... execute Locate in Sunrise VIRTUAL mode
         C-c C-r ....... browse list of Recently visited files (requires recentf)
         C-c C-c ....... [after find, locate or recent] dismiss virtual buffer
@@ -3139,9 +3140,16 @@ as its first argument."
   (sr-find-apply 'find-name-dired pattern))
 
 (defun sr-find-grep (pattern)
-  "Run `find-grep-dired' passing the current directory as first parameter."
+  "Run `find-grep-dired' passing the current directory as first
+parameter. Called with prefix asks for additional grep options."
   (interactive "sFind files containing pattern: ")
-  (sr-find-apply 'find-grep-dired pattern))
+  (let ((find-grep-options
+         (if current-prefix-arg
+             (concat find-grep-options
+                     " "
+                     (read-string "Additional Grep Options: "))
+         find-grep-options)))
+    (sr-find-apply 'find-grep-dired pattern)))
 
 (defadvice find-dired-sentinel
   (after sr-advice-find-dired-sentinel (proc state))
