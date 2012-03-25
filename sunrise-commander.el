@@ -2735,13 +2735,14 @@ are not copied."
         (inhibit-read-only t))
     (with-current-buffer (sr-other 'buffer)
       (sr-clone-files items target clone-op progress))
-    (if (window-live-p (sr-other 'window))
-        (sr-in-other
-         (progn
-           (revert-buffer)
+    (when (window-live-p (sr-other 'window))
+      (sr-in-other
+       (progn
+         (revert-buffer)
+         (when (memq major-mode '(sr-mode sr-virtual-mode))
            (dired-mark-remembered
             (mapcar (lambda (x) (cons (expand-file-name x) mark-char)) names))
-           (sr-focus-filename (car names)))))))
+           (sr-focus-filename (car names))))))))
 
 (defun sr-clone-files (file-paths target-dir clone-op progress &optional do-overwrite)
   "Clone all files in FILE-PATHS to TARGET-DIR using CLONE-OP to clone the files.
