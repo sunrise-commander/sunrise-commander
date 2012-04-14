@@ -1175,6 +1175,7 @@ these values uses the default, ie. $HOME."
         (if right-directory
             (setq sr-right-directory right-directory))
 
+        (sr-switch-to-nonpane-buffer)
         (setq sr-restore-buffer (current-buffer)
               sr-current-frame (window-frame (selected-window))
               sr-prior-window-configuration (current-window-configuration)
@@ -1277,13 +1278,7 @@ buffer or window."
   (delete-other-windows)
   (if (buffer-live-p other-window-scroll-buffer)
       (switch-to-buffer other-window-scroll-buffer)
-    (let ((start (current-buffer)))
-      (while (and
-              start
-              (or (memq major-mode '(sr-mode sr-virtual-mode sr-tree-mode))
-                  (memq (current-buffer) (list sr-left-buffer sr-right-buffer))))
-        (bury-buffer)
-        (if (eq start (current-buffer)) (setq start nil)))))
+    (sr-switch-to-nonpane-buffer))
 
   ;;now create the viewer window
   (unless (and sr-panes-height (< sr-panes-height (frame-height)))
@@ -1306,6 +1301,16 @@ buffer or window."
   (sr-select-window sr-selected-window)
   (sr-restore-panes-width)
   (run-hooks 'sr-start-hook))
+
+(defun sr-switch-to-nonpane-buffer ()
+  "Try to switch to a buffer that is *not* a Sunrise pane."
+  (let ((start (current-buffer)))
+    (while (and
+              start
+              (or (memq major-mode '(sr-mode sr-virtual-mode sr-tree-mode))
+                  (memq (current-buffer) (list sr-left-buffer sr-right-buffer))))
+        (bury-buffer)
+        (if (eq start (current-buffer)) (setq start nil)))))
 
 (defun sr-restore-prior-configuration ()
   "Restore the configuration stored in `sr-prior-window-configuration' if any."
