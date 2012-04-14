@@ -7,7 +7,7 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 24 Sep 2007
 ;; Version: 5
-;; RCS Version: $Rev: 415 $
+;; RCS Version: $Rev: 416 $
 ;; Keywords: files, dired, midnight commander, norton, orthodox
 ;; URL: http://www.emacswiki.org/emacs/sunrise-commander.el
 ;; Compatibility: GNU Emacs 22+
@@ -1485,8 +1485,7 @@ With optional argument REVERT, executes `revert-buffer' on the passive buffer."
              (numberp sr-selected-window-width))
     (enlarge-window-horizontally
      (min (- sr-selected-window-width (window-width))
-          (- (frame-width) (window-width) window-min-width)))
-    (setq sr-selected-window-width nil)))
+          (- (frame-width) (window-width) window-min-width)))))
 
 (defun sr-resize-panes (&optional reverse)
   "Enlarge (or shrink, if REVERSE is t) the left pane by 5 columns."
@@ -1501,14 +1500,16 @@ With optional argument REVERT, executes `revert-buffer' on the passive buffer."
 (defun sr-enlarge-left-pane ()
   "Enlarge the left pane by 5 columns."
   (interactive)
-  (if (< (1+ window-min-width) (window-width sr-right-window))
-      (sr-resize-panes)))
+  (when (< (1+ window-min-width) (window-width sr-right-window))
+      (sr-resize-panes)
+      (sr-save-panes-width)))
 
 (defun sr-enlarge-right-pane ()
   "Enlarge the right pane by 5 columns."
   (interactive)
-  (if (< (1+ window-min-width) (window-width sr-left-window))
-      (sr-resize-panes t)))
+  (when (< (1+ window-min-width) (window-width sr-left-window))
+      (sr-resize-panes t)
+      (sr-save-panes-width)))
 
 (defun sr-get-panes-size (&optional size)
   "Tell what the maximal, minimal and normal pane sizes should be."
