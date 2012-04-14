@@ -1557,17 +1557,22 @@ The optional argument determines the height to lock the panes at.
 Valid values are `min' and `max'; given any other value, locks
 the panes at normal position."
   (interactive)
-  (when sr-running
-    (setq sr-panes-height (sr-get-panes-size height))
-    (let ((locked sr-windows-locked))
-      (setq sr-windows-locked t)
-      (if height
-          (shrink-window 1)
-        (setq sr-selected-window-width t)
-        (balance-windows))
-      (unless locked
-        (sit-for 0.1)
-        (setq sr-windows-locked nil)))))
+  (if sr-running
+    (if (not (and (window-live-p sr-left-window)
+                  (or (window-live-p sr-right-window)
+                      (eq sr-window-split-style 'top))))
+        (sr-setup-windows)
+      (setq sr-panes-height (sr-get-panes-size height))
+      (let ((locked sr-windows-locked))
+        (setq sr-windows-locked t)
+        (if height
+            (shrink-window 1)
+          (setq sr-selected-window-width t)
+          (balance-windows))
+        (unless locked
+          (sit-for 0.1)
+          (setq sr-windows-locked nil))))
+    (sunrise)))
 
 (defun sr-max-lock-panes ()
   (interactive)
