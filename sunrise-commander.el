@@ -3443,10 +3443,15 @@ buffer in the passive pane."
 
 (defun sr-dired-do-apply (dired-fun)
   "Helper function for implementing `sr-do-query-replace-regexp' and Co."
-  (let ((buff (current-buffer)))
-    (sr-quit)
-    (switch-to-buffer buff)
-    (call-interactively dired-fun)))
+  (let ((buff (current-buffer)) (orig sr-restore-buffer))
+    (condition-case nil
+        (progn
+          (sr-quit)
+          (switch-to-buffer buff)
+          (call-interactively dired-fun))
+      (quit
+       (when orig (switch-to-buffer orig))
+       (sunrise)))))
 
 (defun sr-do-query-replace-regexp ()
   "Force Sunrise to quit before executing `dired-do-query-replace-regexp'."
