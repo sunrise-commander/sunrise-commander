@@ -7,7 +7,7 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 24 Sep 2007
 ;; Version: 5
-;; RCS Version: $Rev: 416 $
+;; RCS Version: $Rev: 417 $
 ;; Keywords: files, dired, midnight commander, norton, orthodox
 ;; URL: http://www.emacswiki.org/emacs/sunrise-commander.el
 ;; Compatibility: GNU Emacs 22+
@@ -3462,7 +3462,9 @@ buffer in the passive pane."
         (progn
           (sr-quit)
           (switch-to-buffer buff)
-          (call-interactively dired-fun))
+          (call-interactively dired-fun)
+          (replace-buffer-in-windows buff)
+          (sr-bury-panes))
       (quit
        (when orig (switch-to-buffer orig))
        (sunrise)))))
