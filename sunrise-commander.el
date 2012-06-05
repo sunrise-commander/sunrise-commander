@@ -1704,7 +1704,8 @@ Returns nil if AVFS cannot manage this kind of file."
 
 (defun sr-goto-dir (dir)
   "Change the current directory in the active pane to the given one."
-  (interactive "DChange directory (file or pattern): ")
+  (interactive
+   (list (ido-read-directory-name "Change directory (file or pattern): ")))
   (if sr-goto-dir-function
       (funcall sr-goto-dir-function dir)
     (unless (and (eq major-mode 'sr-mode) (sr-equal-dirs dir default-directory))
