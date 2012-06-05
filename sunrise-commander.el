@@ -3934,7 +3934,7 @@ by `sr-clex-start'."
     ([M-return]    . sr-ti-select)
     ([S-M-return]  . sr-ti-select)
     ("\M-M"        . sr-ti-mark)
-    ([M-backspace] . sr-ti-unmark)
+    ;; ([M-backspace] . sr-ti-unmark)
     ("\M-\d"       . sr-ti-unmark)
     ("\M-J"        . sr-ti-prev-subdir)
     ("\M-U"        . sr-ti-unmark-all-marks)
