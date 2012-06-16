@@ -7,7 +7,7 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 24 Oct 2009
 ;; Version: 1
-;; RCS Version: $Rev: 394 $
+;; RCS Version: $Rev: 421 $
 ;; Keywords: sunrise commander, tabs
 ;; URL: http://www.emacswiki.org/emacs/sunrise-x-tabs.el
 ;; Compatibility: GNU Emacs 22+
@@ -360,19 +360,19 @@ argument ALIAS allows to provide a pretty name to label the tab."
                             (substring-no-properties label)))
 
 (defun sr-tabs-redefine-label (name alias)
-  ;; FIXME better docstring, explain the arguments
-  "Modify the pretty name (alias) of the label with the given name."
+  "Change the name displayed on the tab with assigned buffer NAME to ALIAS.
+By default, a tab is named after its assigned buffer. This function allows to
+give tabs names that are more readable or simply easier to remember."
   (let* ((alias (sr-tabs-trim-label (or alias ""))) (cache))
-    (if (string= "" alias)
-        (error "Cancelled: invalid tab name")
-      (progn
-        (setq cache (assq sr-selected-window sr-tabs-labels-cache))
-        (setcdr cache (delq nil
-                       (mapcar (lambda(x)
-                                 (and (not (equal (car x) name)) x))
-                               (cdr cache))))
-        (sr-tabs-make-label name alias)
-        (sr-tabs-refresh)))))
+    (when (string= "" alias)
+        (setq alias (buffer-name)))
+    (setq cache (assq sr-selected-window sr-tabs-labels-cache))
+    (setcdr cache (delq nil
+                        (mapcar (lambda(x)
+                                  (and (not (equal (car x) name)) x))
+                                (cdr cache))))
+    (sr-tabs-make-label name alias)
+    (sr-tabs-refresh)))
 
 (defun sr-tabs-get-tag (name is-active)
   "Retrieve the cached tag for the tab named NAME in state IS-ACTIVE.
@@ -566,7 +566,6 @@ This minor mode provides the following keybindings:
     (define-key menu-map [prev]      '("Previous"     . sr-tabs-prev))
     (define-key menu-map [remove]    '("Remove"       . sr-tabs-remove))
     (define-key menu-map [add]       '("Add/Rename"   . sr-tabs-add))))
-;;; FIXME
 (defun sr-tabs-start-once ()
   "Bootstrap the tabs mode on the first execution of the Sunrise Commander,
 after module installation."
