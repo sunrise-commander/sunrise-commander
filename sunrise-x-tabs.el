@@ -1,6 +1,6 @@
 ;;; sunrise-x-tabs.el --- tabs for the Sunrise Commander File Manager
 
-;; Copyright (C) 2009-2010 José Alfredo Romero Latouche.
+;; Copyright (C) 2009-2012 José Alfredo Romero Latouche.
 
 ;; Author: José Alfredo Romero L. <escherdragon@gmail.com>
 ;;	Štěpán Němec <stepnem@gmail.com>
@@ -95,7 +95,8 @@
 ;;; Code:
 
 (require 'sunrise-commander)
-(eval-when-compile (require 'desktop))
+(eval-when-compile (require 'cl)
+                   (require 'desktop))
 
 (defcustom sr-tabs-follow-panes t
   "Whether tabs should be swapped too when transposing the Sunrise panes."
@@ -142,9 +143,9 @@
 (defconst sr-tabs-max-cache-length 30
   "Max number of tab labels cached for reuse.")
 
-(defvar sr-tabs '((left)(right)))
+(defvar sr-tabs '((left) (right)))
 (defvar sr-tabs-labels-cache '((left) (right)))
-(defvar sr-tabs-line-cache '((left)(right)))
+(defvar sr-tabs-line-cache '((left) (right)))
 (defvar sr-tabs-mode nil)
 (defvar sr-tabs-on nil)
 
@@ -277,10 +278,9 @@ removes the tab."
 (defun sr-tabs-transpose ()
   "Swap the sets of tabs from one pane to the other."
   (interactive)
-  (setq sr-tabs (mapc (lambda (x)
-                        (if (eq 'left (car x))
-                            (setcar x 'right)
-                          (setcar x 'left))) sr-tabs))
+  (flet ((flip (side) (setcar side (cdr (assq (car side) sr-side-lookup)))))
+    (dolist (registry (list sr-tabs sr-tabs-labels-cache))
+      (mapc 'flip registry)))
   (sr-in-other (sr-tabs-refresh))
   (sr-tabs-refresh))
 
