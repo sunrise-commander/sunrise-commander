@@ -2151,7 +2151,7 @@ Kills any other buffer opened previously the same way."
 Selective hiding of specific attributes can be controlled by customizing the
 `sr-attributes-display-mask' variable."
   (let ((cursor beg) props)
-    (flet ((sr-make-display-props
+    (labels ((sr-make-display-props
             (display-function-or-flag)
             (cond ((functionp display-function-or-flag)
                    `(display
@@ -3371,7 +3371,7 @@ Used to notify about the termination status of the process."
     (sr-beginning-of-buffer)
     (dired-change-marks ?* ?\t)
     (let ((stack nil) (filter "") (regex "") (next-char nil) (inhibit-quit t))
-      (flet ((read-next (f) (read-char (concat "Fuzzy narrow: " f))))
+      (labels ((read-next (f) (read-char (concat "Fuzzy narrow: " f))))
         (setq next-char (read-next filter))
         (sr-backup-buffer)
         (while next-char
