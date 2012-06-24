@@ -700,26 +700,16 @@ automatically:
   (sr-highlight)
   (dired-omit-mode dired-omit-mode)
 
-  (make-local-variable 'dired-recursive-deletes)
-  (setq dired-recursive-deletes 'top)
-
   (make-local-variable 'truncate-partial-width-windows)
   (setq truncate-partial-width-windows (sr-truncate-v t))
 
-  (make-local-variable 'truncate-lines)
-  (setq truncate-lines nil)
-
-  (make-local-variable 'desktop-save-buffer)
-  (setq desktop-save-buffer 'sr-desktop-save-buffer)
-
-  (make-local-variable 'revert-buffer-function)
-  (setq revert-buffer-function 'sr-revert-buffer)
- 
+  (set (make-local-variable 'dired-recursive-deletes) 'top)
+  (set (make-local-variable 'truncate-lines) nil)
+  (set (make-local-variable 'desktop-save-buffer) 'sr-desktop-save-buffer)
+  (set (make-local-variable 'revert-buffer-function) 'sr-revert-buffer)
   (set (make-local-variable 'buffer-quit-function) 'sr-quit)
   (set (make-local-variable 'sr-show-file-attributes) sr-show-file-attributes)
-
-  (make-local-variable 'hl-line-sticky-flag)
-  (setq hl-line-sticky-flag nil)
+  (set (make-local-variable 'hl-line-sticky-flag) nil)
   (hl-line-mode 1)
 )
 
@@ -734,20 +724,12 @@ automatically:
   (make-local-variable 'truncate-partial-width-windows)
   (setq truncate-partial-width-windows (sr-truncate-v t))
 
-  (make-local-variable 'truncate-lines)
-  (setq truncate-lines nil)
-
-  (make-local-variable 'desktop-save-buffer)
-  (setq desktop-save-buffer 'sr-desktop-save-buffer)
-
-  (make-local-variable 'revert-buffer-function)
-  (setq revert-buffer-function 'sr-revert-buffer)
- 
+  (set (make-local-variable 'truncate-lines) nil)
+  (set (make-local-variable 'desktop-save-buffer) 'sr-desktop-save-buffer)
+  (set (make-local-variable 'revert-buffer-function) 'sr-revert-buffer)
   (set (make-local-variable 'buffer-quit-function) 'sr-quit)
   (set (make-local-variable 'sr-show-file-attributes) sr-show-file-attributes)
-
-  (make-local-variable 'hl-line-sticky-flag)
-  (setq hl-line-sticky-flag nil)
+  (set (make-local-variable 'hl-line-sticky-flag) nil)
   (hl-line-mode 1)
 
   (define-key sr-virtual-mode-map "\C-c\C-c" 'sr-virtual-dismiss))
