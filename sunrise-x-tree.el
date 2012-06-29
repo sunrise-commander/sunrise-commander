@@ -818,6 +818,7 @@ nil."
       (sr-goto-dir target)
       (sr-display-attributes (point-min) (point-max) sr-show-file-attributes)
       (sr-keep-buffer side)
+      (if (fboundp 'sr-modeline-refresh) (sr-modeline-refresh))
       (if (fboundp 'sr-tabs-refresh) (sr-tabs-refresh)))))
 
 (defun sr-tree-sync ()
