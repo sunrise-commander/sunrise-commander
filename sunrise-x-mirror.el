@@ -37,7 +37,7 @@
 ;; remove, or rename anything, you still have to uncompress the archive, do the
 ;; stuff and compress it back yourself.
 
-;; It uses one of funionfs or unionfs-fuse to create a writeable overlay on top
+;; It uses one or unionfs-fuse or funionfs  to create a writeable overlay on top
 ;; of the read-only filesystem provided by AVFS. You can freely add, remove or
 ;; modify anything inside the resulting union filesystem (a.k.a. the "mirror
 ;; area"), and then commit all modifications (or not) to the original archive
@@ -66,9 +66,8 @@
 ;; 1) FUSE + AVFS support in your Sunrise Commander. If you can navigate (read-
 ;; only) inside compressed archives you already have this.
 
-;; 2) One of funionfs or unionfs-fuse. Debian lenny (stable distribution) offers
-;; packages for both - I've tested them and both seem to work fine, though I had
-;; to use a somewhat older version of unionfs-fuse (0.21-3).
+;; 2) One of unionfs-fuse or funionfs. Debian squeeze (stable) offers a package
+;; for the first, which is currently the recommended implementation.
 
 ;; 3) Programs required for repacking archives -- at least zip and tar.
 
@@ -90,7 +89,7 @@
 ;; 3) Evaluate the new expression, or reload your .emacs file, or restart Emacs.
 
 ;; 4) Customize the variable `sr-mirror-unionfs-impl' and select your preferred
-;; unionfs implementation (either funionfs or unionfs-fuse).
+;; unionfs implementation (either unionfs-fuse or funionfs).
 
 ;; 5) Run the Sunrise Commander (M-x sunrise), select (or navigate inside) any
 ;; compressed directory in the active pane and press C-c C-b. This will
@@ -144,11 +143,11 @@ browseable through AVFS."
   :group 'sunrise
   :type 'alist)
 
-(defcustom sr-mirror-unionfs-impl 'funionfs
+(defcustom sr-mirror-unionfs-impl 'unionfs-fuse
   "Implementation of unionfs to use for creating mirror areas."
   :group 'sunrise
-  :type '(choice (const :tag "funionfs" funionfs)
-         (const :tag "unionfs-fuse" unionfs-fuse)))
+  :type '(choice (const :tag "unionfs-fuse" unionfs-fuse)
+         (const :tag "funionfs" funionfs)))
 
 (defface sr-mirror-path-face
   '((t (:background "blue" :foreground "yellow" :bold t :height 120)))
@@ -195,10 +194,10 @@ the current mirror home is closed."
 
 (defun sr-mirror-open ()
   "Set up a mirror area in the current pane.
-Uses funionfs to create a writeable filesystem overlay over the
-AVFS virtual filesystem of the selected compressed archive and
-displays it in the current pane. The result is a mirror of the
-contents of the original archive that is fully writeable."
+Uses unionfs-fuse to create a writeable filesystem overlay over the AVFS virtual
+filesystem of the selected compressed archive and displays it in the current
+pane. The result is a mirror of the contents of the original archive that is
+fully writeable."
   (interactive)
   (let ((path (or (dired-get-filename nil t)
                   (concat (expand-file-name (dired-current-directory)) "/.")))
@@ -239,13 +238,13 @@ corresponding mirror area."
          (overlay (concat sr-mirror-home "." base))
          (command
           (case sr-mirror-unionfs-impl
-            (funionfs
-             (concat "cd ~; funionfs " overlay " " mirror
-                     " -o dirs=" virtual "=ro"))
-
             (unionfs-fuse
              (concat "cd ~; unionfs-fuse -o cow,kernel_cache -o allow_other "
-                     overlay "=RW:" virtual "=RO " mirror)))))
+                     overlay "=RW:" virtual "=RO " mirror))
+
+            (funionfs
+             (concat "cd ~; funionfs " overlay " " mirror
+                     " -o dirs=" virtual "=ro")))))
     (if (null virtual)
         (error (concat "Sunrise: sorry, don't know how to mirror " path)))
     (unless (file-directory-p mirror)
