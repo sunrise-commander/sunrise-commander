@@ -852,7 +852,11 @@ Helper macro for passive & synchronized navigation."
   (interactive)
   (when (eq major-mode 'sr-mode)
     (let ((focus (dired-get-filename 'verbatim t)))
-      (sr-save-aspect (sr-virtual-mode))
+      (sr-save-aspect
+       (when (eq sr-left-buffer sr-right-buffer)
+         (dired default-directory)
+         (sr-keep-buffer))
+       (sr-virtual-mode))
       (if focus (sr-focus-filename focus)))))
 
 (defun sr-virtual-dismiss ()
