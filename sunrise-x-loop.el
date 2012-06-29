@@ -1,18 +1,18 @@
 ;;; sunrise-x-loop.el --- asynchronous execution of filesystem operations for the Sunrise Commander File Manager -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2010 José Alfredo Romero Latouche.
+;; Copyright (C) 2008-2012 José Alfredo Romero Latouche.
 
 ;; Author: José Alfredo Romero L. <escherdragon@gmail.com>
 ;;	Štěpán Němec <stepnem@gmail.com>
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 27 Jun 2008
 ;; Version: 3
-;; RCS Version: $Rev: 394 $
+;; RCS Version: $Rev: 423 $
 ;; Keywords: sunrise commander, background copy rename move
 ;; URL: http://www.emacswiki.org/emacs/sunrise-x-loop.el
 ;; Compatibility: GNU Emacs 22+
 
-;; This file is *NOT* part of GNU Emacs.
+;; This file is not part of GNU Emacs.
 
 ;; This program is free software: you can redistribute it and/or modify it under
 ;; the terms of the GNU General Public License as published by the Free Software

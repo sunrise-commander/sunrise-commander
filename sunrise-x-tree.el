@@ -7,12 +7,12 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 4 May 2010
 ;; Version: 1
-;; RCS Version: $Rev: 422 $
+;; RCS Version: $Rev: 423 $
 ;; Keywords: sunrise commander, directories tree navigation
 ;; URL: http://www.emacswiki.org/emacs/sunrise-x-tree.el
 ;; Compatibility: GNU Emacs 22+
 
-;; This file is *NOT* part of GNU Emacs.
+;; This file is not part of GNU Emacs.
 
 ;; This program is free software: you can redistribute it and/or modify it under
 ;; the terms of the GNU General Public License as published by the Free Software
@@ -195,10 +195,9 @@ Used by the command `sr-tree-explode-branch'."
   "List of paths to big compressed archives visited through AVFS.")
 
 (defvar sr-tree-cursor nil
-  ;; FIXME better docstring -- what about LABEL?
   "Cons cell of the from (LABEL . FILEPATH).
-FILEPATH is the path to the selected directory in the current
-tree view.")
+FILEPATH is the path to the selected directory in the current tree
+view. LABEL is the name displayed in the tree representing FILEPATH")
 
 (defvar sr-tree-mode-map (make-sparse-keymap)
   "Keymap for the Sunrise Commander Tree View.")

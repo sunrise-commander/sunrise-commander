@@ -6,13 +6,13 @@
 ;;	Štěpán Němec <stepnem@gmail.com>
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 24 Sep 2007
-;; Version: 5
-;; RCS Version: $Rev: 422 $
+;; Version: 6
+;; RCS Version: $Rev: 423 $
 ;; Keywords: files, dired, midnight commander, norton, orthodox
 ;; URL: http://www.emacswiki.org/emacs/sunrise-commander.el
 ;; Compatibility: GNU Emacs 22+
 
-;; This file is *NOT* part of GNU Emacs.
+;; This file is not part of GNU Emacs.
 
 ;; This program is free software: you can redistribute it and/or modify it under
 ;; the terms of the GNU General Public License as published by the Free Software
@@ -29,28 +29,19 @@
 
 ;;; Commentary:
 
-;; Here is another two-pane mc emulation layer for Emacs. It's built on top of
-;; Dired and takes advantage of all its features, offering at the same time the
-;; double pane interface I'd been missing so badly since I started using regu-
-;; larly Emacs (for everything!). I tried both Ilya Zakharevich's nc.el and
-;; Kevin Burton's mc.el, but none of them was what I was looking for (though
-;; mc.el was near the ideal).
-
-;; A lot of this code was once adapted from Kevin's mc.el, but it has evolved
-;; quite a bit since then. Another part (the code for file copying and renaming)
-;; derives originally from the Dired extensions written by Kurt Nørmark for LAML
-;; (http://www.cs.aau.dk/~normark/scheme/distribution/laml/).
-
-;; I have added to the mix many useful functions:
+;; The Sunrise Commmander is an double-pane file manager for Emacs. It's built
+;; atop of Dired and takes advantage of all its power, but also provides many
+;; handy features of its own:
 
 ;; * Sunrise is implemented as a derived major mode confined inside the pane
 ;; buffers, so its buffers and Dired ones can live together without easymenu or
 ;; viper to avoid key binding collisions.
 
 ;; * It automatically closes unused buffers and tries to never keep open more
-;; than the one or two used to display the panes.
+;; than the one or two used to display the panes, though this behavior may be
+;; disabled if desired.
 
-;; * Each pane has its own history ring: press M-y / M-u for moving backwards /
+;; * Each pane has its own history stack: press M-y / M-u for moving backwards /
 ;; forwards in the history of directories.
 
 ;; * Press M-t to swap (transpose) the panes.
@@ -164,14 +155,19 @@
 ;; There is no help window like in MC, but if you really miss it, just get and
 ;; install the sunrise-x-buttons extension.
 
+;; A lot of this code was once adapted from Kevin's mc.el, but it has evolved
+;; considerably since then. Another part (the code for file copying and
+;; renaming) derives originally from the Dired extensions written by Kurt
+;; Nørmark for LAML (http://www.cs.aau.dk/~normark/scheme/distribution/laml/).
+
 ;; It was written on GNU Emacs 24 on Linux and tested on GNU Emacs 22, 23 and 24
 ;; for Linux and on EmacsW32 (version 23) for Windows. I have also received
 ;; feedback from users reporting it works OK on the Mac. It does not work either
 ;; on GNU Emacs 21 or XEmacs -- please drop me a line if you would like to help
 ;; porting it. All contributions and/or bug reports will be very welcome.
 
-;; For more details on the file manager, extensions and cool tips & tricks visit
-;; http://www.emacswiki.org/emacs/Sunrise_Commander
+;; For more details on the file manager, several available extensions and many
+;; cool tips & tricks visit http://www.emacswiki.org/emacs/Sunrise_Commander
 
 ;;; Installation and Usage:
 
@@ -387,9 +383,11 @@ displayed instead."
 (defvar sr-prior-window-configuration nil
   "Window configuration before Sunrise was started.")
 
-(defvar sr-running nil "True when Sunrise commander mode is running.")
+(defvar sr-running nil
+  "True when Sunrise commander mode is running.")
 
-(defvar sr-synchronized nil "True when synchronized navigation is on")
+(defvar sr-synchronized nil
+  "True when synchronized navigation is on")
 
 (defvar sr-current-window-overlay nil
   "Holds the current overlay which marks the current Dired buffer.")
@@ -398,7 +396,7 @@ displayed instead."
   "Overlay used to highlight the hot character (%) during CLEX operations.")
 
 (defvar sr-left-directory "~/"
-  "Dired directory for the left window. See the variable `dired-directory'.")
+  "Dired directory for the left window. See variable `dired-directory'.")
 
 (defvar sr-left-buffer nil
   "Dired buffer for the left window.")
@@ -407,7 +405,7 @@ displayed instead."
   "The left window of Dired.")
 
 (defvar sr-right-directory "~/"
-  "Dired directory for the right window.  See variable `dired-directory'.")
+  "Dired directory for the right window. See variable `dired-directory'.")
 
 (defvar sr-right-buffer nil
   "Dired buffer for the right window.")
@@ -451,7 +449,8 @@ element that is immediately beneath the top of the stack.")
   "Flag that indicates that a CLEX operation is taking place.")
 
 (defvar sr-virtual-buffer nil
-  "Local flag that indicates the current buffer was originally in VIRTUAL mode.")
+  "Local flag that indicates the current buffer was originally in
+  VIRTUAL mode.")
 
 (defvar sr-dired-directory ""
   "Directory inside which `sr-mode' is currently active.")
@@ -482,8 +481,9 @@ Initial value is 2/3 the viewport height.")
 (make-variable-buffer-local 'sr-backup-buffer)
 
 (defvar sr-goto-dir-function nil
-  "Function to use to navigate to a given directory, or nil to do the default.
-The function receives one argument DIR, which is the directory to go to.")
+  "Function to use to navigate to a given directory, or nil to do
+the default.  The function receives one argument DIR, which is
+the directory to go to.")
 
 (defconst sr-side-lookup (list '(left . right) '(right . left))
   "Trivial alist used by the Sunrise Commander to lookup its own passive side.")
@@ -1143,7 +1143,7 @@ the Sunrise Commander."
   "Traditional commander-style keybindings for the Sunrise Commander.")
 
 (defcustom sr-use-commander-keys t
-  "Whether to use the traditional commander-style keys (F5 = copy, etc)."
+  "Whether to use traditional commander-style function keys (F5 = copy, etc)"
   :group 'sunrise
   :type 'boolean
   :set (defun sr-set-commander-keys (symbol value)
@@ -1155,17 +1155,12 @@ the Sunrise Commander."
                    (define-key sr-mode-map (car x) nil)) sr-commander-keys))
          (set-default symbol value)))
 
-;; These are for backward compatibility:
-(defun sunrise-mc-keys () "Currently does nothing" (interactive) (ignore))
-(make-obsolete 'sunrise-mc-keys
-               "customize variable `sr-use-commander-keys' instead" "4R340")
-
 ;;; ============================================================================
 ;;; Initialization and finalization functions:
 
 ;;;###autoload
 (defun sunrise (&optional left-directory right-directory filename)
-  "Toggle the Sunrise Commander FM.
+  "Toggle the Sunrise Commander file manager.
 If LEFT-DIRECTORY is given, the left window will display that
 directory (same for RIGHT-DIRECTORY). Specifying nil for any of
 these values uses the default, ie. $HOME."
