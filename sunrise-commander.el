@@ -464,8 +464,9 @@ element that is immediately beneath the top of the stack.")
   "Current height of the pane windows.
 Initial value is 2/3 the viewport height.")
 
-(defvar sr-current-path-face 'sr-active-path-face
-  "Default face of the directory path (can be overridden buffer-locally).")
+(defvar sr-current-path-faces nil
+  "List of faces to display the path in the current pane (first wins)")
+(make-variable-buffer-local 'sr-current-path-faces)
 
 (defvar sr-inhibit-highlight nil
   "Private variable used to temporarily inhibit highlighting in panes.")
@@ -765,11 +766,11 @@ automatically:
   `(let ((inhibit-read-only t)
          (omit (or dired-omit-mode -1))
          (attrs (eval 'sr-show-file-attributes))
-         (path-face sr-current-path-face))
+         (path-faces sr-current-path-faces))
      ,@body
      (dired-omit-mode omit)
-     (if path-face
-         (set (make-local-variable 'sr-current-path-face) path-face))
+     (if path-faces
+         (setq sr-current-path-faces path-faces))
      (if (string= "NUMBER" (get sr-selected-window 'sorting-order))
          (sr-sort-by-operation 'sr-numerical-sort-op))
      (if (get sr-selected-window 'sorting-reverse)
@@ -1349,7 +1350,9 @@ buffer or window."
 (add-hook 'window-size-change-functions 'sr-lock-window)
 
 (defun sr-highlight(&optional face)
-  "Set up the path line in the current buffer."
+  "Set up the path line in the current buffer.
+With optional FACE, register this face as the current face to display the active
+path line."
   (when (and (memq major-mode '(sr-mode sr-virtual-mode sr-tree-mode))
              (not sr-inhibit-highlight))
     (let ((inhibit-read-only t))
@@ -1360,6 +1363,13 @@ buffer or window."
         (sr-graphical-highlight face)
         (sr-force-passive-highlight)
         (run-hooks 'sr-refresh-hook)))))
+
+(defun sr-unhighlight (face)
+  "Remove FACE from the list of faces of the active path line."
+  (when face
+    (setq sr-current-path-faces (delq face sr-current-path-faces))
+    (overlay-put sr-current-window-overlay 'face
+                 (or (car sr-current-path-faces) 'sr-active-path-face))))
 
 (defun sr-hide-avfs-root ()
   "Hide the AVFS virtual filesystem root (if any) on the path line."
@@ -1391,10 +1401,9 @@ Returns t if the overlay is no longer valid and should be replaced."
 (defun sr-graphical-highlight (&optional face)
   "Set up the graphical path line in the current buffer.
 \(Fancy fonts and clickable path.)"
-  (when (sr-invalid-overlayp)
-    (let ((my-face (or face sr-current-path-face))
-          (begin) (end) (inhibit-read-only t))
+  (let ((begin) (end) (inhibit-read-only t))
 
+    (when (sr-invalid-overlayp)
       ;;determine begining and end
       (save-excursion
         (goto-char (point-min))
@@ -1408,7 +1417,6 @@ Returns t if the overlay is no longer valid and should be replaced."
         (delete-overlay sr-current-window-overlay))
       (set (make-local-variable 'sr-current-window-overlay)
            (make-overlay begin end))
-      (overlay-put sr-current-window-overlay 'face my-face)
 
       ;;path line hover effect:
       (add-text-properties
@@ -1416,13 +1424,18 @@ Returns t if the overlay is no longer valid and should be replaced."
        end
        '(mouse-face sr-highlight-path-face
                     help-echo "click to move up")
-       nil)))
-  (overlay-put sr-current-window-overlay 'window (selected-window)))
+       nil))
+    (when face
+      (setq sr-current-path-faces (cons face sr-current-path-faces)))
+    (overlay-put sr-current-window-overlay 'face
+                 (or (car sr-current-path-faces) 'sr-active-path-face))
+    (overlay-put sr-current-window-overlay 'window (selected-window))))
 
 (defun sr-force-passive-highlight (&optional revert)
   "Set up the graphical path line in the passive pane.
 With optional argument REVERT, executes `revert-buffer' on the passive buffer."
-    (unless (or (null sr-right-buffer) (eq sr-left-buffer sr-right-buffer))
+    (unless (or (not (buffer-live-p (sr-other 'buffer)))
+                (eq sr-left-buffer sr-right-buffer))
       (with-current-buffer (sr-other 'buffer)
         (when sr-current-window-overlay
           (delete-overlay sr-current-window-overlay))
@@ -2616,7 +2629,7 @@ specifiers are: d (decimal), x (hex) or o (octal)."
 (defun sr-editable-pane ()
   "Put the current pane in File Names Editing mode (`wdired-mode')."
   (interactive)
-  (sr-highlight 'sr-editing-path-face)
+  (sr-graphical-highlight 'sr-editing-path-face)
   (let* ((was-virtual (eq major-mode 'sr-virtual-mode))
          (major-mode 'dired-mode))
     (wdired-change-to-wdired-mode)
@@ -2640,18 +2653,19 @@ specifiers are: d (decimal), x (hex) or o (octal)."
     (intern (concat "sr-advice-" (symbol-name fun))) nil t
     `(advice
       lambda ()
-      (if sr-running
+      (if (not sr-running)
+          ad-do-it
+        (let ((was-virtual (local-variable-p 'sr-virtual-buffer))
+              (saved-point (point)))
           (sr-save-aspect
-           (let ((was-virtual (local-variable-p 'sr-virtual-buffer))
-                 (saved-point (point)))
-             (setq major-mode 'wdired-mode)
-             (flet ((yes-or-no-p (prompt) nil)
-                    (revert-buffer
-                     (&optional ignore-auto noconfirm preserve-modes) nil))
-               ad-do-it)
-             (sr-readonly-pane was-virtual)
-             (goto-char saved-point)))
-        ad-do-it)))
+           (setq major-mode 'wdired-mode)
+           (flet ((yes-or-no-p (prompt) nil)
+                  (revert-buffer
+                   (&optional ignore-auto noconfirm preserve-modes) nil))
+             ad-do-it)
+           (sr-readonly-pane was-virtual)
+           (goto-char saved-point))
+          (sr-unhighlight 'sr-editing-path-face)))))
    'around 'last)
   (ad-activate fun nil))
 (sr-terminate-wdired 'wdired-finish-edit)

@@ -214,9 +214,6 @@ contents of the original archive that is fully writeable."
     (setq fname (file-name-nondirectory path))
     (if (null (assoc-default fname sr-mirror-pack-commands-alist 'string-match))
         (error (concat "Sunrise: sorry, no packer was registered for " fname)))
-    (unless (local-variable-p 'sr-current-path-face)
-      (make-local-variable 'sr-current-path-face))
-    (setq sr-current-path-face 'sr-mirror-path-face)
     (sr-mirror-enable)
     (unless (file-exists-p sr-mirror-home)
       (make-directory sr-mirror-home))
@@ -228,6 +225,7 @@ contents of the original archive that is fully writeable."
                   (setq path (dired-get-filename))))
               vpaths)
       (sr-goto-dir (sr-mirror-mount path)))
+    (sr-graphical-highlight 'sr-mirror-path-face)
     (add-hook 'kill-buffer-hook 'sr-mirror-on-kill-buffer)
     t ))
 
@@ -288,7 +286,7 @@ current mirror area (the current buffer will be killed soon)."
                              (y-or-n-p "Sunrise: commit changes in mirror? "))))
 
     (unless local-commit
-      (kill-local-variable 'sr-current-path-face))
+      (sr-unhighlight 'sr-mirror-path-face))
 
     (remove-hook 'kill-buffer-hook 'sr-mirror-on-kill-buffer)
     (sr-follow-file (sr-mirror-demangle mirror))
@@ -507,7 +505,7 @@ This includes e.g. bookmark jumps and pane synchronizations."
            (null (sr-mirror-surface sr-this-directory))
            (sr-mirror-surface (dired-current-directory)))
       (sr-mirror-goto-dir sr-this-directory)
-      (kill-local-variable 'sr-current-path-face)))
+      (sr-unhighlight 'sr-mirror-path-face)))
 
 (defadvice sr-goto-dir
   (around sr-mirror-advice-sr-goto-dir (dir))
