@@ -1,4 +1,4 @@
-;;; sunrise-x-mirror.el --- full read/write access to compressed archives for the Sunrise Commander File Manager
+;;; sunrise-x-mirror.el --- full read/write access to compressed archives for the Sunrise Commander File Manager -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2008-2011 José Alfredo Romero Latouche.
 
@@ -291,7 +291,7 @@ current mirror area (the current buffer will be killed soon)."
     (sr-follow-file (sr-mirror-demangle mirror))
     (setq vroot (dired-get-filename 'no-dir))
 
-    (if do-commit (setq committed (sr-mirror-commit mirror overlay)))
+    (if do-commit (setq committed (sr-mirror-commit mirror)))
     (sr-mirror-unmount mirror overlay)
 
     (unless local-commit
@@ -307,7 +307,7 @@ current mirror area (the current buffer will be killed soon)."
       (sr-mirror-disable))
   t)
 
-(defun sr-mirror-commit (mirror overlay)
+(defun sr-mirror-commit (mirror)
   "Commit all modifications made to MIRROR in directory OVERLAY.
 Replaces the mirrored archive with a new one built with the
 current contents of the mirror. Keeps a backup of the original
@@ -368,7 +368,6 @@ packed archive, otherwise throws an error."
          (target (replace-regexp-in-string
                   "/?$" ""
                   (car (last (split-string archive "+")))))
-         (files (directory-files (concat sr-mirror-home mirror)))
          (command (assoc-default archive sr-mirror-pack-commands-alist 'string-match)))
 
     (if (null command)

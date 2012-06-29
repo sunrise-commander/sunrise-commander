@@ -1,4 +1,4 @@
-;;; sunrise-x-w32-addons --- MS-Windows-specific utilities for the Sunrise Commander File Manager
+;;; sunrise-x-w32-addons --- MS-Windows-specific utilities for the Sunrise Commander File Manager -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2011 José Alfredo Romero Latouche.
 
@@ -144,7 +144,7 @@ affect the target of the shortcut."
 	 (info (replace-regexp-in-string "\n" "" info)))
     (if (file-exists-p info) info link)))
 
-(defun sr-w32-virtual-entries(&optional ignore-auto no-confirm)
+(defun sr-w32-virtual-entries(&optional _ignore-auto _no-confirm)
   "Build a Sunrise pane containing all the Windows drives currently ready.
 Also includes some selected special folders."
   (interactive)
@@ -168,7 +168,7 @@ Also includes some selected special folders."
 
 (defun sr-w32-execute-command (command)
   "Safely execute the given shell command and return its output as a string."
-  (condition-case description
+  (condition-case nil 
       (shell-command-to-string command)
     (error
      (progn

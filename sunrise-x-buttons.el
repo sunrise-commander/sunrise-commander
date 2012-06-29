@@ -1,4 +1,4 @@
-;;; sunrise-x-buttons.el --- mouse-clickable shortcut buttons for the Sunrise Commander File Manager
+;;; sunrise-x-buttons.el --- mouse-clickable shortcut buttons for the Sunrise Commander File Manager -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2008-2010 José Alfredo Romero Latouche.
 

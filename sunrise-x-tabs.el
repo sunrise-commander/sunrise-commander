@@ -1,4 +1,4 @@
-;;; sunrise-x-tabs.el --- tabs for the Sunrise Commander File Manager
+;;; sunrise-x-tabs.el --- tabs for the Sunrise Commander File Manager -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2009-2012 José Alfredo Romero Latouche.
 
@@ -184,16 +184,15 @@ is assigned, if any."
 (defun sr-tabs-clean ()
   "Remove all tabs from the current pane."
   (interactive)
-  (let ((tab))
-    (while (setq tab (nth 1 (assoc sr-selected-window sr-tabs)))
-      (sr-tabs-remove 1))))
+  (while (nth 1 (assoc sr-selected-window sr-tabs))
+    (sr-tabs-remove 1)))
 
 (defun sr-tabs-kill (&optional name side)
   "Remove the tab named NAME from the active pane and kill its buffer.
 The buffer is not killed when currently visible or assigned to
 another tab."
   (interactive)
-  (let ((to-kill (or (and name (get-buffer name)) (current-buffer))) (stack)
+  (let ((to-kill (or (and name (get-buffer name)) (current-buffer)))
         (side (or side sr-selected-window)))
     (sr-tabs-remove to-kill side)
     (if (and (not (memq to-kill (list sr-left-buffer sr-right-buffer)))
@@ -579,7 +578,7 @@ after module installation."
 ;;; ============================================================================
 ;;; Desktop support:
 
-(defun sr-tabs-desktop-save-buffer (desktop-dirname)
+(defun sr-tabs-desktop-save-buffer (_desktop-dir)
   "Return additional desktop data for saving tabs of the current Sunrise buffer."
   (let* ((left-tab (car (member (buffer-name) (assoc 'left sr-tabs))))
          (left-cache (cdr (assq 'left sr-tabs-labels-cache)))
@@ -593,8 +592,8 @@ after module installation."
       (if left-label (cons 'left-tab (sr-tabs-trim-label left-label)))
       (if right-label (cons 'right-tab (sr-tabs-trim-label right-label)))))))
 
-(defun sr-tabs-desktop-restore-buffer (desktop-buffer-file-name
-                                       desktop-buffer-name
+(defun sr-tabs-desktop-restore-buffer (_desktop-buffer-file-name
+                                       _desktop-buffer-name
                                        desktop-buffer-misc)
   "Restore all tabs in a Sunrise (normal or VIRTUAL) buffer from a desktop file."
   (mapc (lambda (side)

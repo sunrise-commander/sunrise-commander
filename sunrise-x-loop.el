@@ -1,4 +1,4 @@
-;;; sunrise-x-loop.el --- asynchronous execution of filesystem operations for the Sunrise Commander File Manager
+;;; sunrise-x-loop.el --- asynchronous execution of filesystem operations for the Sunrise Commander File Manager -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2008-2010 José Alfredo Romero Latouche.
 
@@ -174,7 +174,7 @@ killed."
       (x-popup-dialog t (list msg '("OK")) t)
     (message (concat "[[" msg "]]"))))
 
-(defun sr-loop-filter (process output)
+(defun sr-loop-filter (_process output)
   "Process filter for the background interpreter."
   (mapc (lambda (line)
           (cond ((string-match "^\\[\\[\\*\\([^\]\*]+\\)\\*\\]\\]$" line)

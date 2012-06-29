@@ -1,4 +1,4 @@
-;;; sunrise-commander.el --- two-pane file manager for Emacs based on Dired and inspired by MC
+;;; sunrise-commander.el --- two-pane file manager for Emacs based on Dired and inspired by MC  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2007-2012 José Alfredo Romero Latouche.
 
@@ -755,7 +755,7 @@ automatically:
   `(unwind-protect
        (progn
          (setq sr-dired-directory
-               (file-name-as-directory (abbreviate-file-name dir)))
+               (file-name-as-directory (abbreviate-file-name ,dir)))
          (ad-activate 'dired-find-buffer-nocreate)
          ,form)
      (ad-deactivate 'dired-find-buffer-nocreate)
@@ -882,7 +882,7 @@ Helper macro for passive & synchronized navigation."
   (if (or (memq major-mode '(sr-mode sr-virtual-mode sr-tree-mode))
           (memq (current-buffer) (list sr-left-buffer sr-right-buffer)))
       (let ((current-window (selected-window)) (target-window))
-        (dotimes (times 2)
+        (dotimes (_times 2)
           (setq current-window (next-window current-window))
           (unless (memq current-window (list sr-left-window sr-right-window))
             (setq target-window current-window)))
@@ -961,9 +961,10 @@ immediately loaded, but only if `sr-autoload-extensions' is not nil."
       (unless (memq from (list sr-left-window sr-right-window))
         ;; switching from outside
         (sr-select-window sr-selected-window))
-      (when (eq (selected-window) (sr-other 'window))
-        ;; switching from the other pane
-        (sr-change-window)))))
+      (with-no-warnings
+        (when (eq (selected-window) (sr-other 'window))
+          ;; switching from the other pane
+          (sr-change-window))))))
 (ad-activate 'other-window)
 
 (defadvice use-hard-newlines
@@ -981,7 +982,8 @@ immediately loaded, but only if `sr-autoload-extensions' is not nil."
   "Manage hidden attributes in files added externally (e.g. from find-dired) to
 the Sunrise Commander."
   (when (memq major-mode '(sr-mode sr-virtual-mode))
-    (sr-display-attributes beg end sr-show-file-attributes)))
+    (with-no-warnings
+      (sr-display-attributes beg end sr-show-file-attributes))))
 (ad-activate 'dired-insert-set-properties)
 
 ;;; ============================================================================
@@ -1326,7 +1328,7 @@ buffer or window."
   (if (buffer-live-p sr-restore-buffer)
       (set-buffer sr-restore-buffer)))
 
-(defun sr-lock-window (frame)
+(defun sr-lock-window (_frame)
   "Resize the left Sunrise pane to have the \"right\" size."
   (when sr-running
     (if (not (window-live-p sr-left-window))
@@ -1341,9 +1343,7 @@ buffer or window."
              (window-live-p sr-left-window)
              (save-selected-window
                (select-window sr-left-window)
-               (let* ((my-style-factor
-                       (if (eq sr-window-split-style 'horizontal) 2 1))
-                      (my-delta (- sr-panes-height (window-height))))
+               (let ((my-delta (- sr-panes-height (window-height))))
                  (enlarge-window my-delta))
                (scroll-right)
                (when (window-live-p sr-right-window)
@@ -2065,7 +2065,7 @@ to that in the other one."
         (sr-scrollable-viewer (current-buffer)))))
   (message "Browsing \"%s\" in web browser" file))
 
-(defun sr-revert-buffer (&optional ignore-auto no-confirm)
+(defun sr-revert-buffer (&optional _ignore-auto _no-confirm)
   "Revert the current pane using the contents of the backup buffer (if any).
 If the buffer is non-virtual the backup buffer is killed."
   (interactive)
@@ -2694,7 +2694,7 @@ specifiers are: d (decimal), x (hex) or o (octal)."
                             "copying" (sr-files-size items)))
             (sr-clone items target #'copy-file progress ?C)
             (sr-progress-reporter-done progress)))
-        (flet ((message (msg &rest args) (ignore)))
+        (flet ((message (_msg &rest _args) (ignore)))
           (dired-unmark-all-marks))))))
 
 (defun sr-do-symlink ()
@@ -3037,7 +3037,7 @@ Broken links are *not* considered regular files."
           (sr-make-progress-reporter
            "comparing" (+ (length file-alist1) (length file-alist2))))
          (predicate `(prog1 ,(sr-ask-compare-panes-predicate)
-                            (sr-progress-reporter-update progress 1)))
+                            (sr-progress-reporter-update ',progress 1)))
          (file-list1 (mapcar 'cadr (dired-file-set-difference
                                     file-alist1 file-alist2 predicate)))
          (file-list2 (mapcar 'cadr (dired-file-set-difference
@@ -3354,7 +3354,7 @@ Used to notify about the termination status of the process."
 
 (defvar locate-command)
 (autoload 'locate-prompt-for-search-string "locate")
-(defun sr-locate (search-string &optional filter arg)
+(defun sr-locate (search-string &optional _filter _arg)
   "Run locate asynchronously and display the results in Sunrise virtual mode."
   (interactive
    (list (locate-prompt-for-search-string) nil current-prefix-arg))
@@ -3445,15 +3445,13 @@ Used to notify about the termination status of the process."
    (let ((hist (cdr (assoc sr-selected-window sr-history-registry)))
          (dired-actual-switches dired-listing-switches)
          (pane-name (capitalize (symbol-name sr-selected-window)))
-         (switches (concat sr-virtual-listing-switches " -d"))
-         (beg))
+         (switches (concat sr-virtual-listing-switches " -d")))
      (sr-switch-to-clean-buffer (format "*%s Pane History*" pane-name))
      (insert (concat "Recent Directories in " pane-name " Pane: \n"))
      (dolist (dir hist)
        (condition-case nil
            (when dir
-             (setq dir (sr-chop ?/ (expand-file-name dir))
-                   beg (point))
+             (setq dir (sr-chop ?/ (expand-file-name dir)))
              (insert-directory dir switches nil nil))
          (error (ignore))))
      (sr-virtual-mode))))
@@ -3634,10 +3632,11 @@ Uses comma as the thousands separator."
   (let* ((num (replace-regexp-in-string "\\..*$" "" (number-to-string size)))
          (digits (reverse (split-string num "" t)))
          result)
-    (dotimes (n (length digits) result)
-      (if (and (< 0 n) (zerop (% n 3)))
-          (setq result (concat "," result)))
-      (setq result (concat (pop digits) result)))))
+    (dotimes (n (length digits))
+      (when (and (< 0 n) (zerop (% n 3)))
+        (setq result (concat "," result)))
+      (setq result (concat (pop digits) result)))
+    result))
 
 ;;; ============================================================================
 ;;; TI (Terminal Integration) and CLEX (Command Line EXpansion) functions:
@@ -3893,7 +3892,7 @@ Puts `sr-clex-commit' into local `after-change-functions'."
             (message
              "Sunrise: CLEX is now ON for keys: m f n d a p M F N D A P %%"))))))
 
-(defun sr-clex-commit (&optional beg end range)
+(defun sr-clex-commit (&optional _beg _end _range)
   "Commit the current CLEX operation (if any).
 This function is added to the local `after-change-functions' list
 by `sr-clex-start'."
@@ -3995,7 +3994,7 @@ file in the file system."
                   buffer-file-truename
                   (file-exists-p buffer-file-truename))))))
 
-(defun sr-desktop-save-buffer (desktop-dirname)
+(defun sr-desktop-save-buffer (desktop-dir)
   "Return the additional data for saving a Sunrise buffer to a desktop file."
   (unless (sr-pure-virtual-p)
     (apply
@@ -4004,12 +4003,12 @@ file in the file system."
            (list
             (if (eq major-mode 'sr-virtual-mode)
                 (list 'dirs buffer-file-truename)
-              (cons 'dirs (dired-desktop-buffer-misc-data desktop-dirname)))
+              (cons 'dirs (dired-desktop-buffer-misc-data desktop-dir)))
             (if (eq (current-buffer) sr-left-buffer) (cons 'left t))
             (if (eq (current-buffer) sr-right-buffer) (cons 'right t))
             (if (eq major-mode 'sr-virtual-mode) (cons 'virtual t))))
      (mapcar (lambda (fun)
-               (funcall fun desktop-dirname))
+               (funcall fun desktop-dir))
              sr-desktop-save-handlers))))
 
 (defun sr-desktop-restore-buffer (desktop-buffer-file-name
@@ -4139,7 +4138,7 @@ Jj-ump, q-uit, m-ark, u-nmark, h-elp"))
 
 (defun sr-assoc-key (name alist test)
   "Return the key in ALIST matched by NAME according to TEST."
-  (let (head (tail sr-avfs-handlers-alist) found)
+  (let (head (tail alist) found)
     (while (and tail (not found))
       (setq head (caar tail)
             found (and (apply test (list head name)) head)

@@ -1,4 +1,4 @@
-;;; sunrise-x-popviewer.el --- floating viewer window for the Sunrise Commander
+;;; sunrise-x-popviewer.el --- floating viewer window for the Sunrise Commander -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2008-2010 José Alfredo Romero L.
 
