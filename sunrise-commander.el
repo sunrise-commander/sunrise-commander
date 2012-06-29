@@ -431,8 +431,15 @@ This isn't necessarily the same as `dired-directory'.")
 (defvar sr-selected-window-width nil
   "The width the selected window should have on startup.")
 
-(defvar sr-history-registry '((left)(right))
+(defvar sr-history-registry '((left) (right))
   "Registry of visited directories for both panes.")
+
+(defvar sr-history-stack '((left 0 . 0) (right 0 . 0))
+  "History stack counters.
+The first counter on each side tracks (by value) the absolute
+depth of the stack and (by sign) the direction it is currently
+being traversed. The second counter points at the position of the
+element that is immediately beneath the top of the stack.")
 
 (defvar sr-ti-openterms nil
   "Stack of currently open terminal buffers.")
@@ -1799,7 +1806,7 @@ visited in order, from longest path to shortest."
       (message "Sunrise: sorry, no suitable projections found"))))
 
 (defun sr-history-push (element)
-  "Push a new path into the history ring of the current pane."
+  "Push a new path into the history stack of the current pane."
   (unless (or (null element)
               (and (featurep 'tramp)
                    (string-match tramp-file-name-regexp element)))
@@ -1811,68 +1818,59 @@ visited in order, from longest path to shortest."
       (setq element (abbreviate-file-name (sr-chop ?/ element))
             hist (delete element hist))
       (push element hist)
-      (setcdr pane hist))))
+      (setcdr pane hist))
+    (sr-history-stack-reset)))
 
 (defun sr-history-next ()
-  "Change to the next directory (if any) in the current pane's history list."
+  "Navigate forward in the history of the active pane."
   (interactive)
-  (sr-history-move 'sr-history-unwind))
+  (let ((side (assoc sr-selected-window sr-history-stack)))
+    (unless (zerop (cadr side))
+      (sr-history-move -1))
+    (when (zerop (cadr side))
+      (sr-history-stack-reset))))
 
 (defun sr-history-prev ()
-  "Change to the previous directory (if any) in the current pane's history list."
+  "Navigate backwards in the history of the active pane."
   (interactive)
-  (sr-history-move 'sr-history-wind))
+  (let ((history (cdr (assoc sr-selected-window sr-history-registry)))
+        (stack (cdr (assoc sr-selected-window sr-history-stack))))
+    (when (< (abs (cdr stack)) (1- (length history)))
+      (sr-history-move 1))))
 
-(defun sr-history-move (fun)
-  "Move current pane back or forth through its history of visited directories.
-The direction depends on the function given (`sr-history-wind' or
-`sr-history-unwind')."
-  (let* ((pane (assoc sr-selected-window sr-history-registry))
-         (hist (cdr pane))
-         (hist (apply fun (list hist)))
-         (item (car hist)))
-    (if item
-        (progn
-          (setcdr pane hist)
-          (cond ((file-directory-p item) (sr-goto-dir item))
-                ((file-exists-p item) (sr-find-file item))
-                (t (ignore)))
-          ))))
+(defun sr-history-move (step)
+  "Traverse the history of the active pane in a stack-like fashion.
+This function re-arranges the history list of the current pane so as to make it
+simulate a stack of directories, from which one can 'pop' the current directory
+and 'push' it back, keeping the most recently visited entries always near the
+top of the stack."
+  (let* ((side (assoc sr-selected-window sr-history-stack))
+         (depth (cadr side)) (goal) (target-dir))
+    (when (> 0 (* step depth))
+      (sr-history-stack-reset))
+    (setq goal  (1+ (cddr side))
+          depth (* step (+ (abs depth) step))
+          target-dir (sr-history-pick goal))
+    (when target-dir
+      (sr-goto-dir target-dir)
+      (setcdr side (cons depth goal)))))
 
-(defmacro sr-pick-file (item hist pick-next)
-  "Helper macro for implementing `sr-history-wind' and `sr-history-unwind'.
-Evaluates PICK-NEXT until ITEM becomes a valid file or HIST runs
-out of elements."
-  `(while (and (> (length ,hist) 0)
-               (or (null ,item) (not (file-exists-p ,item))))
-     ,pick-next))
+(defun sr-history-stack-reset ()
+  "Reset the current history stack counter."
+  (let ((side (assoc sr-selected-window sr-history-stack)))
+    (setcdr side '(0 . 0))))
 
-(defun sr-history-wind (hist)
-  "Rotate the elements in the history ring HIST clockwise.
-Takes the first element and puts it at the end of the list.
-Additionally, discards all elements that did not represent valid
-files when the function was executed."
-  (let ((item) (head))
-    (sr-pick-file item hist (setq item (pop hist)))
-    (setq head (car hist))
-    (sr-pick-file head hist (progn (pop hist) (setq head (car hist))))
-    (if item
-        (append hist (list item))
-      hist)))
-
-(defun sr-history-unwind (hist)
-  "Rotate the elements in the history ring HIST counter-clockwise.
-Takes the last element and puts it at the beginning of the list.
-Additionally discards all elements that did not represent valid
-files when the function was executed. (WARNING: Modifies HIST
-in-place using `nbutlast')."
-  (let (item)
-    (sr-pick-file item hist (progn
-                              (setq item (car (last hist)))
-                              (setq hist (nbutlast hist))))
-    (if item
-        (cons item hist)
-      hist)))
+(defun sr-history-pick (position)
+  "Return directory at POSITION in current history.
+If the entry was removed or made inaccessible since our last visit, remove it
+from the history list and check among the previous ones until an accessible
+directory is found, or the list runs out of entries."
+  (let* ((history (cdr (assoc sr-selected-window sr-history-registry)))
+         (target (nth position history)))
+    (while (and target (not (file-accessible-directory-p target)))
+      (delete target history)
+      (setq target (nth position history)))
+    target))
 
 (defun sr-require-checkpoints-extension (&optional noerror)
   "Bootstrap code for checkpoint support.
