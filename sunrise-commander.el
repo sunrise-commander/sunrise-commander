@@ -325,6 +325,12 @@ Commander panes."
   :group 'sunrise
   :type 'integer)
 
+(defcustom sr-kill-unused-buffers t
+  "Whether buffers should be killed automatically by Sunrise when not displayed
+in any of the panes."
+  :group 'sunrise
+  :type 'boolean)
+
 (defcustom sr-confirm-kill-viewer t
   "Whether to ask for confirmation before killing a buffer opened in quick-view
 mode."
@@ -775,12 +781,12 @@ automatically:
      (setq sr-this-directory default-directory)
      (sr-keep-buffer)
      (sr-highlight)
-     (if (buffer-live-p dispose)
-         (with-current-buffer dispose
-           (bury-buffer)
-           (set-buffer-modified-p nil)
-           (unless (kill-buffer dispose)
-             (kill-local-variable 'sr-current-path-face))))))
+     (when (and sr-kill-unused-buffers (buffer-live-p dispose))
+       (with-current-buffer dispose
+         (bury-buffer)
+         (set-buffer-modified-p nil)
+         (unless (kill-buffer dispose)
+           (kill-local-variable 'sr-current-path-faces))))))
 
 (defmacro sr-in-other (form)
   "Execute FORM in the context of the passive pane.
@@ -1080,7 +1086,7 @@ the Sunrise Commander."
 (define-key sr-mode-map "\C-c\M-t"    'sr-term-cd-program)
 (define-key sr-mode-map "\C-c;"       'sr-follow-viewer)
 (define-key sr-mode-map "q"           'sr-quit)
-(define-key sr-mode-map "\C-xk"       'sr-quit)
+(define-key sr-mode-map "\C-xk"       'sr-kill-pane-buffer)
 (define-key sr-mode-map "\M-q"        'sunrise-cd)
 (define-key sr-mode-map "h"           'sr-describe-mode)
 (define-key sr-mode-map "?"           'sr-summary)
@@ -2069,6 +2075,19 @@ If the buffer is non-virtual the backup buffer is killed."
   (sr-display-attributes (point-min) (point-max) sr-show-file-attributes)
   (sr-highlight))
 
+(defun sr-kill-pane-buffer ()
+  "Kill the buffer currently displayed in the active pane, or quit Sunrise.
+Custom variable `sr-kill-unused-buffers' controls whether unused buffers are
+killed automatically by Sunrise when the user navigates away from the directory
+they contain. When this flag is set, all requests to kill the current buffer are
+managed by just calling `sr-quit'."
+  (interactive)
+  (if sr-kill-unused-buffers
+      (sr-quit)
+    (kill-buffer (current-buffer))
+    (let ((_x (pop (cdr (assoc sr-selected-window sr-history-registry)))))
+      (sr-history-stack-reset))))
+
 (defun sr-quick-view (&optional arg)
   "Quickly view the currently selected item.
 On regular files, opens the file in quick-view mode (see `sr-quick-view-file'
@@ -2125,7 +2144,7 @@ Kills any other buffer opened previously the same way."
 (add-hook 'sr-quit-hook (defun sr-sr-quit-function ()
                           (setq other-window-scroll-buffer nil)))
 (add-hook 'kill-buffer-hook
-          (defun sr-kill-buffer-function ()
+          (defun sr-kill-viewer-function ()
             (if (eq (current-buffer) other-window-scroll-buffer)
                 (setq other-window-scroll-buffer  nil))))
 

@@ -258,7 +258,7 @@ removes the tab."
   (let ((to-kill (current-buffer))
         (stack (cdr (assq sr-selected-window sr-tabs))))
     (if (null stack)
-        (sr-quit)
+        (sr-kill-pane-buffer)
       (sr-tabs-kill)
       (setq stack (cdr stack))
       (sr-tabs-next)
