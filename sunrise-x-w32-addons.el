@@ -1,18 +1,18 @@
 ;;; sunrise-x-w32-addons --- MS-Windows-specific utilities for the Sunrise Commander File Manager -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011 José Alfredo Romero Latouche.
+;; Copyright (C) 2011, 2012 José Alfredo Romero Latouche.
 
 ;; Author: José Alfredo Romero L. <escherdragon@gmail.com>
 ;;	Štěpán Němec <stepnem@gmail.com>
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 14 May 2011
 ;; Version: 1
-;; RCS Version: $Rev: 394 $
+;; RCS Version: $Rev: 423 $
 ;; Keywords: sunrise commander, w32, ms windows
 ;; URL: http://www.emacswiki.org/emacs/sunrise-x-w32-addons.el
 ;; Compatibility: GNU Emacs 23+
 
-;; This file is *NOT* part of GNU Emacs.
+;; This file is not part of GNU Emacs.
 
 ;; This program is free software: you can redistribute it and/or modify it under
 ;; the terms of the GNU General Public License as published by the Free Software
