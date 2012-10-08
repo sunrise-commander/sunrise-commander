@@ -734,11 +734,11 @@ automatically:
   (set-keymap-parent sr-mode-map dired-mode-map)
   (sr-highlight)
   (dired-omit-mode dired-omit-mode)
-  (setq buffer-read-only t)
 
   (make-local-variable 'truncate-partial-width-windows)
   (setq truncate-partial-width-windows (sr-truncate-v t))
 
+  (set (make-local-variable 'buffer-read-only) t)
   (set (make-local-variable 'dired-header-face) 'sr-passive-path-face)
   (set (make-local-variable 'dired-recursive-deletes) 'top)
   (set (make-local-variable 'truncate-lines) nil)
@@ -757,11 +757,11 @@ automatically:
   (set-keymap-parent sr-virtual-mode-map sr-mode-map)
   (sr-highlight)
   (enriched-mode -1)
-  (setq buffer-read-only t)
 
   (make-local-variable 'truncate-partial-width-windows)
   (setq truncate-partial-width-windows (sr-truncate-v t))
 
+  (set (make-local-variable 'buffer-read-only) t)
   (set (make-local-variable 'dired-header-face) 'sr-passive-path-face)
   (set (make-local-variable 'truncate-lines) nil)
   (set (make-local-variable 'desktop-save-buffer) 'sr-desktop-save-buffer)
