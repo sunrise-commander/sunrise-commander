@@ -7,7 +7,7 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 24 Sep 2007
 ;; Version: 6
-;; RCS Version: $Rev: 435 $
+;; RCS Version: $Rev: 436 $
 ;; Keywords: files, dired, midnight commander, norton, orthodox
 ;; URL: http://www.emacswiki.org/emacs/sunrise-commander.el
 ;; Compatibility: GNU Emacs 22+
@@ -210,6 +210,10 @@
                    (require 'esh-mode)
                    (require 'recentf)
                    (require 'tramp))
+
+(eval-and-compile
+  (unless (fboundp 'cl-labels)
+    (defalias 'cl-labels 'labels)))
 
 (defgroup sunrise nil
   "The Sunrise Commander File Manager."
@@ -2193,7 +2197,7 @@ Kills any other buffer opened previously the same way."
 Selective hiding of specific attributes can be controlled by customizing the
 `sr-attributes-display-mask' variable."
   (let ((cursor beg) props)
-    (labels ((sr-make-display-props
+    (cl-labels ((sr-make-display-props
             (display-function-or-flag)
             (cond ((functionp display-function-or-flag)
                    `(display
@@ -3417,7 +3421,7 @@ Used to notify about the termination status of the process."
     (sr-beginning-of-buffer)
     (dired-change-marks ?* ?\t)
     (let ((stack nil) (filter "") (regex "") (next-char nil) (inhibit-quit t))
-      (labels ((read-next (f) (read-char (concat "Fuzzy narrow: " f))))
+      (cl-labels ((read-next (f) (read-char (concat "Fuzzy narrow: " f))))
         (setq next-char (read-next filter))
         (sr-backup-buffer)
         (while next-char
