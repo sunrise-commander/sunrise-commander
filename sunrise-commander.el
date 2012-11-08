@@ -3549,6 +3549,7 @@ buffer in the passive pane."
     ("\M-e" . sr-end-of-buffer)
     ("\C-v" . scroll-up-command)
     ("\M-v" . (lambda () (interactive) (scroll-up-command '-)))
+    ("\C-g" . (lambda () (interactive) (save-excursion (isearch-abort))))
   ) "Keybindings installed in `isearch-mode' during a sticky search.")
 
 (defun sr-sticky-isearch-remap-commands (&optional restore)
