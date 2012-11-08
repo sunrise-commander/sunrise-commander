@@ -7,7 +7,7 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 24 Sep 2007
 ;; Version: 6
-;; RCS Version: $Rev: 441 $
+;; RCS Version: $Rev: 442 $
 ;; Keywords: files, dired, midnight commander, norton, orthodox
 ;; URL: http://www.emacswiki.org/emacs/sunrise-commander.el
 ;; Compatibility: GNU Emacs 22+
@@ -2905,10 +2905,10 @@ IN-DIR/D => TO-DIR/D using CLONE-OP to clone the files."
       (make-directory (concat to-dir d)))
     (sr-clone-files file-paths-in-d (concat to-dir d) clone-op progress do-overwrite)))
 
-(defsubst sr-move-op (file target target-dir progress do-overwrite)
+(defsubst sr-move-op (file target-dir progress do-overwrite)
   "Helper function used by `sr-move-files' to rename files and directories."
   (condition-case nil
-      (dired-rename-file file target do-overwrite)
+      (dired-rename-file file target-dir do-overwrite)
     (error
      (sr-clone-directory file "" target-dir 'copy-file progress do-overwrite)
      (dired-delete-file file 'always))))
@@ -2922,12 +2922,7 @@ IN-DIR/D => TO-DIR/D using CLONE-OP to clone the files."
           (progn
             (setq f (replace-regexp-in-string "/?$" "/" f))
             (sr-progress-reporter-update progress 1)
-            (let* ((target (concat target-dir (sr-directory-name-proper f))))
-              (if (file-exists-p target)
-                  (when (or (eq do-overwrite 'ALWAYS)
-                            (setq do-overwrite (sr-ask-overwrite target)))
-                    (sr-move-op f target target-dir progress do-overwrite))
-                (sr-move-op f target target-dir progress do-overwrite))))
+            (sr-move-op f target-dir progress do-overwrite))
         (let* ((name (file-name-nondirectory f))
                (target-file (concat target-dir name)))
           ;; (message "Renaming: %s => %s" f target-file)
