@@ -155,8 +155,8 @@
 ;; There is no help window like in MC, but if you really miss it, just get and
 ;; install the sunrise-x-buttons extension.
 
-;; A lot of this code was once adapted from Kevin's mc.el, but it has evolved
-;; considerably since then. Another part (the code for file copying and
+;; A lot of this code was once adapted from Kevin Burton's mc.el, but it has
+;; evolved considerably since then. Another part (the code for file copying and
 ;; renaming) derives originally from the Dired extensions written by Kurt
 ;; Nørmark for LAML (http://www.cs.aau.dk/~normark/scheme/distribution/laml/).
 
