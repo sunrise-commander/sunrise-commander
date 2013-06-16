@@ -7,7 +7,7 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 24 Sep 2007
 ;; Version: 6
-;; RCS Version: $Rev: 447c $
+;; RCS Version: $Rev: 448 $
 ;; Keywords: files, dired, midnight commander, norton, orthodox
 ;; URL: http://www.emacswiki.org/emacs/sunrise-commander.el
 ;; Compatibility: GNU Emacs 22+
@@ -1508,17 +1508,18 @@ With optional argument REVERT, executes `revert-buffer' on the passive buffer."
 
 (defun sr-save-directories ()
   "Save current directories in the panes to use them at the next startup."
-  (when (window-live-p sr-left-window)
-    (set-buffer (window-buffer sr-left-window))
-    (when (memq major-mode '(sr-mode sr-tree-mode))
-      (setq sr-left-directory default-directory)
-      (setq sr-left-buffer (current-buffer))))
+  (save-current-buffer
+    (when (window-live-p sr-left-window)
+      (set-buffer (window-buffer sr-left-window))
+      (when (memq major-mode '(sr-mode sr-tree-mode))
+        (setq sr-left-directory default-directory)
+        (setq sr-left-buffer (current-buffer))))
 
-  (when (window-live-p sr-right-window)
-    (set-buffer (window-buffer sr-right-window))
-    (when (memq major-mode '(sr-mode sr-tree-mode))
-      (setq sr-right-directory default-directory)
-      (setq sr-right-buffer (current-buffer)))))
+    (when (window-live-p sr-right-window)
+      (set-buffer (window-buffer sr-right-window))
+      (when (memq major-mode '(sr-mode sr-tree-mode))
+        (setq sr-right-directory default-directory)
+        (setq sr-right-buffer (current-buffer))))))
 
 (defun sr-bury-panes ()
   "Send both pane buffers to the end of the `buffer-list'."
