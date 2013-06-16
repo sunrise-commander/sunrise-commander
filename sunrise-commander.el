@@ -7,7 +7,7 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 24 Sep 2007
 ;; Version: 6
-;; RCS Version: $Rev: 447 $
+;; RCS Version: $Rev: 447a $
 ;; Keywords: files, dired, midnight commander, norton, orthodox
 ;; URL: http://www.emacswiki.org/emacs/sunrise-commander.el
 ;; Compatibility: GNU Emacs 22+
@@ -597,6 +597,7 @@ The following keybindings are available:
         M-H............ hard-link selected file/directory (dired-do-hardlink)
         A ............. search marked files for regular expression
         Q ............. perform query-replace-regexp on marked files
+        C-q ........... search occurrences of a string in marked files
         C-c s ......... start a \"sticky\" interactive search in the current pane
 
         M-a ........... move to beginning of current directory
