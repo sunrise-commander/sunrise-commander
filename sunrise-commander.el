@@ -7,7 +7,7 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 24 Sep 2007
 ;; Version: 6
-;; RCS Version: $Rev: 447a $
+;; RCS Version: $Rev: 447b $
 ;; Keywords: files, dired, midnight commander, norton, orthodox
 ;; URL: http://www.emacswiki.org/emacs/sunrise-commander.el
 ;; Compatibility: GNU Emacs 22+
@@ -277,7 +277,8 @@ Setting this value activates AVFS support."
   :group 'sunrise
   :type '(choice
           (const :tag "AVFS support disabled" nil)
-          (directory :tag "AVFS root directory")))
+          (const :tag "~/.avfs (default mountavfs mount point)" "~/.avfs")
+          (directory :tag "Other AVFS root directory")))
 
 (defcustom sr-avfs-handlers-alist '(("\\.[jwesh]ar$" . "#uzip/")
                                     ("\\.wsar$"      . "#uzip/")
@@ -1756,8 +1757,9 @@ Returns nil if AVFS cannot manage this kind of file."
     (unless (and (eq major-mode 'sr-mode) (sr-equal-dirs dir default-directory))
       (if (and sr-avfs-root
                (null (posix-string-match "#" dir)))
-          (setq dir (replace-regexp-in-string
-                     (expand-file-name sr-avfs-root) "" dir)))
+          (setq dir
+                (replace-regexp-in-string
+                 (directory-file-name (expand-file-name sr-avfs-root)) "" dir)))
       (sr-save-aspect
        (sr-within dir (sr-alternate-buffer (dired dir))))
       (sr-history-push default-directory)
