@@ -7,7 +7,7 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 24 Sep 2007
 ;; Version: 6
-;; RCS Version: $Rev: 459a $
+;; RCS Version: $Rev: 460 $
 ;; Keywords: files, dired, midnight commander, norton, orthodox
 ;; URL: http://www.emacswiki.org/emacs/sunrise-commander.el
 ;; Compatibility: GNU Emacs 22+
@@ -639,6 +639,7 @@ The following keybindings are available:
         Y ............. do relative soft-link of selected file in passive pane
         H ............. hard-link selected file to passive pane
         K ............. clone selected files and directories into passive pane
+        N ............. in place copy/rename/link marked (or current) entries
         M-C ........... copy (using traditional dired-do-copy)
         M-R ........... rename (using traditional dired-do-rename)
         M-D ........... delete (using traditional dired-do-delete)
