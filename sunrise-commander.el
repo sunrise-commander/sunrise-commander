@@ -224,6 +224,11 @@
   "The Sunrise Commander File Manager."
   :group 'files)
 
+(defcustom sr-persist t
+  "Whether to kill Sunrise Commander when choosing to visit a file."
+  :group 'sunrise
+  :type 'boolean)
+
 (defcustom sr-show-file-attributes t
   "Whether to initially display file attributes in Sunrise panes.
 You can always toggle file attributes display pressing
@@ -1775,13 +1780,19 @@ AVFS."
   (sr-backup-buffer))
 
 (defun sr-find-regular-file (filename &optional wildcards)
-  "Deactivate Sunrise and visit FILENAME as a regular file with WILDCARDS.
+  "Visit FILENAME as a regular file with WILDCARDS.
 \(See `find-file' for more details on wildcard expansion.)"
   (condition-case description
       (let ((buff (find-file-noselect filename nil nil wildcards)))
-        (sr-save-panes-width)
-        (sr-quit)
-        (set-window-configuration sr-prior-window-configuration)
+        (cond
+          (sr-persist
+            (if (= 1 (length (frame-list)))
+              (make-frame-command)
+             (other-frame 1)))
+          (t
+            (sr-save-panes-width)
+            (sr-quit)
+            (set-window-configuration sr-prior-window-configuration)))
         (switch-to-buffer buff))
     (error (message "%s" (cadr description)))))
 
