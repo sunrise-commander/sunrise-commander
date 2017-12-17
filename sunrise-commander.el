@@ -7,7 +7,7 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 24 Sep 2007
 ;; Version: 6
-;; RCS Version: $Rev: 463 $
+;; RCS Version: $Rev: 464 $
 ;; Keywords: files, dired, midnight commander, norton, orthodox
 ;; URL: http://www.emacswiki.org/emacs/sunrise-commander.el
 ;; Compatibility: GNU Emacs 22+
@@ -245,6 +245,24 @@ You can also customize what files are considered hidden by setting
 `dired-omit-files' and `dired-omit-extensions' in your .emacs file."
   :group 'sunrise
   :type 'boolean)
+
+(defcustom sr-visit-buffer-function 'sr-visit-buffer-in-current-frame
+  "Determines how newly opened buffers are to be displayed.
+The following options are supported:
+
+* Visit in current frame - Quit Sunrise and display the new
+buffer in the current frame.
+
+* Visit in dedicated frame - Create a separate dedicated frame
+and display the buffer in it. The frame will be automatically
+destroyed when the buffer is killed.
+
+* Other - Provide your own function to display the given buffer."
+  :group 'sunrise
+  :type '(choice
+          (function-item :tag "Visit in current frame" sr-visit-buffer-in-current-frame)
+          (function-item :tag "Visit in dedicated frame" special-display-popup-frame)
+          (function :tag "Other")))
 
 (defcustom sr-terminal-kill-buffer-on-exit t
   "Whether to kill terminal buffers after their shell process ends."
@@ -1775,15 +1793,19 @@ AVFS."
   (sr-backup-buffer))
 
 (defun sr-find-regular-file (filename &optional wildcards)
-  "Deactivate Sunrise and visit FILENAME as a regular file with WILDCARDS.
+  "Visit FILENAME as a regular file with WILDCARDS.
 \(See `find-file' for more details on wildcard expansion.)"
   (condition-case description
-      (let ((buff (find-file-noselect filename nil nil wildcards)))
-        (sr-save-panes-width)
-        (sr-quit)
-        (set-window-configuration sr-prior-window-configuration)
-        (switch-to-buffer buff))
+      (let ((buffer (find-file-noselect filename nil nil wildcards)))
+        (funcall sr-visit-buffer-function buffer))
     (error (message "%s" (cadr description)))))
+
+(defun sr-visit-buffer-in-current-frame (buffer)
+  "Deactivate Sunrise and display the given buffer in the current frame."
+  (sr-save-panes-width)
+  (sr-quit)
+  (set-window-configuration sr-prior-window-configuration)
+  (switch-to-buffer buffer))
 
 (defun sr-avfs-dir (filename)
   "Return the virtual path for accessing FILENAME through AVFS.
