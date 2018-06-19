@@ -3161,7 +3161,7 @@ The given PROMPT will be displayed to the user interactively."
           (if (cdr marked)
               (read-directory-name prompt)
             (read-file-name
-             prompt nil nil nil (file-name-nondirectory (car marked)) #'ignore)))
+             prompt nil nil nil (file-name-nondirectory (car marked)))))
          (progress (sr-make-progress-reporter "working" (length marked)))
          (inhibit-read-only t))
 
