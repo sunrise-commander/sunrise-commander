@@ -2943,7 +2943,7 @@ See `dired-make-relative-symlink'."
                               (t (error "(No deletions performed)")))))
     (mapc (lambda (x)
             (message "Deleting %s" x)
-            (dired-delete-file x deletion-mode)) files)
+            (dired-delete-file x deletion-mode delete-by-moving-to-trash)) files)
     (if (eq major-mode 'sr-virtual-mode)
         (dired-do-kill-lines)
       (revert-buffer))))
