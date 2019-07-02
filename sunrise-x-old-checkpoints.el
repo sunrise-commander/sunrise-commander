@@ -3,7 +3,7 @@
 ;; Copyright (C) 2009-2012 José Alfredo Romero Latouche.
 
 ;; Author: José Alfredo Romero L. <escherdragon@gmail.com>
-;;	Štěpán Němec <stepnem@gmail.com>
+;;      Štěpán Němec <stepnem@gmail.com>
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 28 Dec 2009
 ;; Version: 1

@@ -3,7 +3,7 @@
 ;; Copyright (C) 2011, 2012 José Alfredo Romero Latouche.
 
 ;; Author: José Alfredo Romero L. <escherdragon@gmail.com>
-;;	Štěpán Němec <stepnem@gmail.com>
+;;      Štěpán Němec <stepnem@gmail.com>
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 14 May 2011
 ;; Version: 1
@@ -90,12 +90,12 @@ affect the target of the shortcut."
   :type 'boolean)
 
 (defvar sr-w32-local-map (let ((map (make-sparse-keymap)))
-			   (set-keymap-parent map sr-virtual-mode-map)
-			   (define-key map "s" 'ignore)
-			   (define-key map "r" 'ignore)
-			   (define-key map "l" 'ignore)
-			   (define-key map "d" 'ignore)
-			   map)
+                           (set-keymap-parent map sr-virtual-mode-map)
+                           (define-key map "s" 'ignore)
+                           (define-key map "r" 'ignore)
+                           (define-key map "l" 'ignore)
+                           (define-key map "d" 'ignore)
+                           map)
   "Local keymap used inside the \"Windows Drives and Special Folders\" pane.")
 
 (define-key sr-mode-map "\C-cw" 'sr-w32-virtual-entries)
@@ -135,17 +135,17 @@ affect the target of the shortcut."
   "`sr-goto-dir' replacement for the \"Windows Drives and Special Folders\" pane."
   (let ((sr-goto-dir-function nil))
     (if (not (sr-equal-dirs dir default-directory))
-	(sr-goto-dir dir)
+        (sr-goto-dir dir)
       (sr-virtual-dismiss)
       (sr-beginning-of-buffer))))
 
 (defun sr-w32-resolve-lnk (link)
   "Use the provided VBScript script to resolve standard Windows shortcuts."
   (let* ((script (sr-w32-create-drivers-script))
-	 (command (format "cscript /nologo \"%s\" /l \"%s\"" script link))
-	 (info (shell-command-to-string command))
-	 (info (replace-regexp-in-string "\\\\" "/" info))
-	 (info (replace-regexp-in-string "\n" "" info)))
+         (command (format "cscript /nologo \"%s\" /l \"%s\"" script link))
+         (info (shell-command-to-string command))
+         (info (replace-regexp-in-string "\\\\" "/" info))
+         (info (replace-regexp-in-string "\n" "" info)))
     (if (file-exists-p info) info link)))
 
 (defun sr-w32-virtual-entries(&optional _ignore-auto _no-confirm)
@@ -165,14 +165,14 @@ Also includes some selected special folders."
     (sr-virtual-mode)
     (sr-beginning-of-buffer)
     (mapc 'make-local-variable '( revert-buffer-function
-				  sr-goto-dir-function))
+                                  sr-goto-dir-function))
     (setq revert-buffer-function 'sr-w32-virtual-entries
-	  sr-goto-dir-function 'sr-w32-goto-dir)
+          sr-goto-dir-function 'sr-w32-goto-dir)
     (use-local-map sr-w32-local-map)))
 
 (defun sr-w32-execute-command (command)
   "Safely execute the given shell command and return its output as a string."
-  (condition-case nil 
+  (condition-case nil
       (shell-command-to-string command)
     (error
      (progn

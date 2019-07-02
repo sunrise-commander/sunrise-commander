@@ -3,7 +3,7 @@
 ;; Copyright (C) 2008-2012 José Alfredo Romero L.
 
 ;; Author: José Alfredo Romero L. <escherdragon@gmail.com>
-;;	Štěpán Němec <stepnem@gmail.com>
+;;      Štěpán Němec <stepnem@gmail.com>
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 20 Aug 2008
 ;; Version: 3
@@ -160,7 +160,7 @@ passive pane."
      (sr-quick-view arg)
      (sr-popviewer-dedicate-frame)
      other-window-scroll-buffer)))
- 
+
 (defadvice sr-term
   (around sr-popviewer-advice-term (&optional cd newterm program))
   "Make terminal windows dedicated when using multiple viewers."
@@ -196,19 +196,19 @@ passive pane."
   :lighter ""
   (let ((hookfun (if sr-popviewer-mode 'remove-hook 'add-hook))
         (adfun (if sr-popviewer-mode 'sr-ad-enable 'sr-ad-disable))
- 
+
         (viewerfun (if sr-popviewer-mode
                         'sr-popviewer-select-viewer-window
                       'sr-select-viewer-window))
- 
+
         (quickviewfun (if sr-popviewer-mode
                           'sr-popviewer-quick-view
                         'sr-quick-view))
- 
+
         (panelockfun (if sr-popviewer-mode
                          'sr-popviewer-setup-windows
                        'sr-lock-panes)))
- 
+
     (funcall hookfun 'window-size-change-functions 'sr-lock-window)
     (define-key sr-mode-map "o" quickviewfun)
     (define-key sr-mode-map "v" quickviewfun)
