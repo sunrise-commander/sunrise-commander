@@ -28,7 +28,7 @@
 
 ;;; Commentary:
 
-;; The Sunrise Commmander is a double-pane file manager for Emacs. It's built
+;; The Sunrise Commander is a double-pane file manager for Emacs. It's built
 ;; atop of Dired and takes advantage of all its power, but also provides many
 ;; handy features of its own:
 

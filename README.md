@@ -1,4 +1,4 @@
-# The Sunrise Commmander
+# The Sunrise Commander
 
 Welcome to the Sunrise Commander Git repository. This is the place where you can
 contribute directly to the development of the Sunrise Commander File Manager for
@@ -14,7 +14,7 @@ Happy hacking!
 
 ----------
 
-**The Sunrise Commmander** is a double-pane file manager for Emacs. It's built atop of Dired and takes advantage of all its power, but also provides many handy features of its own:
+**The Sunrise Commander** is a double-pane file manager for Emacs. It's built atop of Dired and takes advantage of all its power, but also provides many handy features of its own:
 
  * Sunrise is implemented as a derived major mode confined inside the pane buffers, so its buffers and Dired ones can live together without easymenu or viper to avoid key binding collisions.
  * It automatically closes unused buffers and tries to never keep open more than the one or two used to display the panes, though this behavior may be disabled if desired.
