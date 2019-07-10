@@ -1211,8 +1211,7 @@ switch to normal mode, then execute."
 (add-to-list 'desktop-buffer-mode-handlers
              '(sr-tree-mode . sr-tree-desktop-restore-buffer))
 
+(eval-after-load 'sunrise-commander '(sr-extend-with 'sunrise-x-tree))
+
 (provide 'sunrise-x-tree)
-
-;;;###autoload (eval-after-load 'sunrise-commander '(sr-extend-with 'sunrise-x-tree))
-
 ;;; sunrise-x-tree.el ends here

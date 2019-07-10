@@ -677,8 +677,7 @@ tabs in the Sunrise Commander (used for desktop support)."
 (defun sunrise-x-tabs-unload-function ()
   (sr-ad-disable "^sr-tabs-"))
 
+(eval-after-load 'sunrise-commander '(sr-extend-with 'sunrise-x-tabs))
+
 (provide 'sunrise-x-tabs)
-
-;;;###autoload (eval-after-load 'sunrise-commander '(sr-extend-with 'sunrise-x-tabs))
-
 ;;; sunrise-x-tabs.el ends here

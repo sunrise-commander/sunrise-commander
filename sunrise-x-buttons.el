@@ -294,8 +294,7 @@ Used inside the Sunrise Buttons buffer."
         ((string= mode-name "Editable Dired") (eval '(wdired-finish-edit)))
         (t (message "Already in regular mode"))))
 
+(eval-after-load 'sunrise-commander '(sr-extend-with 'sunrise-x-buttons))
+
 (provide 'sunrise-x-buttons)
-
-;;;###autoload (eval-after-load 'sunrise-commander '(sr-extend-with 'sunrise-x-buttons))
-
 ;;; sunrise-x-buttons.el ends here

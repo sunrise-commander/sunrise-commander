@@ -283,8 +283,7 @@ The names are separated by a space."
 (defun sunrise-x-w32-addons-unload-function ()
   (sr-ad-disable "^sr-w32-"))
 
+(eval-after-load 'sunrise-commander '(sr-extend-with 'sunrise-x-w32-addons))
+
 (provide 'sunrise-x-w32-addons)
-
-;;;###autoload (eval-after-load 'sunrise-commander '(sr-extend-with 'sunrise-x-w32-addons))
-
 ;;; sunrise-x-w32-addons.el ends here

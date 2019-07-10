@@ -561,8 +561,7 @@ so they are always writeable by default."
 (defun sunrise-x-mirror-unload-function ()
   (sr-ad-disable "^sr-mirror-"))
 
+(eval-after-load 'sunrise-commander '(sr-extend-with 'sunrise-x-mirror))
+
 (provide 'sunrise-x-mirror)
-
-;;;###autoload (eval-after-load 'sunrise-commander '(sr-extend-with 'sunrise-x-mirror))
-
 ;;; sunrise-x-mirror.el ends here

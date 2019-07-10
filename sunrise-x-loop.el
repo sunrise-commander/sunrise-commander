@@ -338,8 +338,7 @@ triggered by `sr-do-rename' inside a loop scope."
   (define-key sr-mode-map "K" 'sr-do-clone)
   (define-key sr-mode-map "R" 'sr-do-rename))
 
+(eval-after-load 'sunrise-commander '(sr-extend-with 'sunrise-x-loop))
+
 (provide 'sunrise-x-loop)
-
-;;;###autoload (eval-after-load 'sunrise-commander '(sr-extend-with 'sunrise-x-loop))
-
 ;;; sunrise-x-loop.el ends here

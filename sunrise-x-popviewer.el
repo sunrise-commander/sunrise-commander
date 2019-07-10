@@ -222,8 +222,8 @@ passive pane."
   (sr-ad-disable "^sr-popviewer-"))
 
 (sr-popviewer-mode (if sr-popviewer-enabled 1 -1))
+
+(eval-after-load 'sunrise-commander '(sr-extend-with 'sunrise-x-popviewer))
+
 (provide 'sunrise-x-popviewer)
-
-;;;###autoload (eval-after-load 'sunrise-commander '(sr-extend-with 'sunrise-x-popviewer))
-
 ;;; sunrise-x-popviewer.el ends here

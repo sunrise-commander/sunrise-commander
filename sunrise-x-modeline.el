@@ -321,8 +321,7 @@ the Sunrise Commander, after module installation."
 (add-to-list 'desktop-minor-mode-handlers
              '(sr-modeline . sr-modeline-desktop-restore-function))
 
+(eval-after-load 'sunrise-commander '(sr-extend-with 'sunrise-x-modeline))
+
 (provide 'sunrise-x-modeline)
-
-;;;###autoload (eval-after-load 'sunrise-commander '(sr-extend-with 'sunrise-x-modeline))
-
 ;;; sunrise-x-modeline.el ends here
