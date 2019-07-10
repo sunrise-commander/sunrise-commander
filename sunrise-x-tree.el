@@ -696,7 +696,7 @@ View and visit that folder."
       (funcall next-command)
       (setq key (read-key-sequence msg)
             next-command (lookup-key sr-tree-mode-map key)))
-    (isearch-unread-key-sequence (listify-key-sequence key))
+    (isearch-unread (listify-key-sequence key))
     (setq isearch-mode-end-hook-quit nil)))
 
 (defun sr-tree-focus-branch ()
