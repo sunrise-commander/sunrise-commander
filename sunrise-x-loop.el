@@ -99,7 +99,8 @@ sr-loop-stop to get rid of it)."
 After executing one or more operations in the background, the
 Sunrise Loop Elisp interpreter will be killed automatically after
 this amount of time."
-  :group 'sunrise)
+  :group 'sunrise
+  :type 'integer)
 
 (defcustom sr-loop-use-popups t
   "When non-nil, display pop‐up notification when execution queue is emptied."
