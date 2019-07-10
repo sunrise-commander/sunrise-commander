@@ -7,10 +7,9 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 27 Jun 2008
 ;; Version: 3
-;; RCS Version: $Rev: 423 $
-;; Keywords: sunrise commander, background copy rename move
-;; URL: http://www.emacswiki.org/emacs/sunrise-x-loop.el
-;; Compatibility: GNU Emacs 22+
+;; Package-Requires: ((emacs "24.3") (cl-lib "0.5"))
+;; Keywords: files, sunrise commander, background copy rename move
+;; URL: https://github.com/sunrise-commander/sunrise-commander
 
 ;; This file is not part of GNU Emacs.
 

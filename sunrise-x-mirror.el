@@ -7,10 +7,9 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 4 May 2008
 ;; Version: 2
-;; RCS Version: $Rev: 423 $
-;; Keywords: sunrise commander, archives read/write
-;; URL: http://www.emacswiki.org/emacs/sunrise-x-mirror.el
-;; Compatibility: GNU Emacs 22+
+;; Package-Requires: ((emacs "24.3") (cl-lib "0.5"))
+;; Keywords: files, sunrise commander, archives read/write
+;; URL: https://github.com/sunrise-commander/sunrise-commander
 
 ;; This file is not part of GNU Emacs.
 

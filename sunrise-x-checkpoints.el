@@ -7,10 +7,9 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 29 Dec 2009
 ;; Version: 1
-;; RCS Version: $Rev: 440 $
-;; Keywords: sunrise commander, checkpoints, bookmarks
-;; URL: http://www.emacswiki.org/emacs/sunrise-x-checkpoints.el
-;; Compatibility: GNU Emacs 23+
+;; Package-Requires: ((emacs "24.3") (cl-lib "0.5"))
+;; Keywords: files, sunrise commander, checkpoints, bookmarks
+;; URL: https://github.com/sunrise-commander/sunrise-commander
 
 ;; This file is not part of GNU Emacs.
 

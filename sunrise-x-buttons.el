@@ -7,10 +7,9 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 11 Jun 2008
 ;; Version: 1
-;; RCS Version: $Rev: 444 $
-;; Keywords: sunrise commander, shortcut buttons
-;; URL: http://www.emacswiki.org/emacs/sunrise-x-buttons.el
-;; Compatibility: GNU Emacs 22+
+;; Package-Requires: ((emacs "24.3") (cl-lib "0.5"))
+;; Keywords: files, sunrise commander, shortcut buttons
+;; URL: https://github.com/sunrise-commander/sunrise-commander
 
 ;; This file is not part of GNU Emacs.
 
