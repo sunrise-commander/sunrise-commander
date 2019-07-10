@@ -4,7 +4,9 @@ ELS = sunrise-commander.el sunrise-x-buttons.el sunrise-x-checkpoints.el sunrise
 AUTOLOADS = sunrise-commander-autoloads.el
 ELCS = $(ELS:.el=.elc)
 
-%.elc: %.el
+
+.SUFFIXES: .el .elc
+.el.elc:
 	$(EMACS) -Q -batch -L . -f package-initialize -f batch-byte-compile $<
 
 all: clean autoloads $(ELCS)
