@@ -10,7 +10,7 @@ on GitHub. If you wish to contribute, please fork the repository, commit your
 work to the fork and send us a pull request.
 
 Read on for a terse user's guide. The [Emacs Wiki
-page](http://www.emacswiki.org/emacs/Sunrise_Commander) give a more complete
+page](http://www.emacswiki.org/emacs/Sunrise_Commander) gives a more complete
 tour and many tips from users.
 
 Happy hacking!
