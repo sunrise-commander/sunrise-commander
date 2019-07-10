@@ -7,10 +7,9 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 10 Oct 2009
 ;; Version: 2
-;; RCS Version: $Rev: 423 $
-;; Keywords: sunrise commander, modeline, path mode line
-;; URL: http://www.emacswiki.org/emacs/sunrise-x-modeline.el
-;; Compatibility: GNU Emacs 22+
+;; Package-Requires: ((emacs "24.3") (cl-lib "0.5"))
+;; Keywords: files, sunrise commander, modeline, path mode line
+;; URL: https://github.com/sunrise-commander/sunrise-commander
 
 ;; This file is not part of GNU Emacs.
 

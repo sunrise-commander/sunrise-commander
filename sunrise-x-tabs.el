@@ -7,10 +7,9 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 24 Oct 2009
 ;; Version: 1
-;; RCS Version: $Rev: 446 $
-;; Keywords: sunrise commander, tabs
-;; URL: http://www.emacswiki.org/emacs/sunrise-x-tabs.el
-;; Compatibility: GNU Emacs 22+
+;; Package-Requires: ((emacs "24.3") (cl-lib "0.5"))
+;; Keywords: files, sunrise commander, tabs
+;; URL: https://github.com/sunrise-commander/sunrise-commander
 
 ;; This file is not part of GNU Emacs.
 

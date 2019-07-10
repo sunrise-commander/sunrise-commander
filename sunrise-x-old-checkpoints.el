@@ -7,10 +7,9 @@
 ;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
 ;; Created: 28 Dec 2009
 ;; Version: 1
-;; RCS Version: $Rev: 449 $
-;; Keywords: sunrise commander, old checkpoints
-;; URL: http://www.emacswiki.org/emacs/sunrise-x-old-checkpoints.el
-;; Compatibility: GNU Emacs 22
+;; Package-Requires: ((emacs "24.3") (cl-lib "0.5"))
+;; Keywords: files, sunrise commander, old checkpoints
+;; URL: https://github.com/sunrise-commander/sunrise-commander
 
 ;; This file is not part of GNU Emacs.
 
