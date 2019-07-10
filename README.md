@@ -15,7 +15,7 @@ tour and many tips from users.
 
 Happy hacking!
 
-## User's guide
+## User's Guide
 
 **The Sunrise Commander** is a double-pane file manager for Emacs. It's built atop of Dired and takes advantage of all its power, but also provides many handy features of its own:
 
