@@ -1,18 +1,21 @@
 # The Sunrise Commander
 
-Welcome to the Sunrise Commander Git repository. This is the place where you can
-contribute directly to the development of the Sunrise Commander File Manager for
-GNU Emacs.
+Welcome to the Git repository of Sunrise Commander, the orthodox file manager
+for GNU Emacs.
 
-If you don't know what the Sunrise Commander is, or just want to grab a copy to
-use in your own Emacs please read [this Emacs Wiki page](http://www.emacswiki.org/emacs/Sunrise_Commander).
+The author of Sunrise Commander is José A. Romero L. Maintenance is currently
+done by volunteers. The official repository is hosted at
+[sunrise-commander/sunrise-commander](https://github.com/sunrise-commander/sunrise-commander)
+on GitHub. If you wish to contribute, please fork the repository, commit your
+work to the fork and send us a pull request.
 
-If you wish to contribute, please fork the project, commit your work to your own
-branch and send me a pull request.
+Read on for a terse user's guide. The [Emacs Wiki page on Sunrise
+Commander](http://www.emacswiki.org/emacs/Sunrise_Commander) give a more
+complete tour and many tips from users.
 
 Happy hacking!
 
-----------
+## User's guide
 
 **The Sunrise Commander** is a double-pane file manager for Emacs. It's built atop of Dired and takes advantage of all its power, but also provides many handy features of its own:
 
@@ -81,7 +84,7 @@ For more details on the file manager, several available extensions and many cool
 
 ## Installation and Usage
 
- 1. Put this file somewhere in your Emacs `load-path`.
+ 1. Put `sunrise-commander.el` somewhere in your Emacs `load-path`.
  2. Add a `(require 'sunrise-commander)` to your `.emacs` file.
  3. Choose some unused extension for files to be opened in Sunrise VIRTUAL mode and add it to `auto-mode-alist`, e.g. if you want to name your virtual directories like `*.svrm` just add to your `.emacs` file a line like the following:
        (add-to-list 'auto-mode-alist '("\\.srvm\\'" . sr-virtual-mode))
