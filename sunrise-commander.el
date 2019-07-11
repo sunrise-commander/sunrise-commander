@@ -2213,6 +2213,7 @@ If the optional parameter REVERSE is non-nil, performs the
 opposite operation, ie. changes the directory in the current pane
 to that in the other one."
   (interactive "P")
+  (sr-assert-other)
   (let ((target (current-buffer)) (sr-inhibit-highlight t))
     (sr-change-window)
     (if reverse
