@@ -908,6 +908,11 @@ Uses `save-selected-window' internally."
          (unless (kill-buffer dispose)
            (kill-local-variable 'sr-current-path-faces))))))
 
+(defun sr-assert-other ()
+  "Signal an error if we have no other pane."
+  (unless (window-live-p (sr-other))
+    (error "No other Sunrise Commander pane")))
+
 (defmacro sr-in-other (form)
   "Execute FORM in the context of the passive pane.
 Helper macro for passive & synchronized navigation."
