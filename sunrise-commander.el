@@ -911,7 +911,7 @@ Uses `save-selected-window' internally."
 (defun sr-assert-other ()
   "Signal an error if we have no other pane."
   (unless (window-live-p (sr-other))
-    (error "No other Sunrise Commander pane")))
+    (user-error "No other Sunrise Commander pane")))
 
 (defmacro sr-in-other (form)
   "Execute FORM in the context of the passive pane.
