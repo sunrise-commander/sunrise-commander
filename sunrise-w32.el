@@ -1,4 +1,4 @@
-;;; sunrise-w32-addons --- MS-Windows-specific utilities for the Sunrise Commander File Manager -*- lexical-binding: t -*-
+;;; sunrise-w32 --- MS-Windows-specific utilities for the Sunrise Commander File Manager -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2011, 2012 José Alfredo Romero Latouche.
 
@@ -49,7 +49,7 @@
 
 ;; 1) Put this file somewhere in your Emacs `load-path'.
 
-;; 2) Add a (require 'sunrise-w32-addons) expression to your .emacs file after
+;; 2) Add a (require 'sunrise-w32) expression to your .emacs file after
 ;; the (require 'sunrise) one.
 
 ;; 3) Evaluate the new expression, or reload your .emacs file, or restart Emacs.
@@ -215,8 +215,8 @@ Also includes some selected special folders."
 (defun sunrise-w32-create-drivers-script ()
   "Return the path of the VBScript file used for Windows-specific operations.
 Creates it first if necessary."
-  (let* ((script-name "sunrise-w32-addons.vbs")
-         (script-dir (file-name-directory (symbol-file 'sunrise-w32-addons)))
+  (let* ((script-name "sunrise-w32.vbs")
+         (script-dir (file-name-directory (symbol-file 'sunrise-w32)))
          (script-path (concat script-dir script-name)))
     (unless (file-exists-p script-path)
       (with-temp-buffer
@@ -280,11 +280,11 @@ The names are separated by a space."
     (kill-new string t)
     (message "%s" string)))
 
-(defun sunrise-w32-addons-unload-function ()
+(defun sunrise-w32-unload-function ()
   (sunrise-ad-disable "^sunrise-w32-"))
 
-(provide 'sunrise-w32-addons)
+(provide 'sunrise-w32)
 
-;;;###autoload (eval-after-load 'sunrise '(sunrise-extend-with 'sunrise-w32-addons))
+;;;###autoload (eval-after-load 'sunrise '(sunrise-extend-with 'sunrise-w32))
 
-;;; sunrise-w32-addons.el ends here
+;;; sunrise-w32.el ends here
