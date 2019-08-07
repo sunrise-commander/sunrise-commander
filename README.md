@@ -49,7 +49,7 @@ Happy hacking!
     * Press <kbd>C-c C-t</kbd> to inconditionally open a new terminal into the currently selected directory in the active pane.
     * Use <kbd>C-c t</kbd> to switch to the last opened terminal, or (when already inside a terminal) to cycle through all open terminals.
     * Press <kbd>C-c T</kbd> to switch to the last opened terminal and change directory to the one in the current directory.
-    * Press <kbd>C-c M-t</kbd> to be prompted for a program name, and then open a new terminal using that program into the currently selected directory (`eshell` is a valid value; if no program can be found with the given name then the value of `sr-terminal-program` is used instead).
+    * Press <kbd>C-c M-t</kbd> to be prompted for a program name, and then open a new terminal using that program into the currently selected directory (`eshell` is a valid value; if no program can be found with the given name then the value of `sunrise-terminal-program` is used instead).
  * Terminal integration and Command line expansion: integrates tightly with `eshell` and `term-mode` to allow interaction between terminal emulators in line mode (<kbd>C-c C-j</kbd>) and the panes: the most important navigation commands (up, down, mark, unmark, go to parent dir) can be executed on the active pane directly from the terminal by pressing the usual keys with Meta: <kbd>M-up</kbd>, <kbd>M-down</kbd>, etc. Additionally, the following substitutions are automagically performed in `eshell` and `term-line-mode`:
     * `%f` - expands to the currently selected file in the left pane
     * `%F` - expands to the currently selected file in the right pane
@@ -87,7 +87,7 @@ For more details on the file manager, several available extensions and many cool
  1. Put `sunrise.el` somewhere in your Emacs `load-path`.
  2. Add a `(require 'sunrise)` to your `.emacs` file.
  3. Choose some unused extension for files to be opened in Sunrise VIRTUAL mode and add it to `auto-mode-alist`, e.g. if you want to name your virtual directories like `*.svrm` just add to your `.emacs` file a line like the following:
-       (add-to-list 'auto-mode-alist '("\\.srvm\\'" . sr-virtual-mode))
+       (add-to-list 'auto-mode-alist '("\\.srvm\\'" . sunrise-virtual-mode))
  4. Evaluate the new lines, or reload your `.emacs` file, or restart Emacs.
  5. Type <kbd>M-x sunrise</kbd> to invoke the Sunrise Commander (or much better: bind the function to your favorite key combination). The command `sunrise-cd` invokes Sunrise and automatically selects the current file wherever it is in the filesystem. Type h at any moment for information on available key bindings.
  6. Type <kbd>M-x customize-group [RET] sunrise [RET]</kbd> to customize options, fonts and colors (activate AVFS support here, too).

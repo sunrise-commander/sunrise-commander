@@ -54,33 +54,33 @@
 
 (require 'sunrise)
 
-(defvar sr-checkpoint-registry '(("~" "~/" "~/"))
+(defvar sunrise-checkpoint-registry '(("~" "~/" "~/"))
   "Registry of currently defined checkpoints.")
 
-(defun sr-checkpoint-save (&optional name)
+(defun sunrise-checkpoint-save (&optional name)
   "Save the current Sunrise pane directories under NAME for later restoring."
   (interactive "sCheckpoint name to save? ")
-  (let ((my-cell (assoc-string name sr-checkpoint-registry)))
-    (sr-save-directories)
+  (let ((my-cell (assoc-string name sunrise-checkpoint-registry)))
+    (sunrise-save-directories)
     (if (null my-cell)
-        (setq sr-checkpoint-registry
-              (cons (cons name (list sr-left-directory sr-right-directory))
-                    sr-checkpoint-registry))
-      (setcdr my-cell (list sr-left-directory sr-right-directory)))
+        (setq sunrise-checkpoint-registry
+              (cons (cons name (list sunrise-left-directory sunrise-right-directory))
+                    sunrise-checkpoint-registry))
+      (setcdr my-cell (list sunrise-left-directory sunrise-right-directory)))
   (message "%s" (concat "Checkpoint \"" name "\" saved"))))
 
-(defun sr-checkpoint-restore (&optional name)
+(defun sunrise-checkpoint-restore (&optional name)
   "Restore a checkpoint previously saved under NAME."
   (interactive "sCheckpoint name to restore? " )
-  (let* ((cp-list (assoc-string name sr-checkpoint-registry))
+  (let* ((cp-list (assoc-string name sunrise-checkpoint-registry))
          (dirs-list (cdr cp-list)))
     (unless cp-list
       (error (concat "No such checkpoint: " name)))
-    (if (eq sr-selected-window 'right)
+    (if (eq sunrise-selected-window 'right)
         (setq dirs-list (reverse dirs-list)))
-    (mapc (lambda (x) (sr-goto-dir x) (sr-change-window)) dirs-list)))
+    (mapc (lambda (x) (sunrise-goto-dir x) (sunrise-change-window)) dirs-list)))
 
-(defun sr-checkpoint-handler (&optional arg)
+(defun sunrise-checkpoint-handler (&optional arg)
   "Dummy function for compatilibity with the new checkpoints interface."
   (ignore))
 
