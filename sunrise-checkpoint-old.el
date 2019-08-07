@@ -1,4 +1,4 @@
-;;; sunrise-old-checkpoints.el --- Backward-compatible checkpoints for the Sunrise Commander -*- lexical-binding: t -*-
+;;; sunrise-checkpoint-old.el --- Backward-compatible checkpoints for the Sunrise Commander -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2009-2012 José Alfredo Romero Latouche.
 
@@ -45,9 +45,9 @@
 
 ;; 2) Enjoy ;-) -- Sunrise should pick the correct extension automatically. On
 ;; Emacs 23 it will look for sunrise-checkpoints, while on Emacs 22 it'll try
-;; to load sunrise-old-checkpoints. Only if you *really* want to use the old
+;; to load sunrise-checkpoint-old. Only if you *really* want to use the old
 ;; extensions with a more recent version of bookmarks.el than the one bundled
-;; with Emacs 22 you may add a new (require 'sunrise-old-checkpoints) to your
+;; with Emacs 22 you may add a new (require 'sunrise-checkpoint-old) to your
 ;; .emacs file somewhere after (require 'sunrise).
 
 ;;; Code:
@@ -84,6 +84,6 @@
   "Dummy function for compatilibity with the new checkpoints interface."
   (ignore))
 
-(provide 'sunrise-old-checkpoints)
+(provide 'sunrise-checkpoint-old)
 
-;;; sunrise-old-checkpoints.el ends here
+;;; sunrise-checkpoint-old.el ends here

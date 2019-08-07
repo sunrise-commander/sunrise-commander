@@ -1,4 +1,4 @@
-;;; sunrise-checkpoints.el --- Checkpoint bookmarks for the Sunrise Commander -*- lexical-binding: t -*-
+;;; sunrise-checkpoint.el --- Checkpoint bookmarks for the Sunrise Commander -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2009-2012 José Alfredo Romero Latouche.
 
@@ -47,7 +47,7 @@
 ;; it.
 
 ;; 2) Enjoy ;-) -- Sunrise should pick the correct extension automatically. On
-;; Emacs 23 it will look for sunrise-checkpoints, while on Emacs 22 it'll try
+;; Emacs 23 it will look for sunrise-checkpoint, while on Emacs 22 it'll try
 ;; to load sunrise-old-checkpoints. Only if you *really* want to use the old
 ;; extensions on Emacs 23 you may add a new (require 'sunrise-old-checkpoints)
 ;; expression to your .emacs file somewhere after (require 'sunrise).
@@ -62,7 +62,7 @@
   "Create a new checkpoint bookmark to save the location of both panes."
   (interactive "p")
   (sunrise-save-directories)
-  (let ((bookmark-make-record-function 'sunrise-make-checkpoint-record))
+  (let ((bookmark-make-record-function 'sunrise-checkpoint-make-record))
     (call-interactively 'bookmark-set)))
 
 (defun sunrise-checkpoint-restore (&optional _arg)
@@ -72,7 +72,7 @@
   (sunrise-history-push default-directory)
   (sunrise-in-other (sunrise-history-push default-directory)))
 
-(defun sunrise-make-checkpoint-record ()
+(defun sunrise-checkpoint-make-record ()
   "Generate a the bookmark record for a new checkpoint."
   `((filename . ,(format "Sunrise Checkpoint: %s | %s"
                          sunrise-left-directory sunrise-right-directory))
@@ -120,9 +120,9 @@
       ad-do-it)))
 (ad-activate 'bookmark-relocate)
 
-(defun sunrise-checkpoints-unload-function ()
+(defun sunrise-checkpoint-unload-function ()
   (sunrise-ad-disable "^sunrise-checkpoint-"))
 
-(provide 'sunrise-checkpoints)
+(provide 'sunrise-checkpoint)
 
-;;; sunrise-checkpoints.el ends here
+;;; sunrise-checkpoint.el ends here
