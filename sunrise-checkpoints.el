@@ -1,4 +1,4 @@
-;;; sunrise-x-checkpoints.el --- checkpoint bookmarks for the Sunrise Commander File Manager -*- lexical-binding: t -*-
+;;; sunrise-checkpoints.el --- checkpoint bookmarks for the Sunrise Commander File Manager -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2009-2012 José Alfredo Romero Latouche.
 
@@ -31,13 +31,13 @@
 ;; Beginning with version 4 of the Sunrise Commander, checkpoints were redefined
 ;; to be a special form of bookmarks. Unfortunately, the differences between the
 ;; bookmarks frameworks in Emacs 22 and Emacs 23 are so big that including this
-;; code directly in the sunrise-commander script would make it incompatible with
-;; Emacs 22. For this reason both versions of checkpoints are now provided as
-;; dynamically loaded extensions, so that you can decide which of them to use.
-;; To be sure, this is the version I intend to further develop, as it has a
-;; richer set of functions and integrates more nicely to the rest of Emacs. The
-;; other one is deprecated and will eventually disappear once Emacs 23+ becomes
-;; the "stable" release.
+;; code directly in sunrise.el would make it incompatible with Emacs 22. For
+;; this reason both versions of checkpoints are now provided as dynamically
+;; loaded extensions, so that you can decide which of them to use. To be sure,
+;; this is the version I intend to further develop, as it has a richer set of
+;; functions and integrates more nicely to the rest of Emacs. The other one is
+;; deprecated and will eventually disappear once Emacs 23+ becomes the "stable"
+;; release.
 
 ;; This extension was written and tested on GNU Emacs 23 on Linux.
 
@@ -47,14 +47,14 @@
 ;; it.
 
 ;; 2) Enjoy ;-) -- Sunrise should pick the correct extension automatically. On
-;; Emacs 23 it will look for sunrise-x-checkpoints, while on Emacs 22 it'll try
-;; to load sunrise-x-old-checkpoints. Only if you *really* want to use the old
-;; extensions on Emacs 23 you may add a new (require 'sunrise-x-old-checkpoints)
-;; expression to your .emacs file somewhere after (require 'sunrise-commander).
+;; Emacs 23 it will look for sunrise-checkpoints, while on Emacs 22 it'll try
+;; to load sunrise-old-checkpoints. Only if you *really* want to use the old
+;; extensions on Emacs 23 you may add a new (require 'sunrise-old-checkpoints)
+;; expression to your .emacs file somewhere after (require 'sunrise).
 
 ;;; Code:
 
-(require 'sunrise-commander)
+(require 'sunrise)
 (require 'bookmark)
 (eval-when-compile (require 'cl))
 
@@ -120,9 +120,9 @@
       ad-do-it)))
 (ad-activate 'bookmark-relocate)
 
-(defun sunrise-x-checkpoints-unload-function ()
+(defun sunrise-checkpoints-unload-function ()
   (sr-ad-disable "^sr-checkpoint-"))
 
-(provide 'sunrise-x-checkpoints)
+(provide 'sunrise-checkpoints)
 
-;;; sunrise-x-checkpoints.el ends here
+;;; sunrise-checkpoints.el ends here
