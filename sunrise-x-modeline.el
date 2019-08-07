@@ -2,9 +2,9 @@
 
 ;; Copyright (C) 2009-2012 José Alfredo Romero Latouche.
 
-;; Author: José Alfredo Romero L. <escherdragon@gmail.com>
+;; Author: José Alfredo Romero Latouche <escherdragon@gmail.com>
 ;;      Štěpán Němec <stepnem@gmail.com>
-;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
+;; Maintainer: José Alfredo Romero Latouche <escherdragon@gmail.com>
 ;; Created: 10 Oct 2009
 ;; Version: 2
 ;; Package-Requires: ((emacs "24.3") (cl-lib "0.5"))

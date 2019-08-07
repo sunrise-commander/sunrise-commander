@@ -3,8 +3,8 @@
 Welcome to the Git repository of the Sunrise Commander, the orthodox file
 manager for GNU Emacs.
 
-The author of the Sunrise Commander is José A. Romero L. Maintenance is
-currently done by volunteers. The official repository is hosted at
+The author of the Sunrise Commander is José Alfredo Romero Latouche. Maintenance
+is currently done by volunteers. The official repository is hosted at
 [sunrise-commander/sunrise-commander](https://github.com/sunrise-commander/sunrise-commander)
 on GitHub. If you wish to contribute, please fork the repository, commit your
 work to the fork and send us a pull request.

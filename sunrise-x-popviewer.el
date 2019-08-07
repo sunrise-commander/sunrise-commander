@@ -1,10 +1,10 @@
 ;;; sunrise-x-popviewer.el --- floating viewer window for the Sunrise Commander -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2012 José Alfredo Romero L.
+;; Copyright (C) 2008-2012 José Alfredo Romero Latouche.
 
-;; Author: José Alfredo Romero L. <escherdragon@gmail.com>
+;; Author: José Alfredo Romero Latouche <escherdragon@gmail.com>
 ;;      Štěpán Němec <stepnem@gmail.com>
-;; Maintainer: José Alfredo Romero L. <escherdragon@gmail.com>
+;; Maintainer: José Alfredo Romero Latouche <escherdragon@gmail.com>
 ;; Created: 20 Aug 2008
 ;; Version: 3
 ;; Package-Requires: ((emacs "24.3") (cl-lib "0.5"))
