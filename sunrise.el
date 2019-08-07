@@ -3943,7 +3943,7 @@ file)."
               (run-with-idle-timer 0.01 nil 'sunrise-sticky-isearch-prompt)))))))
 
 (defun sunrise-show-files-info (&optional deref-symlinks)
-  "Enhanced version of `dired-show-file-type' from dired‐aux.
+  "Enhanced version of `dired-show-file-type' from dired-aux.
 If at most one item is marked, print the filetype of the current
 item according to the \"file\" command, including its size in bytes.
 If more than one item is marked, print the total size in
