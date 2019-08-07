@@ -1,4 +1,4 @@
-;;; sunrise-modeline.el --- navigable mode line for the Sunrise Commander File Manager -*- lexical-binding: t -*-
+;;; sunrise-modeline.el --- Navigable mode line for the Sunrise Commander -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2009-2012 José Alfredo Romero Latouche.
 

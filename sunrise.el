@@ -1,4 +1,4 @@
-;;; sunrise.el --- two-pane file manager for Emacs based on Dired and inspired by MC  -*- lexical-binding: t -*-
+;;; sunrise.el --- The Sunrise Commander: a two-pane file manager -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2007-2015 José Alfredo Romero Latouche.
 

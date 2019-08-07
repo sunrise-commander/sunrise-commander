@@ -1,4 +1,4 @@
-;;; sunrise-loop.el --- asynchronous execution of filesystem operations for the Sunrise Commander File Manager -*- lexical-binding: t -*-
+;;; sunrise-loop.el --- Background file operations for the Sunrise Commander -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2008-2012 José Alfredo Romero Latouche.
 
