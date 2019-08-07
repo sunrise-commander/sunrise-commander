@@ -206,6 +206,7 @@ view. LABEL is the name displayed in the tree representing FILEPATH")
 (defvar sunrise-tree-mode-map (make-sparse-keymap)
   "Keymap for the Sunrise Commander Tree View.")
 
+;; TODO: This does not have the`sunrise-tree-` prefix. Figure out how to solve.
 (defvar sunrise-buttons-command-adapter nil
   "Compiler pacifier.
 See `sunrise-buttons-command-adapter' in sunrise-buttons.el.")
