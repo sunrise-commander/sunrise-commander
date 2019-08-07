@@ -1,4 +1,4 @@
-;;; sunrise-tree.el --- Tree View for the Sunrise Commander File Manager -*- lexical-binding: t -*-
+;;; sunrise-tree.el --- Tree view for the Sunrise Commander -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2010-2012 José Alfredo Romero Latouche.
 

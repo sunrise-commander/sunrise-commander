@@ -1,4 +1,4 @@
-;;; sunrise-tabs.el --- tabs for the Sunrise Commander File Manager -*- lexical-binding: t -*-
+;;; sunrise-tabs.el --- Tabs for the Sunrise Commander -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2009-2012 José Alfredo Romero Latouche.
 

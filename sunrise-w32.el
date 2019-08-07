@@ -1,4 +1,4 @@
-;;; sunrise-w32 --- MS-Windows-specific utilities for the Sunrise Commander File Manager -*- lexical-binding: t -*-
+;;; sunrise-w32.el --- Windows-specific utilities for the Sunrise Commander -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2011, 2012 José Alfredo Romero Latouche.
 

@@ -1,4 +1,4 @@
-;;; sunrise-checkpoints.el --- checkpoint bookmarks for the Sunrise Commander File Manager -*- lexical-binding: t -*-
+;;; sunrise-checkpoints.el --- Checkpoint bookmarks for the Sunrise Commander -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2009-2012 José Alfredo Romero Latouche.
 
