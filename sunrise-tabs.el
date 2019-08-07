@@ -440,10 +440,10 @@ nil = inactive, t = active. Creates new labels when needed."
 (defsubst sunrise-tabs-empty-null (line)
   (if (sunrise-tabs-empty-p line) nil line))
 
-(defun sunrise-nonempty-p (line-list)
+(defun sunrise-tabs-nonempty-p (line-list)
   "Return non-nil if LINE-LIST contains at least one non-nil element."
   (or (not (sunrise-tabs-empty-p (car line-list)))
-      (and (cdr line-list) (sunrise-nonempty-p (cdr line-list)))))
+      (and (cdr line-list) (sunrise-tabs-nonempty-p (cdr line-list)))))
 
 (defun sunrise-tabs-xor (list1 list2)
   "Replacement for function `set-exclusive-or'.
@@ -472,7 +472,7 @@ contain the same buffer, glues together the tab lines with a
         (same-buffer (eq sunrise-left-buffer sunrise-right-buffer)))
     (if same-buffer
         (setq header-line-format
-              (and (sunrise-nonempty-p line-list)
+              (and (sunrise-tabs-nonempty-p line-list)
                    (mapconcat 'concat line-list sunrise-tabs-ligature)))
       (let ((other-buffer (sunrise-other 'buffer)))
         (if (eq 'right sunrise-selected-window)
