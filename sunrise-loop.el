@@ -103,7 +103,7 @@ this amount of time."
   :type 'integer)
 
 (defcustom sunrise-loop-use-popups t
-  "When non-nil, display pop‐up notification when execution queue is emptied."
+  "When non-nil, display pop-up notification when execution queue is emptied."
   :group 'sunrise
   :type 'boolean)
 
