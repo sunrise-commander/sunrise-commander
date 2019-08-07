@@ -84,8 +84,8 @@
 
 ;; 1) Put this file somewhere in your Emacs `load-path'.
 
-;; 2) Add a (require 'sunrise-x-tabs) expression to your .emacs file somewhere
-;; after the (require 'sunrise-commander) one.
+;; 2) Add a (require 'sunrise-tabs) expression to your .emacs file somewhere
+;; after the (require 'sunrise) one.
 
 ;; 3) Evaluate the new expression, or reload your .emacs file, or restart Emacs.
 
