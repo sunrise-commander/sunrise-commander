@@ -1,4 +1,4 @@
-;;; sunrise-commander.el --- two-pane file manager for Emacs based on Dired and inspired by MC  -*- lexical-binding: t -*-
+;;; sunrise.el --- two-pane file manager for Emacs based on Dired and inspired by MC  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2007-2015 José Alfredo Romero Latouche.
 
@@ -154,7 +154,7 @@
 ;; complete list of all keybindings available (use C-e and C-y to scroll).
 
 ;; There is no help window like in MC, but if you really miss it, just get and
-;; install the sunrise-x-buttons extension.
+;; install the sunrise-buttons extension.
 
 ;; A lot of this code was once adapted from Kevin Burton's mc.el, but it has
 ;; evolved considerably since then. Another part (the code for file copying and
@@ -174,7 +174,7 @@
 
 ;; 1) Put this file somewhere in your Emacs `load-path'.
 
-;; 2) Add a (require 'sunrise-commander) to your .emacs file.
+;; 2) Add a (require 'sunrise) to your .emacs file.
 
 ;; 3) Choose some unused extension for files to be opened in Sunrise VIRTUAL
 ;; mode and add it to `auto-mode-alist', e.g. if you want to name your virtual
@@ -2024,11 +2024,11 @@ Just tries to require the appropriate checkpoints extension
 depending on the version of bookmark.el being used."
   (require 'bookmark nil t)
   (let* ((feature
-          (cond ((fboundp 'bookmark-make-record) 'sunrise-x-checkpoints)
-                (t 'sunrise-x-old-checkpoints)))
+          (cond ((fboundp 'bookmark-make-record) 'sunrise-checkpoints)
+                (t 'sunrise-old-checkpoints)))
          (name (symbol-name feature)))
     (or
-     (not (featurep 'sunrise-commander))
+     (not (featurep 'sunrise))
      (require feature nil t)
      noerror
      (error "Feature `%s' not found!\
@@ -2045,7 +2045,7 @@ and add it to your `load-path'" name name))))
 (sr-checkpoint-command sr-checkpoint-save)
 (sr-checkpoint-command sr-checkpoint-restore)
 (sr-checkpoint-command sr-checkpoint-handler)
-;;;###autoload (autoload 'sr-checkpoint-handler "sunrise-commander" "" t)
+;;;###autoload (autoload 'sr-checkpoint-handler "sunrise" "" t)
 
 (defun sr-do-find-marked-files (&optional noselect)
   "Sunrise replacement for `dired-do-find-marked-files'."
@@ -4600,7 +4600,7 @@ with advice matching REGEXP."
     (ad-disable-regexp regexp)
     (ad-update-regexp regexp)))
 
-(defun sunrise-commander-unload-function ()
+(defun sunrise-unload-function ()
   (sr-ad-disable "^sr-advice-"))
 
 ;;; ============================================================================
@@ -4629,6 +4629,6 @@ with advice matching REGEXP."
 (sr-rainbow sr-marked-file-face       (:inherit dired-marked :bold nil)     "\\(^[*!D].[^d].*$\\)")
 (sr-rainbow sr-broken-link-face       (:inherit dired-warning :italic t)    "\\(^[!].l.*$\\)")
 
-(provide 'sunrise-commander)
+(provide 'sunrise)
 
-;;; sunrise-commander.el ends here
+;;; sunrise.el ends here

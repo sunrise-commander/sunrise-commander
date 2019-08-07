@@ -1,4 +1,4 @@
-;;; sunrise-x-old-checkpoints.el --- backward compatibility checkpoint functions for the Sunrise Commander File Manager
+;;; sunrise-old-checkpoints.el --- backward compatibility checkpoint functions for the Sunrise Commander File Manager
 
 ;; Copyright (C) 2009-2012 José Alfredo Romero Latouche.
 
@@ -44,15 +44,15 @@
 ;; it.
 
 ;; 2) Enjoy ;-) -- Sunrise should pick the correct extension automatically. On
-;; Emacs 23 it will look for sunrise-x-checkpoints, while on Emacs 22 it'll try
-;; to load sunrise-x-old-checkpoints. Only if you *really* want to use the old
+;; Emacs 23 it will look for sunrise-checkpoints, while on Emacs 22 it'll try
+;; to load sunrise-old-checkpoints. Only if you *really* want to use the old
 ;; extensions with a more recent version of bookmarks.el than the one bundled
-;; with Emacs 22 you may add a new (require 'sunrise-x-old-checkpoints) to your
-;; .emacs file somewhere after (require 'sunrise-commander).
+;; with Emacs 22 you may add a new (require 'sunrise-old-checkpoints) to your
+;; .emacs file somewhere after (require 'sunrise).
 
 ;;; Code:
 
-(require 'sunrise-commander)
+(require 'sunrise)
 
 (defvar sr-checkpoint-registry '(("~" "~/" "~/"))
   "Registry of currently defined checkpoints.")
@@ -84,6 +84,6 @@
   "Dummy function for compatilibity with the new checkpoints interface."
   (ignore))
 
-(provide 'sunrise-x-old-checkpoints)
+(provide 'sunrise-old-checkpoints)
 
-;;; sunrise-x-old-checkpoints.el ends here
+;;; sunrise-old-checkpoints.el ends here

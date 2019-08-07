@@ -1,7 +1,7 @@
 EMACS ?= emacs
-ELS = sunrise-commander.el sunrise-x-buttons.el sunrise-x-checkpoints.el sunrise-x-loop.el sunrise-x-mirror.el sunrise-x-modeline.el sunrise-x-old-checkpoints.el sunrise-x-popviewer.el sunrise-x-tabs.el sunrise-x-tree.el sunrise-x-w32-addons.el
+ELS = sunrise.el sunrise-buttons.el sunrise-checkpoints.el sunrise-loop.el sunrise-mirror.el sunrise-modeline.el sunrise-old-checkpoints.el sunrise-popviewer.el sunrise-tabs.el sunrise-tree.el sunrise-w32-addons.el
 
-AUTOLOADS = sunrise-commander-autoloads.el
+AUTOLOADS = sunrise-autoloads.el
 ELCS = $(ELS:.el=.elc)
 
 
@@ -18,7 +18,7 @@ $(AUTOLOADS):
 	"(progn \
 	   (require 'package) \
 	   (normal-top-level-add-subdirs-to-load-path) \
-	   (package-generate-autoloads \"sunrise-commander\" default-directory))"
+	   (package-generate-autoloads \"sunrise\" default-directory))"
 
 package-lint: $(ELS)
 	$(EMACS) -Q -batch -L . -f package-initialize \

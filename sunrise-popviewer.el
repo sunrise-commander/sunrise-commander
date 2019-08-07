@@ -1,4 +1,4 @@
-;;; sunrise-x-popviewer.el --- floating viewer window for the Sunrise Commander -*- lexical-binding: t -*-
+;;; sunrise-popviewer.el --- floating viewer window for the Sunrise Commander -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2008-2012 José Alfredo Romero Latouche.
 
@@ -34,7 +34,7 @@
 ;; requests to view a file (by pressing "o" or "v") or to open a command line in
 ;; the current directory.
 
-;; WARNING: This code and the Buttons extension (sunrise-x-buttons) do NOT mix
+;; WARNING: This code and the Buttons extension (sunrise-buttons) do NOT mix
 ;; together, if you're using the Buttons extension remove it first from your
 ;; .emacs file.
 
@@ -42,11 +42,11 @@
 
 ;; 1) Put this file somewhere in your Emacs `load-path'.
 
-;; 2) If you are currently using the Buttons extension (sunrise-x-buttons),
+;; 2) If you are currently using the Buttons extension (sunrise-buttons),
 ;; remove it first from your .emacs file.
 
-;; 2) Add a (require 'sunrise-x-popviewer) expression to your .emacs file
-;; somewhere after the (require 'sunrise-commander) one.
+;; 2) Add a (require 'sunrise-popviewer) expression to your .emacs file
+;; somewhere after the (require 'sunrise) one.
 
 ;; 3) Evaluate the new expression, or reload your .emacs file, or restart Emacs.
 
@@ -61,7 +61,7 @@
 
 ;;; Code:
 
-(require 'sunrise-commander)
+(require 'sunrise)
 (eval-when-compile (require 'cl))
 
 (defcustom sr-popviewer-enabled nil
@@ -217,13 +217,13 @@ passive pane."
     (funcall adfun "^sr-popviewer-")
     (if sr-running (sr-setup-windows))))
 
-(defun sunrise-x-popviewer-unload-function ()
+(defun sunrise-popviewer-unload-function ()
   (sr-popviewer-mode -1)
   (sr-ad-disable "^sr-popviewer-"))
 
 (sr-popviewer-mode (if sr-popviewer-enabled 1 -1))
-(provide 'sunrise-x-popviewer)
+(provide 'sunrise-popviewer)
 
-;;;###autoload (eval-after-load 'sunrise-commander '(sr-extend-with 'sunrise-x-popviewer))
+;;;###autoload (eval-after-load 'sunrise '(sr-extend-with 'sunrise-popviewer))
 
-;;; sunrise-x-popviewer.el ends here
+;;; sunrise-popviewer.el ends here

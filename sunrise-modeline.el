@@ -1,4 +1,4 @@
-;;; sunrise-x-modeline.el --- navigable mode line for the Sunrise Commander File Manager -*- lexical-binding: t -*-
+;;; sunrise-modeline.el --- navigable mode line for the Sunrise Commander File Manager -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2009-2012 José Alfredo Romero Latouche.
 
@@ -72,7 +72,7 @@
 
 ;;; Code:
 
-(require 'sunrise-commander)
+(require 'sunrise)
 (require 'desktop)
 (require 'easymenu)
 (eval-when-compile (require 'cl))
@@ -321,8 +321,8 @@ the Sunrise Commander, after module installation."
 (add-to-list 'desktop-minor-mode-handlers
              '(sr-modeline . sr-modeline-desktop-restore-function))
 
-(provide 'sunrise-x-modeline)
+(provide 'sunrise-modeline)
 
-;;;###autoload (eval-after-load 'sunrise-commander '(sr-extend-with 'sunrise-x-modeline))
+;;;###autoload (eval-after-load 'sunrise '(sr-extend-with 'sunrise-modeline))
 
-;;; sunrise-x-modeline.el ends here
+;;; sunrise-modeline.el ends here

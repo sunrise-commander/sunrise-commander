@@ -1,4 +1,4 @@
-;;; sunrise-x-tree.el --- Tree View for the Sunrise Commander File Manager -*- lexical-binding: t -*-
+;;; sunrise-tree.el --- Tree View for the Sunrise Commander File Manager -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2010-2012 José Alfredo Romero Latouche.
 
@@ -161,7 +161,7 @@
 
 ;;; Code:
 
-(require 'sunrise-commander)
+(require 'sunrise)
 (require 'tree-widget)
 (require 'hl-line)
 (eval-when-compile (require 'cl)
@@ -208,7 +208,7 @@ view. LABEL is the name displayed in the tree representing FILEPATH")
 
 (defvar sr-buttons-command-adapter nil
   "Compiler pacifier.
-See `sr-buttons-command-adapter' in sunrise-x-buttons.el.")
+See `sr-buttons-command-adapter' in sunrise-buttons.el.")
 
 (defvar sr-tree-omit-archives t "")
 
@@ -255,7 +255,7 @@ on the position of the point."
     (setq sr-this-directory (cdr sr-tree-cursor))
     (sr-tree-highlight)
     (setq default-directory (file-name-as-directory (cdr sr-tree-cursor)))
-    (when (and (featurep 'sunrise-x-modeline)
+    (when (and (featurep 'sunrise-modeline)
                (not (eq mode-line-format (default-value 'mode-line-format))))
       (if (fboundp 'sr-modeline-refresh)
           (sr-modeline-refresh))
@@ -1171,7 +1171,7 @@ switch to normal mode, then execute."
 
 (add-hook 'sr-start-hook 'sr-tree-menu-init)
 
-(defun sunrise-x-tree-unload-function ()
+(defun sunrise-tree-unload-function ()
   (sr-ad-disable "^sr-tree-"))
 
 ;;; ============================================================================
@@ -1211,8 +1211,8 @@ switch to normal mode, then execute."
 (add-to-list 'desktop-buffer-mode-handlers
              '(sr-tree-mode . sr-tree-desktop-restore-buffer))
 
-(provide 'sunrise-x-tree)
+(provide 'sunrise-tree)
 
-;;;###autoload (eval-after-load 'sunrise-commander '(sr-extend-with 'sunrise-x-tree))
+;;;###autoload (eval-after-load 'sunrise '(sr-extend-with 'sunrise-tree))
 
-;;; sunrise-x-tree.el ends here
+;;; sunrise-tree.el ends here

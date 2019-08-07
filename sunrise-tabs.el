@@ -1,4 +1,4 @@
-;;; sunrise-x-tabs.el --- tabs for the Sunrise Commander File Manager -*- lexical-binding: t -*-
+;;; sunrise-tabs.el --- tabs for the Sunrise Commander File Manager -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2009-2012 José Alfredo Romero Latouche.
 
@@ -93,7 +93,7 @@
 
 ;;; Code:
 
-(require 'sunrise-commander)
+(require 'sunrise)
 (eval-when-compile (require 'cl)
                    (require 'desktop))
 
@@ -674,11 +674,11 @@ tabs in the Sunrise Commander (used for desktop support)."
      (add-to-list 'desktop-globals-to-clear
                   '(sr-tabs-on . (sr-tabs-reset-state))))))
 
-(defun sunrise-x-tabs-unload-function ()
+(defun sunrise-tabs-unload-function ()
   (sr-ad-disable "^sr-tabs-"))
 
-(provide 'sunrise-x-tabs)
+(provide 'sunrise-tabs)
 
-;;;###autoload (eval-after-load 'sunrise-commander '(sr-extend-with 'sunrise-x-tabs))
+;;;###autoload (eval-after-load 'sunrise '(sr-extend-with 'sunrise-tabs))
 
-;;; sunrise-x-tabs.el ends here
+;;; sunrise-tabs.el ends here

@@ -74,7 +74,7 @@ Happy hacking!
  * Synchronized navigation: press <kbd>C-c C-z</kbd> to enable/disable synchronized navigation. In this mode, the passive navigation keys (<kbd>M-n</kbd>, <kbd>M-p</kbd>, <kbd>M-RET</kbd>, etc.) operate on both panes simultaneously. I've found this quite useful for comparing hierarchically small to medium-sized directory trees (for large to very large directory trees one needs something on the lines of `diff -r` though).
  * And much more -- press <kbd>?</kbd> while in Sunrise mode for basic help, or <kbd>h</kbd> for a complete list of all keybindings available (use <kbd>C-e</kbd> and <kbd>C-y</kbd> to scroll).
 
-There is no help window like in MC, but if you really miss it, just get and install the sunrise-x-buttons extension.
+There is no help window like in MC, but if you really miss it, just get and install the sunrise-buttons extension.
 
 A lot of this code was once adapted from Kevin Burton's mc.el, but it has evolved considerably since then. Another part (the code for file copying and renaming) derives originally from the Dired extensions written by Kurt Nørmark for [LAML](http://www.cs.aau.dk/~normark/scheme/distribution/laml/).
 
@@ -84,8 +84,8 @@ For more details on the file manager, several available extensions and many cool
 
 ## Installation and Usage
 
- 1. Put `sunrise-commander.el` somewhere in your Emacs `load-path`.
- 2. Add a `(require 'sunrise-commander)` to your `.emacs` file.
+ 1. Put `sunrise.el` somewhere in your Emacs `load-path`.
+ 2. Add a `(require 'sunrise)` to your `.emacs` file.
  3. Choose some unused extension for files to be opened in Sunrise VIRTUAL mode and add it to `auto-mode-alist`, e.g. if you want to name your virtual directories like `*.svrm` just add to your `.emacs` file a line like the following:
        (add-to-list 'auto-mode-alist '("\\.srvm\\'" . sr-virtual-mode))
  4. Evaluate the new lines, or reload your `.emacs` file, or restart Emacs.

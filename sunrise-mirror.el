@@ -1,4 +1,4 @@
-;;; sunrise-x-mirror.el --- full read/write access to compressed archives for the Sunrise Commander File Manager -*- lexical-binding: t -*-
+;;; sunrise-mirror.el --- full read/write access to compressed archives for the Sunrise Commander File Manager -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2008-2012 José Alfredo Romero Latouche.
 
@@ -82,8 +82,8 @@
 
 ;; 1) Put this file somewhere in your Emacs `load-path'.
 
-;; 2) Add a (require 'sunrise-x-mirror) to your .emacs file, anywhere after the
-;; (require 'sunrise-commander) sexp.
+;; 2) Add a (require 'sunrise-mirror) to your .emacs file, anywhere after the
+;; (require 'sunrise) sexp.
 
 ;; 3) Evaluate the new expression, or reload your .emacs file, or restart Emacs.
 
@@ -115,7 +115,7 @@
 
 ;;; Code:
 
-(require 'sunrise-commander)
+(require 'sunrise)
 (eval-when-compile (require 'cl))
 
 (defcustom sr-mirror-keep-backups t
@@ -558,11 +558,11 @@ so they are always writeable by default."
             (setq buffer-read-only nil)))))
 (add-hook 'find-file-hook 'sr-mirror-toggle-read-only)
 
-(defun sunrise-x-mirror-unload-function ()
+(defun sunrise-mirror-unload-function ()
   (sr-ad-disable "^sr-mirror-"))
 
-(provide 'sunrise-x-mirror)
+(provide 'sunrise-mirror)
 
-;;;###autoload (eval-after-load 'sunrise-commander '(sr-extend-with 'sunrise-x-mirror))
+;;;###autoload (eval-after-load 'sunrise '(sr-extend-with 'sunrise-mirror))
 
-;;; sunrise-x-mirror.el ends here
+;;; sunrise-mirror.el ends here

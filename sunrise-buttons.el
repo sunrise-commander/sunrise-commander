@@ -1,4 +1,4 @@
-;;; sunrise-x-buttons.el --- mouse-clickable shortcut buttons for the Sunrise Commander File Manager -*- lexical-binding: t -*-
+;;; sunrise-buttons.el --- mouse-clickable shortcut buttons for the Sunrise Commander File Manager -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2008-2012 José Alfredo Romero Latouche.
 
@@ -48,8 +48,8 @@
 
 ;; 1) Put this file somewhere in your Emacs `load-path'.
 
-;; 2) Add a (require 'sunrise-x-buttons) to your .emacs file, preferably right
-;; after (require 'sunrise-commander).
+;; 2) Add a (require 'sunrise-buttons) to your .emacs file, preferably right
+;; after (require 'sunrise).
 
 ;; 3) Evaluate the new expression, or reload your .emacs file, or restart Emacs.
 
@@ -58,7 +58,7 @@
 
 ;;; Code:
 
-(require 'sunrise-commander)
+(require 'sunrise)
 (require 'cus-edit)
 (eval-when-compile (require 'cl))
 
@@ -294,8 +294,8 @@ Used inside the Sunrise Buttons buffer."
         ((string= mode-name "Editable Dired") (eval '(wdired-finish-edit)))
         (t (message "Already in regular mode"))))
 
-(provide 'sunrise-x-buttons)
+(provide 'sunrise-buttons)
 
-;;;###autoload (eval-after-load 'sunrise-commander '(sr-extend-with 'sunrise-x-buttons))
+;;;###autoload (eval-after-load 'sunrise '(sr-extend-with 'sunrise-buttons))
 
-;;; sunrise-x-buttons.el ends here
+;;; sunrise-buttons.el ends here

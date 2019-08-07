@@ -1,4 +1,4 @@
-;;; sunrise-x-w32-addons --- MS-Windows-specific utilities for the Sunrise Commander File Manager -*- lexical-binding: t -*-
+;;; sunrise-w32-addons --- MS-Windows-specific utilities for the Sunrise Commander File Manager -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2011, 2012 José Alfredo Romero Latouche.
 
@@ -79,7 +79,7 @@
 
 ;;; Code:
 
-(require 'sunrise-commander)
+(require 'sunrise)
 
 (defcustom sr-w32-follow-shortcuts t
   "Controls the shortcut resolution mechanism.
@@ -215,8 +215,8 @@ Also includes some selected special folders."
 (defun sr-w32-create-drivers-script ()
   "Return the path of the VBScript file used for Windows-specific operations.
 Creates it first if necessary."
-  (let* ((script-name "sunrise-x-w32-addons.vbs")
-         (script-dir (file-name-directory (symbol-file 'sunrise-x-w32-addons)))
+  (let* ((script-name "sunrise-w32-addons.vbs")
+         (script-dir (file-name-directory (symbol-file 'sunrise-w32-addons)))
          (script-path (concat script-dir script-name)))
     (unless (file-exists-p script-path)
       (with-temp-buffer
@@ -280,11 +280,11 @@ The names are separated by a space."
     (kill-new string t)
     (message "%s" string)))
 
-(defun sunrise-x-w32-addons-unload-function ()
+(defun sunrise-w32-addons-unload-function ()
   (sr-ad-disable "^sr-w32-"))
 
-(provide 'sunrise-x-w32-addons)
+(provide 'sunrise-w32-addons)
 
-;;;###autoload (eval-after-load 'sunrise-commander '(sr-extend-with 'sunrise-x-w32-addons))
+;;;###autoload (eval-after-load 'sunrise '(sr-extend-with 'sunrise-w32-addons))
 
-;;; sunrise-x-w32-addons.el ends here
+;;; sunrise-w32-addons.el ends here

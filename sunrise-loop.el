@@ -1,4 +1,4 @@
-;;; sunrise-x-loop.el --- asynchronous execution of filesystem operations for the Sunrise Commander File Manager -*- lexical-binding: t -*-
+;;; sunrise-loop.el --- asynchronous execution of filesystem operations for the Sunrise Commander File Manager -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2008-2012 José Alfredo Romero Latouche.
 
@@ -67,8 +67,8 @@
 
 ;; 1) Put this file somewhere in your Emacs `load-path'.
 
-;; 2) Add a (require 'sunrise-x-loop) expression to your .emacs file somewhere
-;; after the (require 'sunrise-commander) one.
+;; 2) Add a (require 'sunrise-loop) expression to your .emacs file somewhere
+;; after the (require 'sunrise) one.
 
 ;; 3) Evaluate the new expression, or reload your .emacs file, or restart Emacs.
 
@@ -82,7 +82,7 @@
 
 ;;; Code:
 
-(require 'sunrise-commander)
+(require 'sunrise)
 
 (defcustom sr-loop-debug nil
   "Activate debug mode in the Sunrise Loop extension.
@@ -115,7 +115,7 @@ this amount of time."
 (defun sr-loop-start ()
   "Launch and initiate a new background Elisp interpreter.
 The new interpreter runs in batch mode and inherits all functions
-from the Sunrise Commander (sunrise-commander.el) and from this
+from the Sunrise Commander (sunrise.el) and from this
 file."
   (let ((process-connection-type nil)
         (sr-main (symbol-file 'sr-mode))
@@ -129,7 +129,7 @@ file."
                          "-l" sr-main "-l" sr-loop
                          "-eval" "(sr-loop-cmd-loop)"))
     (sr-loop-enqueue `(setq load-path (quote ,load-path)))
-    (sr-loop-enqueue '(require 'sunrise-commander))
+    (sr-loop-enqueue '(require 'sunrise))
     (if sr-loop-debug
         (sr-loop-enqueue '(setq sr-loop-debug t))
       (set-process-filter sr-loop-process 'sr-loop-filter))
@@ -332,14 +332,14 @@ triggered by `sr-do-rename' inside a loop scope."
 (define-key sr-mode-map "K" 'sr-loop-do-clone)
 (define-key sr-mode-map "R" 'sr-loop-do-rename)
 
-(defun sunrise-x-loop-unload-function ()
+(defun sunrise-loop-unload-function ()
   (sr-ad-disable "^sr-loop-")
   (define-key sr-mode-map "C" 'sr-do-copy)
   (define-key sr-mode-map "K" 'sr-do-clone)
   (define-key sr-mode-map "R" 'sr-do-rename))
 
-(provide 'sunrise-x-loop)
+(provide 'sunrise-loop)
 
-;;;###autoload (eval-after-load 'sunrise-commander '(sr-extend-with 'sunrise-x-loop))
+;;;###autoload (eval-after-load 'sunrise '(sr-extend-with 'sunrise-loop))
 
-;;; sunrise-x-loop.el ends here
+;;; sunrise-loop.el ends here
