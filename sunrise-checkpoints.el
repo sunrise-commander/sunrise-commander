@@ -58,46 +58,46 @@
 (require 'bookmark)
 (eval-when-compile (require 'cl))
 
-(defun sr-checkpoint-save (&optional _arg)
+(defun sunrise-checkpoint-save (&optional _arg)
   "Create a new checkpoint bookmark to save the location of both panes."
   (interactive "p")
-  (sr-save-directories)
-  (let ((bookmark-make-record-function 'sr-make-checkpoint-record))
+  (sunrise-save-directories)
+  (let ((bookmark-make-record-function 'sunrise-make-checkpoint-record))
     (call-interactively 'bookmark-set)))
 
-(defun sr-checkpoint-restore (&optional _arg)
+(defun sunrise-checkpoint-restore (&optional _arg)
   "Call `bookmark-jump' interactively."
   (interactive "p")
   (call-interactively 'bookmark-jump)
-  (sr-history-push default-directory)
-  (sr-in-other (sr-history-push default-directory)))
+  (sunrise-history-push default-directory)
+  (sunrise-in-other (sunrise-history-push default-directory)))
 
-(defun sr-make-checkpoint-record ()
+(defun sunrise-make-checkpoint-record ()
   "Generate a the bookmark record for a new checkpoint."
   `((filename . ,(format "Sunrise Checkpoint: %s | %s"
-                         sr-left-directory sr-right-directory))
-    (sr-directories . (,sr-left-directory ,sr-right-directory))
-    (handler . sr-checkpoint-handler)))
+                         sunrise-left-directory sunrise-right-directory))
+    (sunrise-directories . (,sunrise-left-directory ,sunrise-right-directory))
+    (handler . sunrise-checkpoint-handler)))
 
-(defun sr-checkpoint-handler (&optional bookmark)
+(defun sunrise-checkpoint-handler (&optional bookmark)
   "Handler for checkpoint bookmarks."
-  (or sr-running (sunrise))
-  (sr-select-window 'left)
-  (let ((dirs (cdr (assq 'sr-directories (cdr bookmark)))) (missing))
+  (or sunrise-running (sunrise))
+  (sunrise-select-window 'left)
+  (let ((dirs (cdr (assq 'sunrise-directories (cdr bookmark)))) (missing))
     (mapc (lambda (x)
             (if (file-directory-p x)
-                (sr-save-aspect (dired x) (sr-bookmark-jump))
-              (setq missing (cons sr-selected-window missing)))
-            (sr-change-window))
+                (sunrise-save-aspect (dired x) (sunrise-bookmark-jump))
+              (setq missing (cons sunrise-selected-window missing)))
+            (sunrise-change-window))
           dirs)
-    (if missing (sr-checkpoint-relocate bookmark (reverse missing)))))
+    (if missing (sunrise-checkpoint-relocate bookmark (reverse missing)))))
 
-(defun sr-checkpoint-relocate (bookmark &optional sides)
+(defun sunrise-checkpoint-relocate (bookmark &optional sides)
   "Handle relocation of checkpoint bookmarks."
   (interactive (list (bookmark-completing-read "Bookmark to relocate")))
   (let* ((sides (or sides '(left right)))
          (name (car bookmark))
-         (dirs (assq 'sr-directories (cdr bookmark)))
+         (dirs (assq 'sunrise-directories (cdr bookmark)))
          (relocs (mapcar
                   (lambda (x)
                     (read-directory-name
@@ -110,18 +110,18 @@
     (bookmark-set-filename
      bookmark (apply 'format "Sunrise Checkpoint: %s | %s" result)))
   (bookmark-save)
-  (sr-checkpoint-handler bookmark))
+  (sunrise-checkpoint-handler bookmark))
 
 (defadvice bookmark-relocate
-  (around sr-checkpoint-advice-bookmark-relocate (bookmark))
+  (around sunrise-checkpoint-advice-bookmark-relocate (bookmark))
   (let ((bmk (bookmark-get-bookmark bookmark)))
-    (if (assq 'sr-directories bmk)
-        (sr-checkpoint-relocate bmk)
+    (if (assq 'sunrise-directories bmk)
+        (sunrise-checkpoint-relocate bmk)
       ad-do-it)))
 (ad-activate 'bookmark-relocate)
 
 (defun sunrise-checkpoints-unload-function ()
-  (sr-ad-disable "^sr-checkpoint-"))
+  (sunrise-ad-disable "^sunrise-checkpoint-"))
 
 (provide 'sunrise-checkpoints)
 

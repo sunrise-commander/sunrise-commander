@@ -50,7 +50,7 @@
 
 ;; 3) Evaluate the new expression, or reload your .emacs file, or restart Emacs.
 
-;; 4) Use `sr-popviewer-mode' to toggle the functionality.
+;; 4) Use `sunrise-popviewer-mode' to toggle the functionality.
 
 ;; 5) The next time you invoke the Sunrise Commander, only two panes will be
 ;; displayed. If you press o (or v) on a file inside any of them, it will be
@@ -64,12 +64,12 @@
 (require 'sunrise)
 (eval-when-compile (require 'cl))
 
-(defcustom sr-popviewer-enabled nil
+(defcustom sunrise-popviewer-enabled nil
   "Whether the popviewer extension should be active at startup."
   :group 'sunrise
   :type 'boolean)
 
-(defcustom sr-popviewer-style 'dedicated-frames
+(defcustom sunrise-popviewer-style 'dedicated-frames
   "Determines the way frames are used for quick viewing files:
 
 * Single Frame: reuse the same frame whenever possible.
@@ -83,67 +83,67 @@
           (const multiple-frames)
           (const dedicated-frames)))
 
-(defcustom sr-popviewer-select-viewer-action nil
+(defcustom sunrise-popviewer-select-viewer-action nil
   "Alternative function for selecting a viewer window"
   :group 'sunrise
   :type 'function)
 
-(defvar sr-popviewer-frame-name "Sunrise Viewer"
+(defvar sunrise-popviewer-frame-name "Sunrise Viewer"
   "Name of the frame being currently used as the viewer.")
 
-(defun sr-popviewer-setup-windows ()
-  "`sr-setup-windows' replacement for `sr-popviewer-mode'."
+(defun sunrise-popviewer-setup-windows ()
+  "`sunrise-setup-windows' replacement for `sunrise-popviewer-mode'."
   (interactive)
   (bury-buffer)
   (delete-other-windows)
 
-  (case sr-window-split-style
+  (case sunrise-window-split-style
     (horizontal (split-window-horizontally))
     (vertical   (split-window-vertically))
     (top        (ignore))
-    (t (error "Sunrise: don't know how to split this window: %s" sr-window-split-style)))
+    (t (error "Sunrise: don't know how to split this window: %s" sunrise-window-split-style)))
 
-  (sr-setup-visible-panes)
-  (sr-select-window sr-selected-window)
-  (sr-restore-panes-width)
+  (sunrise-setup-visible-panes)
+  (sunrise-select-window sunrise-selected-window)
+  (sunrise-restore-panes-width)
   (setq other-window-scroll-buffer nil)
-  (run-hooks 'sr-start-hook))
+  (run-hooks 'sunrise-start-hook))
 
-(defadvice sr-setup-windows
-  (around sr-popviewer-advice-setup-windows)
-  "Set up the Sunrise window configuration (two windows in `sr-mode')."
-  (sr-popviewer-setup-windows))
+(defadvice sunrise-setup-windows
+  (around sunrise-popviewer-advice-setup-windows)
+  "Set up the Sunrise window configuration (two windows in `sunrise-mode')."
+  (sunrise-popviewer-setup-windows))
 
-(defun sr-popviewer-get-frame ()
+(defun sunrise-popviewer-get-frame ()
   "Return the frame being currently used as the viewer, if any."
-  (cdr (assoc sr-popviewer-frame-name (make-frame-names-alist))))
+  (cdr (assoc sunrise-popviewer-frame-name (make-frame-names-alist))))
 
-(defun sr-popviewer-pop-frame ()
+(defun sunrise-popviewer-pop-frame ()
   "Bring forward the viewer frame, create a new one if necessary."
-  (let* ((vframe (sr-popviewer-get-frame)) (target-frame))
+  (let* ((vframe (sunrise-popviewer-get-frame)) (target-frame))
     (when vframe
       (select-frame vframe)
-      (if (memq sr-popviewer-style '(single-frame single-dedicated-frame))
+      (if (memq sunrise-popviewer-style '(single-frame single-dedicated-frame))
           (setq target-frame vframe)
         (set-frame-name (buffer-name))))
     (unless target-frame
       (setq other-window-scroll-buffer nil)
-      (setq target-frame (make-frame `((name . ,sr-popviewer-frame-name)))))
+      (setq target-frame (make-frame `((name . ,sunrise-popviewer-frame-name)))))
     (select-frame target-frame)
     (raise-frame)))
 
-(defun sr-popviewer-dedicate-frame ()
+(defun sunrise-popviewer-dedicate-frame ()
   "Take care of dedicating the current window as to its frame, if necessary."
-  (let ((vframe (sr-popviewer-get-frame)))
+  (let ((vframe (sunrise-popviewer-get-frame)))
     (when vframe
       (select-frame vframe)
       (set-window-dedicated-p
        (frame-first-window vframe)
-       (memq sr-popviewer-style '(single-dedicated-frame dedicated-frames))))
+       (memq sunrise-popviewer-style '(single-dedicated-frame dedicated-frames))))
     (add-hook
-     'kill-buffer-hook (lambda () (sr-select-window sr-selected-window)) t t)))
+     'kill-buffer-hook (lambda () (sunrise-select-window sunrise-selected-window)) t t)))
 
-(defun sr-popviewer-quick-view (&optional arg)
+(defun sunrise-popviewer-quick-view (&optional arg)
   "Quickly view the currently selected item.
 On regular files, it opens the file in a separate frame, on
 directories visits the selected directory in the passive pane,
@@ -153,77 +153,77 @@ passive pane."
   (setq
    other-window-scroll-buffer
    (let ((other-window-scroll-buffer
-          (if (memq sr-popviewer-style '(single-frame single-dedicated-frame))
+          (if (memq sunrise-popviewer-style '(single-frame single-dedicated-frame))
               other-window-scroll-buffer
             nil)))
-     (sr-quick-view arg)
-     (sr-popviewer-dedicate-frame)
+     (sunrise-quick-view arg)
+     (sunrise-popviewer-dedicate-frame)
      other-window-scroll-buffer)))
 
-(defadvice sr-term
-  (around sr-popviewer-advice-term (&optional cd newterm program))
+(defadvice sunrise-term
+  (around sunrise-popviewer-advice-term (&optional cd newterm program))
   "Make terminal windows dedicated when using multiple viewers."
-  (let ((sr-popviewer-style (if (or newterm program)
-                                sr-popviewer-style
+  (let ((sunrise-popviewer-style (if (or newterm program)
+                                sunrise-popviewer-style
                               'single-frame)))
     ad-do-it)
-  (sr-popviewer-dedicate-frame))
+  (sunrise-popviewer-dedicate-frame))
 
-(defun sr-popviewer-select-viewer-window ()
-  "Popviewer replacement for `sr-select-viewer-window'."
+(defun sunrise-popviewer-select-viewer-window ()
+  "Popviewer replacement for `sunrise-select-viewer-window'."
   (interactive)
-  (cond (sr-popviewer-select-viewer-action
-          (funcall sr-popviewer-select-viewer-action))
+  (cond (sunrise-popviewer-select-viewer-action
+          (funcall sunrise-popviewer-select-viewer-action))
         ((null window-system) (other-window 1))
-        (t (sr-popviewer-pop-frame))))
+        (t (sunrise-popviewer-pop-frame))))
 
-(defadvice sr-select-viewer-window
-  (around sr-popviewer-advice-select-viewer-window)
+(defadvice sunrise-select-viewer-window
+  (around sunrise-popviewer-advice-select-viewer-window)
   "Try to select a window that is not a SC pane in a separate frame."
-  (sr-popviewer-select-viewer-window))
+  (sunrise-popviewer-select-viewer-window))
 
 (defadvice sunrise-cd
-  (around sr-popviewer-advice-sunrise-cd (&optional norestore))
+  (around sunrise-popviewer-advice-sunrise-cd (&optional norestore))
   "Redefine `sunrise-cd' not to disable Sunrise in PopViewer mode."
-  (if sr-running
-      (sr-popviewer-setup-windows)
+  (if sunrise-running
+      (sunrise-popviewer-setup-windows)
     ad-do-it))
 
-(define-minor-mode sr-popviewer-mode "Use an alternative viewer window."
+(define-minor-mode sunrise-popviewer-mode "Use an alternative viewer window."
   :global t
   :group 'sunrise
   :lighter ""
-  (let ((hookfun (if sr-popviewer-mode 'remove-hook 'add-hook))
-        (adfun (if sr-popviewer-mode 'sr-ad-enable 'sr-ad-disable))
+  (let ((hookfun (if sunrise-popviewer-mode 'remove-hook 'add-hook))
+        (adfun (if sunrise-popviewer-mode 'sunrise-ad-enable 'sunrise-ad-disable))
 
-        (viewerfun (if sr-popviewer-mode
-                        'sr-popviewer-select-viewer-window
-                      'sr-select-viewer-window))
+        (viewerfun (if sunrise-popviewer-mode
+                        'sunrise-popviewer-select-viewer-window
+                      'sunrise-select-viewer-window))
 
-        (quickviewfun (if sr-popviewer-mode
-                          'sr-popviewer-quick-view
-                        'sr-quick-view))
+        (quickviewfun (if sunrise-popviewer-mode
+                          'sunrise-popviewer-quick-view
+                        'sunrise-quick-view))
 
-        (panelockfun (if sr-popviewer-mode
-                         'sr-popviewer-setup-windows
-                       'sr-lock-panes)))
+        (panelockfun (if sunrise-popviewer-mode
+                         'sunrise-popviewer-setup-windows
+                       'sunrise-lock-panes)))
 
-    (funcall hookfun 'window-size-change-functions 'sr-lock-window)
-    (define-key sr-mode-map "o" quickviewfun)
-    (define-key sr-mode-map "v" quickviewfun)
-    (define-key sr-mode-map "\C-c\t" viewerfun)
-    (define-key sr-mode-map [(control tab)] viewerfun)
-    (define-key sr-mode-map "\\" panelockfun)
-    (funcall adfun "^sr-popviewer-")
-    (if sr-running (sr-setup-windows))))
+    (funcall hookfun 'window-size-change-functions 'sunrise-lock-window)
+    (define-key sunrise-mode-map "o" quickviewfun)
+    (define-key sunrise-mode-map "v" quickviewfun)
+    (define-key sunrise-mode-map "\C-c\t" viewerfun)
+    (define-key sunrise-mode-map [(control tab)] viewerfun)
+    (define-key sunrise-mode-map "\\" panelockfun)
+    (funcall adfun "^sunrise-popviewer-")
+    (if sunrise-running (sunrise-setup-windows))))
 
 (defun sunrise-popviewer-unload-function ()
-  (sr-popviewer-mode -1)
-  (sr-ad-disable "^sr-popviewer-"))
+  (sunrise-popviewer-mode -1)
+  (sunrise-ad-disable "^sunrise-popviewer-"))
 
-(sr-popviewer-mode (if sr-popviewer-enabled 1 -1))
+(sunrise-popviewer-mode (if sunrise-popviewer-enabled 1 -1))
 (provide 'sunrise-popviewer)
 
-;;;###autoload (eval-after-load 'sunrise '(sr-extend-with 'sunrise-popviewer))
+;;;###autoload (eval-after-load 'sunrise '(sunrise-extend-with 'sunrise-popviewer))
 
 ;;; sunrise-popviewer.el ends here

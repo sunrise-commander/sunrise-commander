@@ -65,12 +65,12 @@
 ;; be resolved to an existing file, all operations (*INCLUDING DELETION!!!*) are
 ;; performed directly on that file. If you want to operate on shortcuts you must
 ;; first disable shortcut resolution by customizing the
-;; `sr-w32-follow-shortcuts' flag and setting it to false.
+;; `sunrise-w32-follow-shortcuts' flag and setting it to false.
 
 ;; * Virtual directories (i.e. directories containing a "target.lnk" shortcut to
 ;; another directory) are also dereferenced automatically. If you need to modify
 ;; the properties (Desktop.ini) of such a folder use the
-;; `sr-w32-follow-shortcuts' flag as described above.
+;; `sunrise-w32-follow-shortcuts' flag as described above.
 
 ;; * Use Shift-W to copy the full paths of all marked files and dirs to the kill
 ;; ring in windows-compatible form (i.e. using backslash as the file separator).
@@ -81,15 +81,15 @@
 
 (require 'sunrise)
 
-(defcustom sr-w32-follow-shortcuts t
+(defcustom sunrise-w32-follow-shortcuts t
   "Controls the shortcut resolution mechanism.
 When set, all operations executed on a Windows shortcut directly
 affect the target of the shortcut."
   :group 'sunrise
   :type 'boolean)
 
-(defvar sr-w32-local-map (let ((map (make-sparse-keymap)))
-                           (set-keymap-parent map sr-virtual-mode-map)
+(defvar sunrise-w32-local-map (let ((map (make-sparse-keymap)))
+                           (set-keymap-parent map sunrise-virtual-mode-map)
                            (define-key map "s" 'ignore)
                            (define-key map "r" 'ignore)
                            (define-key map "l" 'ignore)
@@ -97,122 +97,122 @@ affect the target of the shortcut."
                            map)
   "Local keymap used inside the \"Windows Drives and Special Folders\" pane.")
 
-(define-key sr-mode-map "\C-cw" 'sr-w32-virtual-entries)
-(define-key sr-mode-map "\S-w" 'sr-w32-copy-paths-as-kill)
+(define-key sunrise-mode-map "\C-cw" 'sunrise-w32-virtual-entries)
+(define-key sunrise-mode-map "\S-w" 'sunrise-w32-copy-paths-as-kill)
 
-(defadvice sr-dired-prev-subdir
-  (around sr-w32-advice-sr-dired-prev-subdir (&optional count))
+(defadvice sunrise-dired-prev-subdir
+  (around sunrise-w32-advice-sunrise-dired-prev-subdir (&optional count))
   "Bring up the drivers pane when navigating up from a topmost directory."
-  (if (sr-equal-dirs default-directory (expand-file-name ".."))
-      (sr-w32-virtual-entries)
+  (if (sunrise-equal-dirs default-directory (expand-file-name ".."))
+      (sunrise-w32-virtual-entries)
     ad-do-it))
-(ad-activate 'sr-dired-prev-subdir)
+(ad-activate 'sunrise-dired-prev-subdir)
 
-(defadvice sr-find-file
-  (before sr-w32-advice-sr-find-file (filename &optional wildcards))
+(defadvice sunrise-find-file
+  (before sunrise-w32-advice-sunrise-find-file (filename &optional wildcards))
   "Implement virtual folder resolution on Windows."
-  (when sr-w32-follow-shortcuts
+  (when sunrise-w32-follow-shortcuts
     (let ((info) (target (format "%s/target.lnk" filename)))
       (if (file-readable-p target)
-          (setq info (sr-w32-resolve-lnk target)))
+          (setq info (sunrise-w32-resolve-lnk target)))
       (if (< 0 (length info))
           (setq filename info)))))
-(ad-activate 'sr-find-file)
+(ad-activate 'sunrise-find-file)
 
 (defadvice dired-get-filename
-  (after sr-w32-advice-dired-get-filename (&optional LOCALP NO-ERROR))
+  (after sunrise-w32-advice-dired-get-filename (&optional LOCALP NO-ERROR))
   "Implement standard Windows shortcut resolution."
-  (when sr-w32-follow-shortcuts
+  (when sunrise-w32-follow-shortcuts
     (let ((filename (or ad-return-value "")))
       (if (string-match "\\.lnk\\'" filename)
-          (setq filename (sr-w32-resolve-lnk filename)))
+          (setq filename (sunrise-w32-resolve-lnk filename)))
       (if (< 0 (length filename))
           (setq ad-return-value filename)))))
 (ad-activate 'dired-get-filename)
 
-(defun sr-w32-goto-dir (dir)
-  "`sr-goto-dir' replacement for the \"Windows Drives and Special Folders\" pane."
-  (let ((sr-goto-dir-function nil))
-    (if (not (sr-equal-dirs dir default-directory))
-        (sr-goto-dir dir)
-      (sr-virtual-dismiss)
-      (sr-beginning-of-buffer))))
+(defun sunrise-w32-goto-dir (dir)
+  "`sunrise-goto-dir' replacement for the \"Windows Drives and Special Folders\" pane."
+  (let ((sunrise-goto-dir-function nil))
+    (if (not (sunrise-equal-dirs dir default-directory))
+        (sunrise-goto-dir dir)
+      (sunrise-virtual-dismiss)
+      (sunrise-beginning-of-buffer))))
 
-(defun sr-w32-resolve-lnk (link)
+(defun sunrise-w32-resolve-lnk (link)
   "Use the provided VBScript script to resolve standard Windows shortcuts."
-  (let* ((script (sr-w32-create-drivers-script))
+  (let* ((script (sunrise-w32-create-drivers-script))
          (command (format "cscript /nologo \"%s\" /l \"%s\"" script link))
          (info (shell-command-to-string command))
          (info (replace-regexp-in-string "\\\\" "/" info))
          (info (replace-regexp-in-string "\n" "" info)))
     (if (file-exists-p info) info link)))
 
-(defun sr-w32-virtual-entries(&optional _ignore-auto _no-confirm)
+(defun sunrise-w32-virtual-entries(&optional _ignore-auto _no-confirm)
   "Build a Sunrise pane containing all the Windows drives currently ready.
 Also includes some selected special folders."
   (interactive)
-  (let* ((script (sr-w32-create-drivers-script))
+  (let* ((script (sunrise-w32-create-drivers-script))
          (command (format "cscript /nologo \"%s\"" script))
-         (info (car (read-from-string (sr-w32-execute-command command)))))
-    (sr-switch-to-clean-buffer
+         (info (car (read-from-string (sunrise-w32-execute-command command)))))
+    (sunrise-switch-to-clean-buffer
      (generate-new-buffer-name "*W32 Drives & Folders*"))
     (insert "Windows Drives and Special Folders: \n")
-    (insert "- \n") (sr-w32-entry-overlay (- (point) 3) (1- (point)))
-    (sr-w32-display-drives info)
-    (insert "- \n") (sr-w32-entry-overlay (- (point) 3) (1- (point)))
-    (sr-w32-display-folders info)
-    (sr-virtual-mode)
-    (sr-beginning-of-buffer)
+    (insert "- \n") (sunrise-w32-entry-overlay (- (point) 3) (1- (point)))
+    (sunrise-w32-display-drives info)
+    (insert "- \n") (sunrise-w32-entry-overlay (- (point) 3) (1- (point)))
+    (sunrise-w32-display-folders info)
+    (sunrise-virtual-mode)
+    (sunrise-beginning-of-buffer)
     (mapc 'make-local-variable '( revert-buffer-function
-                                  sr-goto-dir-function))
-    (setq revert-buffer-function 'sr-w32-virtual-entries
-          sr-goto-dir-function 'sr-w32-goto-dir)
-    (use-local-map sr-w32-local-map)))
+                                  sunrise-goto-dir-function))
+    (setq revert-buffer-function 'sunrise-w32-virtual-entries
+          sunrise-goto-dir-function 'sunrise-w32-goto-dir)
+    (use-local-map sunrise-w32-local-map)))
 
-(defun sr-w32-execute-command (command)
+(defun sunrise-w32-execute-command (command)
   "Safely execute the given shell command and return its output as a string."
   (condition-case nil
       (shell-command-to-string command)
     (error
      (progn
-       (sr-goto-dir "~")
+       (sunrise-goto-dir "~")
        (shell-command-to-string command)))))
 
-(defun sr-w32-display-drives (info)
+(defun sunrise-w32-display-drives (info)
   "Insert a list of all currently ready Windows drives into the current pane."
   (let ((inhibit-read-only t))
     (dolist (drive (cdr (assoc 'drives info)))
       (insert (format "drwxrwxrwx 0 x x 0 0000-00-00 %s:/\n" drive))
-      (sr-w32-mask-drive))))
+      (sunrise-w32-mask-drive))))
 
-(defun sr-w32-mask-drive ()
+(defun sunrise-w32-mask-drive ()
   "Remove unnecesary information from the listing of a drive."
   (save-excursion
     (forward-line -1)
-    (sr-w32-entry-overlay (point) (+ 30 (point)))))
+    (sunrise-w32-entry-overlay (point) (+ 30 (point)))))
 
-(defun sr-w32-display-folders (info)
+(defun sunrise-w32-display-folders (info)
   "Insert a list of Windows special folders into the current pane."
   (dolist (folder (cdr (assoc 'folders info)))
     (when (and (< 0 (length folder)) (file-directory-p folder))
       (insert (format "drwxrwxrwx 0 x x 0 0000-00-00 %s\n" folder))
-      (sr-w32-mask-folder))))
+      (sunrise-w32-mask-folder))))
 
-(defun sr-w32-mask-folder ()
+(defun sunrise-w32-mask-folder ()
   "Remove unnecesary details from the listing of a special folder."
   (save-excursion
     (forward-line -1)
     (end-of-line)
     (search-backward "/")
-    (sr-w32-entry-overlay (1+ (point)) (point-at-bol))))
+    (sunrise-w32-entry-overlay (1+ (point)) (point-at-bol))))
 
-(defun sr-w32-entry-overlay (start end)
+(defun sunrise-w32-entry-overlay (start end)
   "Create an invisible, tangible overlay from start to end."
   (let ((overlay (make-overlay start end)))
     (overlay-put overlay 'invisible t)
     (overlay-put overlay 'before-string "  ")))
 
-(defun sr-w32-create-drivers-script ()
+(defun sunrise-w32-create-drivers-script ()
   "Return the path of the VBScript file used for Windows-specific operations.
 Creates it first if necessary."
   (let* ((script-name "sunrise-w32-addons.vbs")
@@ -269,7 +269,7 @@ End Function")
         (write-file script-path)))
     script-path))
 
-(defun sr-w32-copy-paths-as-kill ()
+(defun sunrise-w32-copy-paths-as-kill ()
   "Copy windows paths of marked (or next ARG) files into the kill ring.
 In all paths copied slash characters are replaced with backslashes.
 The names are separated by a space."
@@ -281,10 +281,10 @@ The names are separated by a space."
     (message "%s" string)))
 
 (defun sunrise-w32-addons-unload-function ()
-  (sr-ad-disable "^sr-w32-"))
+  (sunrise-ad-disable "^sunrise-w32-"))
 
 (provide 'sunrise-w32-addons)
 
-;;;###autoload (eval-after-load 'sunrise '(sr-extend-with 'sunrise-w32-addons))
+;;;###autoload (eval-after-load 'sunrise '(sunrise-extend-with 'sunrise-w32-addons))
 
 ;;; sunrise-w32-addons.el ends here

@@ -62,67 +62,67 @@
 (require 'cus-edit)
 (eval-when-compile (require 'cl))
 
-(defvar sr-buttons-buffer-name "*Sunrise Buttons*"
+(defvar sunrise-buttons-buffer-name "*Sunrise Buttons*"
   "Name of the Sunrise buttons buffer")
 
-(defvar sr-buttons-command-adapter nil
+(defvar sunrise-buttons-command-adapter nil
   "Function to use to execute button commands, or nil to do the default.")
 
-(defvar sr-buttons-list
+(defvar sunrise-buttons-list
   '(
-    ("GotoDir([F2,]j,/)" 'sr-goto-dir                "Go to any directory in active pane")
-    ("View([F3,]v,o)"    'sr-quick-view              "View selected file or directory in this window")
-    ("Open([F4,]Enter)"  'sr-advertised-find-file    "Visit selected file or directory")
-    ("Copy([F5,]C)"      'sr-do-copy                 "Copy selected files to passive pane")
-    ("Rename([F6,]R)"    'sr-do-rename               "Move selected files to passive pane")
-    ("Clone(K)"          'sr-do-clone                "Clone selected files to passive pane")
+    ("GotoDir([F2,]j,/)" 'sunrise-goto-dir                "Go to any directory in active pane")
+    ("View([F3,]v,o)"    'sunrise-quick-view              "View selected file or directory in this window")
+    ("Open([F4,]Enter)"  'sunrise-advertised-find-file    "Visit selected file or directory")
+    ("Copy([F5,]C)"      'sunrise-do-copy                 "Copy selected files to passive pane")
+    ("Rename([F6,]R)"    'sunrise-do-rename               "Move selected files to passive pane")
+    ("Clone(K)"          'sunrise-do-clone                "Clone selected files to passive pane")
     ("NewDir([F7,]+)"    'dired-create-directory     "Create new directory in active pane")
-    ("Delete([F8,]D)"    'sr-do-delete               "Delete selected files from active pane")
+    ("Delete([F8,]D)"    'sunrise-do-delete               "Delete selected files from active pane")
     nil
-    ("DirUp([C-PgUp,]J)" 'sr-dired-prev-subdir       "Go to parent directory in active pane")
-    ("DirBack(M-y)"      'sr-history-prev            "Go to previous directory in history")
-    ("DirFrwd(M-u)"      'sr-history-next            "Go to next directory in history")
-    ("HardLink(H)"       'sr-do-hardlink             "Make hard link of selected file in passive pane")
-    ("SymLink(S)"        'sr-do-symlink              "Make absolute symlink of selected entry in passive pane")
-    ("RelSymLink(Y)"     'sr-do-relsymlink           "Make relative symlink of selected entry in passive pane")
-    ("Hidden(C-o)"       'sr-omit-mode               "Hide/Show hidden files in active pane")
-    ("Attrs(C-Bksp)"     'sr-toggle-attributes       "Hide/Show file attributes in active pane")
+    ("DirUp([C-PgUp,]J)" 'sunrise-dired-prev-subdir       "Go to parent directory in active pane")
+    ("DirBack(M-y)"      'sunrise-history-prev            "Go to previous directory in history")
+    ("DirFrwd(M-u)"      'sunrise-history-next            "Go to next directory in history")
+    ("HardLink(H)"       'sunrise-do-hardlink             "Make hard link of selected file in passive pane")
+    ("SymLink(S)"        'sunrise-do-symlink              "Make absolute symlink of selected entry in passive pane")
+    ("RelSymLink(Y)"     'sunrise-do-relsymlink           "Make relative symlink of selected entry in passive pane")
+    ("Hidden(C-o)"       'sunrise-omit-mode               "Hide/Show hidden files in active pane")
+    ("Attrs(C-Bksp)"     'sunrise-toggle-attributes       "Hide/Show file attributes in active pane")
     nil
-    ("Other(Tab)"        'sr-change-window           "Switch to passive pane")
-    ("ClonePane(M-o)"    'sr-synchronize-panes       "Make both panes contain the same directory")
-    ("Swap(M-t)"         'sr-transpose-panes         "Transpose panes")
+    ("Other(Tab)"        'sunrise-change-window           "Switch to passive pane")
+    ("ClonePane(M-o)"    'sunrise-synchronize-panes       "Make both panes contain the same directory")
+    ("Swap(M-t)"         'sunrise-transpose-panes         "Transpose panes")
     ("Refresh(g)"        'revert-buffer              "Rescan directory in active pane")
-    ("Align(C-cC-s)"     'sr-split-toggle            "Change panes alignment (vertical/horizontal/top)")
-    ("Sort(s)"           'sr-interactive-sort        "Sort interactively entries in active pane")
+    ("Align(C-cC-s)"     'sunrise-split-toggle            "Change panes alignment (vertical/horizontal/top)")
+    ("Sort(s)"           'sunrise-interactive-sort        "Sort interactively entries in active pane")
     ("Mark([Ins,]m)"     'dired-mark                 "Mark selected entry in active pane")
     ("Unmark(Bksp)"      'dired-unmark-backward      "Unmark last selected entry inactive pane")
     nil
-    ("History(C-cC-d)"   'sr-recent-directories      "Display listing of recently visited directories")
-    ("Recent(C-cC-r)"    'sr-recent-files            "Display listing of recently visited files")
-    ("Restore(C-cC-c)"   'sr-buttons-restore-mode    "Dismiss VIRTUAL or WDired mode")
-    ("Find(C-cC-f)"      'sr-find                    "Find files and directories interactively")
-    ("FName(C-cC-n)"     'sr-find-name               "Find files and directories by name pattern")
-    ("FGrep(C-cC-g)"     'sr-find-grep               "Find files containing some expression")
-    ("Follow(;)"         'sr-follow-file             "Follow file (go to same directory as file)")
-    ("Locate(C-cC-l)"    'sr-locate                  "Find files and directories using locate database")
+    ("History(C-cC-d)"   'sunrise-recent-directories      "Display listing of recently visited directories")
+    ("Recent(C-cC-r)"    'sunrise-recent-files            "Display listing of recently visited files")
+    ("Restore(C-cC-c)"   'sunrise-buttons-restore-mode    "Dismiss VIRTUAL or WDired mode")
+    ("Find(C-cC-f)"      'sunrise-find                    "Find files and directories interactively")
+    ("FName(C-cC-n)"     'sunrise-find-name               "Find files and directories by name pattern")
+    ("FGrep(C-cC-g)"     'sunrise-find-grep               "Find files containing some expression")
+    ("Follow(;)"         'sunrise-follow-file             "Follow file (go to same directory as file)")
+    ("Locate(C-cC-l)"    'sunrise-locate                  "Find files and directories using locate database")
     nil
-    ("Search(A)"         'sr-do-search               "Search for string/regexp in all marked entries")
-    ("Compare(C-M-=)"    'sr-compare-dirs            "Compare directories in panes")
-    ("Diff(=)"           'sr-diff                    "Compare selected entries using diff")
-    ("Ediff(C-=)"        'sr-ediff                   "Compare selected entries using ediff")
-    ("Store(C-c>)"       'sr-checkpoint-save         "Remember current position of panes as name")
-    ("Recall(C-c.)"      'sr-checkpoint-restore      "Set panes to a previously remembered position")
-    ("Home(M-a)"         'sr-beginning-of-buffer     "Go to first entry in active pane")
-    ("End(M-e)"          'sr-end-of-buffer           "Go to last entry in active pane")
+    ("Search(A)"         'sunrise-do-search               "Search for string/regexp in all marked entries")
+    ("Compare(C-M-=)"    'sunrise-compare-dirs            "Compare directories in panes")
+    ("Diff(=)"           'sunrise-diff                    "Compare selected entries using diff")
+    ("Ediff(C-=)"        'sunrise-ediff                   "Compare selected entries using ediff")
+    ("Store(C-c>)"       'sunrise-checkpoint-save         "Remember current position of panes as name")
+    ("Recall(C-c.)"      'sunrise-checkpoint-restore      "Set panes to a previously remembered position")
+    ("Home(M-a)"         'sunrise-beginning-of-buffer     "Go to first entry in active pane")
+    ("End(M-e)"          'sunrise-end-of-buffer           "Go to last entry in active pane")
     nil
-    ("FindReplace(Q)"    'sr-do-query-replace-regexp "Find and replace in all selected entries")
-    ("Fuzzy(C-c/)"       'sr-fuzzy-narrow            "Narrow pane contents with fuzzy matching")
-    ("CmdLine(C-ct)"     'sr-term                    "Open Command line in this window")
-    ("WDired(C-xC-q)"    'sr-buttons-editable-pane   "Edit active pane using wdired")
-    ("SyncNav(C-cC-z)"   'sr-sync                    "Toggle on/off synchronized navigation mode")
-    ("LongLines(M-l)"    'sr-toggle-truncate-lines   "Truncate/Restore long lines in active pane")
-    ("More...(h)"        'sr-describe-mode           "More commands and keybindings")
-    ("Quit([F10,]q)"     'sr-quit                    "Dismiss Sunrise Commander")
+    ("FindReplace(Q)"    'sunrise-do-query-replace-regexp "Find and replace in all selected entries")
+    ("Fuzzy(C-c/)"       'sunrise-fuzzy-narrow            "Narrow pane contents with fuzzy matching")
+    ("CmdLine(C-ct)"     'sunrise-term                    "Open Command line in this window")
+    ("WDired(C-xC-q)"    'sunrise-buttons-editable-pane   "Edit active pane using wdired")
+    ("SyncNav(C-cC-z)"   'sunrise-sync                    "Toggle on/off synchronized navigation mode")
+    ("LongLines(M-l)"    'sunrise-toggle-truncate-lines   "Truncate/Restore long lines in active pane")
+    ("More...(h)"        'sunrise-describe-mode           "More commands and keybindings")
+    ("Quit([F10,]q)"     'sunrise-quit                    "Dismiss Sunrise Commander")
     )
   "Sunrise button definitions.")
 
@@ -130,29 +130,29 @@
   (unless (fboundp 'Custom-mode)
     (defalias 'Custom-mode 'custom-mode)))
 
-(define-derived-mode sr-buttons-mode Custom-mode "Sunrise Buttons"
+(define-derived-mode sunrise-buttons-mode Custom-mode "Sunrise Buttons"
   "Sunrise Commander Buttons panel mode."
   :group 'sunrise
-  (set-keymap-parent sr-buttons-mode-map custom-mode-map)
+  (set-keymap-parent sunrise-buttons-mode-map custom-mode-map)
 
   (make-local-variable 'double-click-time)
   (setq double-click-time nil)
   (make-local-variable 'double-click-fuzz)
   (setq double-click-fuzz 0)
 
-  (defun sr-buttons-click ()
+  (defun sunrise-buttons-click ()
     "Handle all click events that take place in the buttons buffer."
     (interactive)
     (unwind-protect
         (call-interactively 'widget-button-click)
-      (sr-select-window sr-selected-window)))
+      (sunrise-select-window sunrise-selected-window)))
 
-  (mapc (lambda (x) (define-key sr-buttons-mode-map x 'sr-buttons-click))
+  (mapc (lambda (x) (define-key sunrise-buttons-mode-map x 'sunrise-buttons-click))
         '([down-mouse-1] [down-mouse-2] [down-mouse-3]))
 
-  (mapc (lambda (x) (define-key sr-buttons-mode-map x
+  (mapc (lambda (x) (define-key sunrise-buttons-mode-map x
                       (lambda () (interactive)
-                        (sr-select-window sr-selected-window))))
+                        (sunrise-select-window sunrise-selected-window))))
         '([(control tab)] "\C-c\t"
           [mouse-1]             [mouse-2]             [mouse-3]
           [drag-mouse-1]        [drag-mouse-2]        [drag-mouse-3]
@@ -163,71 +163,71 @@
           [double-down-mouse-1] [double-down-mouse-2] [double-down-mouse-3]
           [triple-down-mouse-1] [triple-down-mouse-2] [triple-down-mouse-3])))
 
-(add-hook 'sr-start-hook 'sr-buttons-display)
-(add-hook 'sr-quit-hook (defun sr-buttons-sr-quit-function ()
-                          (let ((buttons (get-buffer sr-buttons-buffer-name)))
+(add-hook 'sunrise-start-hook 'sunrise-buttons-display)
+(add-hook 'sunrise-quit-hook (defun sunrise-buttons-sunrise-quit-function ()
+                          (let ((buttons (get-buffer sunrise-buttons-buffer-name)))
                             (if buttons (bury-buffer buttons)))))
 (add-hook 'kill-buffer-hook
-          (defun sr-buttons-kill-buffer-function ()
-            (if (and sr-running
+          (defun sunrise-buttons-kill-buffer-function ()
+            (if (and sunrise-running
                      (eq (current-buffer) other-window-scroll-buffer))
-                (sr-buttons-display))))
+                (sunrise-buttons-display))))
 
-(defun sr-buttons-display ()
+(defun sunrise-buttons-display ()
   "Display the buttons buffer in the viewer window.
 If no buttons buffer exists yet, creates one."
-  (unless (and (boundp 'sr-popviewer-mode) (symbol-value 'sr-popviewer-mode))
+  (unless (and (boundp 'sunrise-popviewer-mode) (symbol-value 'sunrise-popviewer-mode))
     (apply 'require '(cus-edit))
-    (sr-select-viewer-window t)
+    (sunrise-select-viewer-window t)
     (cond ((buffer-live-p other-window-scroll-buffer) ;;<-- don't nuke quick views!
            (switch-to-buffer other-window-scroll-buffer))
           ((get-buffer "*terminal*")                  ;;<-- prefer terminals
            (switch-to-buffer "*terminal*"))
           (t
-           (switch-to-buffer sr-buttons-buffer-name)
+           (switch-to-buffer sunrise-buttons-buffer-name)
            (setq truncate-lines t)
            (setq line-spacing 5)
            (setq cursor-in-non-selected-windows nil)
-           (if (not (eq major-mode 'sr-buttons-mode))
+           (if (not (eq major-mode 'sunrise-buttons-mode))
                (let ((line-spacing 2)
                      (cursor-in-non-selected-windows nil))
-                 (sr-buttons-render)))))
-  (sr-select-window sr-selected-window)))
+                 (sunrise-buttons-render)))))
+  (sunrise-select-window sunrise-selected-window)))
 
-(defun sr-buttons-render ()
-  "Populate current buffer with all widgets described in `sr-buttons-list'."
-  (sr-buttons-mode)
-  (let ((mc-keys-on (sr-buttons-mc-keys-p))
-        (maxlen (sr-buttons-maxtaglen)))
-    (mapc (lambda (x) (sr-buttons-build x mc-keys-on maxlen)) sr-buttons-list))
-  (sr-buttons-eol)
+(defun sunrise-buttons-render ()
+  "Populate current buffer with all widgets described in `sunrise-buttons-list'."
+  (sunrise-buttons-mode)
+  (let ((mc-keys-on (sunrise-buttons-mc-keys-p))
+        (maxlen (sunrise-buttons-maxtaglen)))
+    (mapc (lambda (x) (sunrise-buttons-build x mc-keys-on maxlen)) sunrise-buttons-list))
+  (sunrise-buttons-eol)
   (goto-char (point-min)))
 
-(defun sr-buttons-build (spec mc-keys-on maxlen)
+(defun sunrise-buttons-build (spec mc-keys-on maxlen)
   "Build and render a new widget in the buttons buffer.
-The first argument is an element of `sr-buttons-list' (list
+The first argument is an element of `sunrise-buttons-list' (list
 containing tag, action and hint), the second one is a flag that
 indicates whether mc style keybindings have been activated in
 Sunrise, and the last one is the length of the longest tag in the
 list."
   (if (or (null spec)
           (> (+ (current-column) maxlen) (- (window-width) (/ maxlen 2))))
-      (sr-buttons-eol)
+      (sunrise-buttons-eol)
     (let ((tag (first spec))
           (action (second spec))
           (hint (third spec)))
       (if mc-keys-on
           (setq tag (replace-regexp-in-string "\\[\\|\\]" "" tag))
         (setq tag (replace-regexp-in-string "\\[.*\\]" "" tag)))
-      (setq tag (sr-buttons-normalize-tag tag maxlen ? ))
+      (setq tag (sunrise-buttons-normalize-tag tag maxlen ? ))
       (widget-create 'push-button :tag tag
-                                  :action (sr-buttons-action action)
+                                  :action (sunrise-buttons-action action)
                                   :help-echo hint)
       (insert-char ?  1)
       (put-text-property
        (1- (point)) (point) 'display (list 'space :width 0.15)))))
 
-(defun sr-buttons-eol ()
+(defun sunrise-buttons-eol ()
   "Terminate the current row of buttons while building the buttons buffer.
 Centers it if necessary."
   (let* ((gap (- (window-width) (current-column) 2))
@@ -236,20 +236,20 @@ Centers it if necessary."
         (save-excursion (beginning-of-line) (insert-char ?  margin)))
     (unless (eq ?\n (char-before)) (insert "\n"))))
 
-(defun sr-buttons-mc-keys-p ()
+(defun sunrise-buttons-mc-keys-p ()
   "Determine whether mc-style keybindings have been activated in Sunrise."
-  (eq 'sr-goto-dir (cdr (assq 'f2 sr-mode-map))))
+  (eq 'sunrise-goto-dir (cdr (assq 'f2 sunrise-mode-map))))
 
-(defun sr-buttons-maxtaglen ()
-  "Calculate the length of the longest tag in `sr-buttons-list'."
-  (let* ((regexp (if (sr-buttons-mc-keys-p) "\\[\\|\\]" "\\[.*\\]"))
+(defun sunrise-buttons-maxtaglen ()
+  "Calculate the length of the longest tag in `sunrise-buttons-list'."
+  (let* ((regexp (if (sunrise-buttons-mc-keys-p) "\\[\\|\\]" "\\[.*\\]"))
          (lenfun (lambda (x)
                    (if x
                        (length (replace-regexp-in-string regexp "" (car x)))
                      0))))
-    (apply 'max (mapcar lenfun sr-buttons-list))))
+    (apply 'max (mapcar lenfun sunrise-buttons-list))))
 
-(defun sr-buttons-normalize-tag (tag total-length fill-char)
+(defun sunrise-buttons-normalize-tag (tag total-length fill-char)
   "Lengthen the given tag to TOTAL-LENGTH.
 Works by prepending and appending the appropriate number of fill
 characters, so the text appears approximately centered on its
@@ -261,41 +261,41 @@ button."
             tag
             (make-string after fill-char))))
 
-(defun sr-buttons-action (action)
+(defun sunrise-buttons-action (action)
   "Return a button command to perform ACTION inside the currently active pane."
   `(lambda (&rest ignore)
      (interactive)
-     (sr-select-window sr-selected-window)
-     (if sr-buttons-command-adapter
-         (run-with-timer 0.01 nil (funcall sr-buttons-command-adapter ,action))
-       (run-with-timer 0.01 nil (sr-buttons-do ,action)))))
+     (sunrise-select-window sunrise-selected-window)
+     (if sunrise-buttons-command-adapter
+         (run-with-timer 0.01 nil (funcall sunrise-buttons-command-adapter ,action))
+       (run-with-timer 0.01 nil (sunrise-buttons-do ,action)))))
 
-(defun sr-buttons-do (action)
+(defun sunrise-buttons-do (action)
   "Execute ACTION interactively as response to the click of a button."
   (hl-line-mode -1)
   (call-interactively action)
-  (when (memq major-mode '(sr-mode sr-virtual-mode sr-tree-mode))
+  (when (memq major-mode '(sunrise-mode sunrise-virtual-mode sunrise-tree-mode))
     (hl-line-mode 1)
-    (sr-graphical-highlight))
+    (sunrise-graphical-highlight))
   t)
 
-(defun sr-buttons-editable-pane ()
-  "Call `sr-editable-pane' and display an informative message.
+(defun sunrise-buttons-editable-pane ()
+  "Call `sunrise-editable-pane' and display an informative message.
 Used inside the Sunrise Buttons buffer."
   (interactive)
-  (sr-editable-pane)
+  (sunrise-editable-pane)
   (message "Push [Restore] button or C-c C-c when done, ESC C-c C-c to cancel"))
 
-(defun sr-buttons-restore-mode ()
+(defun sunrise-buttons-restore-mode ()
   "Implement the [Restore] action in the Sunrise buttons panel."
   (interactive)
-  (cond ((eq major-mode 'sr-virtual-mode) (sr-virtual-dismiss))
-        ((eq major-mode 'sr-tree-mode) (eval '(sr-tree-dismiss)))
+  (cond ((eq major-mode 'sunrise-virtual-mode) (sunrise-virtual-dismiss))
+        ((eq major-mode 'sunrise-tree-mode) (eval '(sunrise-tree-dismiss)))
         ((string= mode-name "Editable Dired") (eval '(wdired-finish-edit)))
         (t (message "Already in regular mode"))))
 
 (provide 'sunrise-buttons)
 
-;;;###autoload (eval-after-load 'sunrise '(sr-extend-with 'sunrise-buttons))
+;;;###autoload (eval-after-load 'sunrise '(sunrise-extend-with 'sunrise-buttons))
 
 ;;; sunrise-buttons.el ends here
