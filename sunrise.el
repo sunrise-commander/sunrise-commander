@@ -213,12 +213,6 @@
 (eval-when-compile (require 'cl)
                    (require 'recentf))
 
-(eval-and-compile
-  (unless (fboundp 'cl-labels)
-    (defalias 'cl-labels 'labels))
-  (unless (fboundp 'cl-letf)
-    (defalias 'cl-letf 'cl-letf)))
-
 (defgroup sunrise nil
   "The Sunrise Commander File Manager."
   :group 'files)
@@ -1047,7 +1041,7 @@ immediately loaded, but only if `sunrise-autoload-extensions' is not nil."
 (ad-activate 'select-window)
 
 (defadvice other-window
-    (around sunrise-advice-other-window (cl-count &optional all-frames))
+    (around sunrise-advice-other-window (count &optional all-frames))
   "Select the correct Sunrise Commander pane when switching from other windows."
   (if (or (not sunrise-running) sunrise-ediff-on)
       ad-do-it
@@ -1840,7 +1834,7 @@ Returns nil if AVFS cannot manage this kind of file."
   "Go to the parent directory, or COUNT subdirectories upwards."
   (interactive "P")
   (unless (sunrise-equal-dirs default-directory "/")
-    (let* ((cl-count (or count 1))
+    (let* ((count (or count 1))
            (to (replace-regexp-in-string "x" "../" (make-string count ?x)))
            (from (expand-file-name (substring to 1)))
            (from (sunrise-directory-name-proper from))
@@ -1983,7 +1977,7 @@ top of the stack."
   (let ((side (assoc sunrise-selected-window sunrise-history-stack)))
     (setcdr side '(0 . 0))))
 
-(defun sunrise-history-pick (cl-position)
+(defun sunrise-history-pick (position)
   "Return directory at POSITION in current history.
 If the entry was removed or made inaccessible since our last visit, remove it
 from the history list and check among the previous ones until an accessible
@@ -2725,7 +2719,7 @@ elements that are non-equal are found."
 (defun sunrise-prev-subdir-other (&optional count)
   "Go to the previous subdirectory in the passive pane."
   (interactive "P")
-  (let ((cl-count (or count 1)))
+  (let ((count (or count 1)))
     (sunrise-in-other (sunrise-dired-prev-subdir count))))
 
 (defun sunrise-follow-file-other ()
@@ -3461,7 +3455,7 @@ as its first argument."
              (delete-process proc)
            (error nil)))))
 
-(defvar sunrise-process-map (let ((cl-map (make-sparse-keymap)))
+(defvar sunrise-process-map (let ((map (make-sparse-keymap)))
                          (set-keymap-parent map sunrise-virtual-mode-map)
                          (define-key map "\C-c\C-k" 'sunrise-process-kill)
                          map)
@@ -4158,7 +4152,7 @@ Helper macro for implementing terminal integration in Sunrise."
 (defun sunrise-ti-prev-subdir (&optional count)
   "Run `dired-prev-subdir' on active pane from the terminal window."
   (interactive "P")
-  (let ((cl-count (or count 1)))
+  (let ((count (or count 1)))
     (sunrise-ti (sunrise-dired-prev-subdir count))))
 
 (defun sunrise-ti-unmark-all-marks ()

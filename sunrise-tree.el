@@ -167,10 +167,6 @@
 (eval-when-compile (require 'cl)
                    (require 'desktop))
 
-(eval-and-compile
-  (unless (fboundp 'cl-letf)
-    (defalias 'cl-letf 'cl-letf)))
-
 (defcustom sunrise-tree-explosion-ratio 3
   "Maximum number of directory levels to recursively open at a time.
 Used by the command `sunrise-tree-explode-branch'."
