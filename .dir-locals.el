@@ -1,3 +1,3 @@
-((emacs-lisp-mode . ((fill-column . 80)))
+((emacs-lisp-mode . ((fill-column . 78)))
  (nil . ((fill-column . 70)
          (default-justification . left))))
