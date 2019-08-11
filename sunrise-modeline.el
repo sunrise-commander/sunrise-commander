@@ -120,8 +120,8 @@ Depends on whether UTF-8 has been enabled in the mode line via
 the variable `sunrise-modeline-use-utf8-marks'."
   (let ((select (if sunrise-modeline-use-utf8-marks #'cdr #'car))
         (slot (or slot 0)))
-    (case slot
-      (0 (funcall select (case mark
+    (cl-case slot
+      (0 (funcall select (cl-case mark
                            (edit sunrise-modeline-edit-mark)
                            (virt sunrise-modeline-virt-mark)
                            (tree sunrise-modeline-tree-mark)
@@ -148,7 +148,7 @@ the variable `sunrise-modeline-use-utf8-marks'."
 On success, sets the mode line format by calling
 `sunrise-modeline-set'."
   (let ((mode nil))
-    (case major-mode
+    (cl-case major-mode
       (sunrise-mode
        (setq mode (sunrise-modeline-select-mode (if buffer-read-only 'norm 'edit))))
       (sunrise-tree-mode
