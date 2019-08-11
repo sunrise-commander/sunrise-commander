@@ -46,11 +46,7 @@
 ;; 1) Put this file somewhere in your Emacs `load-path'. (Optionally) compile
 ;; it.
 
-;; 2) Enjoy ;-) -- Sunrise should pick the correct extension automatically. On
-;; Emacs 23 it will look for sunrise-checkpoint, while on Emacs 22 it'll try
-;; to load sunrise-checkpoint-old. Only if you *really* want to use the old
-;; extensions on Emacs 23 you may add a new (require 'sunrise-checkpoint-old)
-;; expression to your .emacs file somewhere after (require 'sunrise).
+;; 2) Enjoy ;-)
 
 ;;; Code:
 

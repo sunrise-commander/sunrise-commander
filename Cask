@@ -4,7 +4,6 @@
 
 (package-file "sunrise.el")
 (package-file "sunrise-buttons.el")
-(package-file "sunrise-checkpoint-old.el")
 (package-file "sunrise-checkpoint.el")
 (package-file "sunrise-loop.el")
 (package-file "sunrise-mirror.el")
