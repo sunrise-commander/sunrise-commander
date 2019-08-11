@@ -82,7 +82,7 @@
 
 (defun sunrise-checkpoint-handler (&optional arg)
   "Dummy function for compatilibity with the new checkpoints interface."
-  (ignore))
+  (ignore arg))
 
 (provide 'sunrise-checkpoint-old)
 
