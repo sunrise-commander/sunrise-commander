@@ -2017,17 +2017,11 @@ nil if the argument is not a valid history entry."
 Just tries to require the appropriate checkpoints extension
 depending on the version of bookmark.el being used."
   (require 'bookmark nil t)
-  (let* ((feature
-          (cond ((fboundp 'bookmark-make-record) 'sunrise-checkpoint)
-                (t 'sunrise-checkpoint-old)))
-         (name (symbol-name feature)))
-    (or
-     (not (featurep 'sunrise))
-     (require feature nil t)
-     noerror
-     (error "Feature `%s' not found!\
-For checkpoints to work, download http://joseito.republika.pl/%s.el.gz\
-and add it to your `load-path'" name name))))
+  (or (not (featurep 'sunrise))
+      (require 'sunrise-checkpoint nil t)
+      noerror
+      (error "Feature `sunrise-checkpoint' not found!\
+For checkpoints to work, add sunrise-checkpoint.el to your `load-path'")))
 
 (defmacro sunrise-checkpoint-command (function-name)
   `(defun ,function-name (&optional arg)
