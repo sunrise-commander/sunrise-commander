@@ -126,10 +126,6 @@
     )
   "Sunrise button definitions.")
 
-(eval-and-compile
-  (unless (fboundp 'Custom-mode)
-    (defalias 'Custom-mode 'custom-mode)))
-
 (define-derived-mode sunrise-buttons-mode Custom-mode "Sunrise Buttons"
   "Sunrise Commander Buttons panel mode."
   :group 'sunrise
