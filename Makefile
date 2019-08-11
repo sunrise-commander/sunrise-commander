@@ -1,5 +1,5 @@
 EMACS ?= emacs
-ELS = sunrise.el sunrise-buttons.el sunrise-checkpoints.el sunrise-loop.el sunrise-mirror.el sunrise-modeline.el sunrise-old-checkpoints.el sunrise-popviewer.el sunrise-tabs.el sunrise-tree.el sunrise-w32-addons.el
+ELS = sunrise.el sunrise-buttons.el sunrise-checkpoint.el sunrise-loop.el sunrise-mirror.el sunrise-modeline.el sunrise-checkpoint-old.el sunrise-popviewer.el sunrise-tabs.el sunrise-tree.el sunrise-w32.el
 
 AUTOLOADS = sunrise-autoloads.el
 ELCS = $(ELS:.el=.elc)
