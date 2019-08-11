@@ -27,4 +27,4 @@ package-lint: $(ELS)
 clean:
 	rm -f $(ELCS) $(AUTOLOADS)
 
-.PHONY: all autoloads clean package-lint test
+.PHONY: all autoloads package-lint clean
