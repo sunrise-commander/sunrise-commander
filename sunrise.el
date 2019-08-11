@@ -2012,14 +2012,14 @@ nil if the argument is not a valid history entry."
                                       (cdr pane))))))
    '(left right)))
 
-(defun sunrise-require-checkpoints-extension (&optional noerror)
+(defun sunrise-require-checkpoint-extension (&optional noerror)
   "Bootstrap code for checkpoint support.
 Just tries to require the appropriate checkpoints extension
 depending on the version of bookmark.el being used."
   (require 'bookmark nil t)
   (let* ((feature
-          (cond ((fboundp 'bookmark-make-record) 'sunrise-checkpoints)
-                (t 'sunrise-old-checkpoints)))
+          (cond ((fboundp 'bookmark-make-record) 'sunrise-checkpoint)
+                (t 'sunrise-checkpoint-old)))
          (name (symbol-name feature)))
     (or
      (not (featurep 'sunrise))
@@ -2032,7 +2032,7 @@ and add it to your `load-path'" name name))))
 (defmacro sunrise-checkpoint-command (function-name)
   `(defun ,function-name (&optional arg)
      (interactive)
-     (sunrise-require-checkpoints-extension)
+     (sunrise-require-checkpoint-extension)
      (if (commandp #',function-name)
          (call-interactively #',function-name)
        (funcall #',function-name arg))))
