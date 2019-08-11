@@ -22,7 +22,7 @@ $(AUTOLOADS):
 
 package-lint: $(ELS)
 	$(EMACS) -Q -batch -L . -f package-initialize \
-            -f package-lint-batch-and-exit $(ELS) 2>&1
+	    -f package-lint-batch-and-exit $(ELS) 2>&1
 
 clean:
 	rm -f $(ELCS) $(AUTOLOADS)
