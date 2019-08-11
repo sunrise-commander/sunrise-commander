@@ -164,7 +164,7 @@
 (require 'sunrise)
 (require 'tree-widget)
 (require 'hl-line)
-(eval-when-compile (require 'cl)
+(eval-when-compile (require 'cl-lib)
                    (require 'desktop))
 
 (defcustom sunrise-tree-explosion-ratio 3

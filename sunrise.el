@@ -210,7 +210,7 @@
 (require 'sort)
 (require 'term)
 (require 'tramp)
-(eval-when-compile (require 'cl)
+(eval-when-compile (require 'cl-lib)
                    (require 'recentf))
 
 (defgroup sunrise nil

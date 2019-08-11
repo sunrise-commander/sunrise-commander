@@ -94,7 +94,7 @@
 ;;; Code:
 
 (require 'sunrise)
-(eval-when-compile (require 'cl)
+(eval-when-compile (require 'cl-lib)
                    (require 'desktop))
 
 (defcustom sunrise-tabs-follow-panes t

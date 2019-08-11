@@ -62,7 +62,7 @@
 ;;; Code:
 
 (require 'sunrise)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defcustom sunrise-popviewer-enabled nil
   "Whether the popviewer extension should be active at startup."

@@ -56,7 +56,7 @@
 
 (require 'sunrise)
 (require 'bookmark)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defun sunrise-checkpoint-save (&optional _arg)
   "Create a new checkpoint bookmark to save the location of both panes."

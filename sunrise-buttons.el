@@ -60,7 +60,7 @@
 
 (require 'sunrise)
 (require 'cus-edit)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defvar sunrise-buttons-buffer-name "*Sunrise Buttons*"
   "Name of the Sunrise buttons buffer")
