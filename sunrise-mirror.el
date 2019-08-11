@@ -236,7 +236,7 @@ corresponding mirror area."
          (mirror (concat sunrise-mirror-home base))
          (overlay (concat sunrise-mirror-home "." base))
          (command
-          (case sunrise-mirror-unionfs-impl
+          (cl-case sunrise-mirror-unionfs-impl
             (unionfs-fuse
              (concat "cd ~; unionfs-fuse -o cow,kernel_cache -o allow_other "
                      overlay "=RW:" virtual "=RO " mirror))

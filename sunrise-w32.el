@@ -88,7 +88,7 @@ affect the target of the shortcut."
   :group 'sunrise
   :type 'boolean)
 
-(defvar sunrise-w32-local-map (let ((map (make-sparse-keymap)))
+(defvar sunrise-w32-local-map (let ((cl-map (make-sparse-keymap)))
                            (set-keymap-parent map sunrise-virtual-mode-map)
                            (define-key map "s" 'ignore)
                            (define-key map "r" 'ignore)

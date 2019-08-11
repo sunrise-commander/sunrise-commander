@@ -217,7 +217,7 @@
   (unless (fboundp 'cl-labels)
     (defalias 'cl-labels 'labels))
   (unless (fboundp 'cl-letf)
-    (defalias 'cl-letf 'letf)))
+    (defalias 'cl-letf 'cl-letf)))
 
 (defgroup sunrise nil
   "The Sunrise Commander File Manager."
@@ -1047,7 +1047,7 @@ immediately loaded, but only if `sunrise-autoload-extensions' is not nil."
 (ad-activate 'select-window)
 
 (defadvice other-window
-    (around sunrise-advice-other-window (count &optional all-frames))
+    (around sunrise-advice-other-window (cl-count &optional all-frames))
   "Select the correct Sunrise Commander pane when switching from other windows."
   (if (or (not sunrise-running) sunrise-ediff-on)
       ad-do-it
@@ -1391,7 +1391,7 @@ buffer or window."
       (setq sunrise-panes-height (* 2 window-min-height)))
   (split-window (selected-window) sunrise-panes-height)
 
-  (case sunrise-window-split-style
+  (cl-case sunrise-window-split-style
     (horizontal (split-window-horizontally))
     (vertical   (split-window-vertically))
     (top        (ignore))
@@ -1630,7 +1630,7 @@ With optional argument REVERT, executes `revert-buffer' on the passive buffer."
 (defun sunrise-get-panes-size (&optional size)
   "Tell what the maximal, minimal and normal pane sizes should be."
   (let ((frame (frame-height)))
-    (case size
+    (cl-case size
       (max (max (- frame window-min-height 1) 5))
       (min (min (1+ window-min-height) 5))
       (t  (/ (* sunrise-windows-default-ratio (frame-height)) 100)))))
@@ -1840,7 +1840,7 @@ Returns nil if AVFS cannot manage this kind of file."
   "Go to the parent directory, or COUNT subdirectories upwards."
   (interactive "P")
   (unless (sunrise-equal-dirs default-directory "/")
-    (let* ((count (or count 1))
+    (let* ((cl-count (or count 1))
            (to (replace-regexp-in-string "x" "../" (make-string count ?x)))
            (from (expand-file-name (substring to 1)))
            (from (sunrise-directory-name-proper from))
@@ -1983,7 +1983,7 @@ top of the stack."
   (let ((side (assoc sunrise-selected-window sunrise-history-stack)))
     (setcdr side '(0 . 0))))
 
-(defun sunrise-history-pick (position)
+(defun sunrise-history-pick (cl-position)
   "Return directory at POSITION in current history.
 If the entry was removed or made inaccessible since our last visit, remove it
 from the history list and check among the previous ones until an accessible
@@ -2171,7 +2171,7 @@ calls the function `sunrise-setup-windows' and tries once again."
 (defun sunrise-split-toggle()
   "Change Sunrise window layout from horizontal to vertical to top and so on."
   (interactive)
-  (case sunrise-window-split-style
+  (cl-case sunrise-window-split-style
     (horizontal (sunrise-split-setup 'vertical))
     (vertical (sunrise-split-setup 'top))
     (top (progn
@@ -2365,7 +2365,7 @@ Selective hiding of specific attributes can be controlled by customizing the
                   ((null display-function-or-flag) '(invisible t))
                   (t nil))))
       (if sunrise-attributes-display-mask
-          (block block
+          (cl-block block
             (mapc (lambda (do-display)
                     (search-forward-regexp "\\w")
                     (search-forward-regexp "\\s-")
@@ -2374,7 +2374,7 @@ Selective hiding of specific attributes can be controlled by customizing the
                     (when props
                       (add-text-properties cursor (point) props))
                     (setq cursor (point))
-                    (if (>= (point) end) (return-from block)))
+                    (if (>= (point) end) (cl-return-from block)))
                   sunrise-attributes-display-mask))
         (unless (>= cursor end)
           (add-text-properties cursor (1- end) '(invisible t)))))))
@@ -2472,7 +2472,7 @@ order than when sorted alphabetically by name."
   (interactive "cSort by (n)ame, n(u)mber, (s)ize, (t)ime or e(x)tension? ")
   (if (>= order 97)
       (setq order (- order 32)))
-  (case order
+  (cl-case order
     (?U (sunrise-sort-by-number))
     (?T (sunrise-sort-by-time))
     (?S (sunrise-sort-by-size))
@@ -2493,7 +2493,7 @@ order than when sorted alphabetically by name."
 (defun sunrise-sort-virtual (option)
   "Manage sorting of buffers in Sunrise VIRTUAL mode."
   (let ((opt (string-to-char option)) (inhibit-read-only t) (beg) (end))
-    (case opt
+    (cl-case opt
       (?X (sunrise-end-of-buffer)
           (setq end (point-at-eol))
           (sunrise-beginning-of-buffer)
@@ -2725,7 +2725,7 @@ elements that are non-equal are found."
 (defun sunrise-prev-subdir-other (&optional count)
   "Go to the previous subdirectory in the passive pane."
   (interactive "P")
-  (let ((count (or count 1)))
+  (let ((cl-count (or count 1)))
     (sunrise-in-other (sunrise-dired-prev-subdir count))))
 
 (defun sunrise-follow-file-other ()
@@ -2991,7 +2991,7 @@ See `dired-make-relative-symlink'."
   (let ((target sunrise-other-directory) clone-op items progress)
     (if (and mode (>= mode 97)) (setq mode (- mode 32)))
     (setq clone-op
-          (case mode
+          (cl-case mode
             (?D nil)
             (?C #'copy-file)
             (?H #'add-name-to-file)
@@ -3151,7 +3151,7 @@ context of the current pane, totally ignoring the other one."
   (interactive)
   (let ((mode (read-char "In-place: (C)opy, (R)ename, (H)ardlink, (S)ymlink")))
     (if (and mode (>= mode 97)) (setq mode (- mode 32)))
-    (case mode
+    (cl-case mode
       (?C (sunrise-inplace-do #'copy-file "Copy in place to"))
       (?R (sunrise-inplace-do #'rename-file "Rename in place to"))
       (?H (sunrise-inplace-do #'add-name-to-file "Add name in place"))
@@ -3250,7 +3250,7 @@ symbol `ALWAYS' if the answer is a/A."
       (setq prompt "Please answer [y]es, [n]o or [a]lways "))
     (if (>= resp 97)
         (setq resp (- resp 32)))
-    (case resp
+    (cl-case resp
       (?Y t)
       (?A 'ALWAYS)
       (t nil))))
@@ -3340,7 +3340,7 @@ or (c)ontents? ")
  (n)ame or (c)ontents? "))
     (if (>= response 97)
         (setq response (- response 32)))
-    (case response
+    (cl-case response
       (?D `(not (= mtime1 mtime2)))
       (?S `(not (= size1 size2)))
       (?N nil)
@@ -3461,7 +3461,7 @@ as its first argument."
              (delete-process proc)
            (error nil)))))
 
-(defvar sunrise-process-map (let ((map (make-sparse-keymap)))
+(defvar sunrise-process-map (let ((cl-map (make-sparse-keymap)))
                          (set-keymap-parent map sunrise-virtual-mode-map)
                          (define-key map "\C-c\C-k" 'sunrise-process-kill)
                          map)
@@ -3717,7 +3717,7 @@ pane."
   (interactive "cFlatten branch showing: (E)verything, (D)irectories,\
  (N)on-directories or (F)iles only?")
   (if (and mode (>= mode 97)) (setq mode (- mode 32)))
-  (case mode
+  (cl-case mode
     (?E (sunrise-find-name "*"))
     (?D (sunrise-find "-type d"))
     (?N (sunrise-find "-not -type d"))
@@ -3749,7 +3749,7 @@ pane."
         (setq next-char (read-next filter))
         (sunrise-backup-buffer)
         (while next-char
-          (case next-char
+          (cl-case next-char
             ((?\e ?\C-g) (setq next-char nil) (sunrise-revert-buffer))
             (?\C-n (setq next-char nil) (sunrise-beginning-of-buffer))
             (?\C-p (setq next-char nil) (sunrise-end-of-buffer))
@@ -3806,7 +3806,7 @@ pane."
      (insert (concat "Recent Directories in " pane-name " Pane: \n"))
      (dolist (dir hist)
        (condition-case nil
-           (case (sunrise-history-entry-type dir)
+           (cl-case (sunrise-history-entry-type dir)
              (tramp
               (insert (concat "d......... 0 0000-00-00 " dir))
               (newline))
@@ -4158,7 +4158,7 @@ Helper macro for implementing terminal integration in Sunrise."
 (defun sunrise-ti-prev-subdir (&optional count)
   "Run `dired-prev-subdir' on active pane from the terminal window."
   (interactive "P")
-  (let ((count (or count 1)))
+  (let ((cl-count (or count 1)))
     (sunrise-ti (sunrise-dired-prev-subdir count))))
 
 (defun sunrise-ti-unmark-all-marks ()
@@ -4264,7 +4264,7 @@ by `sunrise-clex-start'."
     (setq sunrise-clex-on nil)
     (delete-overlay sunrise-clex-hotchar-overlay)
     (let* ((xchar (char-before))
-           (expansion (case xchar
+           (expansion (cl-case xchar
                         (?m (sunrise-clex-marked       'left))
                         (?f (sunrise-clex-file         'left))
                         (?n (sunrise-clex-marked-nodir 'left))

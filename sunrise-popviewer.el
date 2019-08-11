@@ -97,7 +97,7 @@
   (bury-buffer)
   (delete-other-windows)
 
-  (case sunrise-window-split-style
+  (cl-case sunrise-window-split-style
     (horizontal (split-window-horizontally))
     (vertical   (split-window-vertically))
     (top        (ignore))

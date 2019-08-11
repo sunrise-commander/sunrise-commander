@@ -232,7 +232,7 @@ or to the first one if there are fewer tabs than requested."
   (interactive "p")
   (sunrise-tabs-step n t))
 
-(defun sunrise-tabs-step (count &optional back)
+(defun sunrise-tabs-step (cl-count &optional back)
   "Move focus from the current tab to the one COUNT places ahead or behind.
 The direction depends on the value of BACK."
   (let* ((stack (cdr (assq sunrise-selected-window sunrise-tabs)))
@@ -365,7 +365,7 @@ TAG allows to provide a pretty name to label the tab."
   "Truncate and add an ellipsis mark to the given tag if necessary."
   (if (>= sunrise-tabs-max-tabsize (length tag))
       tag
-    (case sunrise-tabs-truncation-style
+    (cl-case sunrise-tabs-truncation-style
       (right (concat (substring tag 0 sunrise-tabs-max-tabsize) "…"))
       (left (concat "…" (substring tag (* -1 sunrise-tabs-max-tabsize))))
       (t (ignore)))))
@@ -578,7 +578,7 @@ This minor mode provides the following keybindings:
     (sunrise-tabs-disengage)))
 
 (defvar sunrise-tabs-editable-dired-map
-  (let ((map (make-sparse-keymap)))
+  (let ((cl-map (make-sparse-keymap)))
     (set-keymap-parent map sunrise-tabs-mode-map)
     (define-key map "\C-n"  'dired-next-line)
     (define-key map "\C-p"  'dired-previous-line)
