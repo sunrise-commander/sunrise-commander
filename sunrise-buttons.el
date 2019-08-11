@@ -209,9 +209,9 @@ list."
   (if (or (null spec)
           (> (+ (current-column) maxlen) (- (window-width) (/ maxlen 2))))
       (sunrise-buttons-eol)
-    (let ((tag (first spec))
-          (action (second spec))
-          (hint (third spec)))
+    (let ((tag (cl-first spec))
+          (action (cl-second spec))
+          (hint (cl-third spec)))
       (if mc-keys-on
           (setq tag (replace-regexp-in-string "\\[\\|\\]" "" tag))
         (setq tag (replace-regexp-in-string "\\[.*\\]" "" tag)))
