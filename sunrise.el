@@ -816,7 +816,6 @@ automatically:
 
   (set (make-local-variable 'buffer-read-only) t)
   (set (make-local-variable 'dired-header-face) 'sunrise-passive-path-face)
-  (set (make-local-variable 'dired-recursive-deletes) 'top)
   (set (make-local-variable 'truncate-lines) nil)
   (set (make-local-variable 'desktop-save-buffer) 'sunrise-desktop-save-buffer)
   (set (make-local-variable 'revert-buffer-function) 'sunrise-revert-buffer)
