@@ -419,6 +419,12 @@ Emacs behavior instead, then set this flag to t."
           (const :tag "Fuzzy matching negation disabled" nil)
           (character :tag "Fuzzy matching negation character" ?!)))
 
+;;;###autoload
+(defcustom sunrise-mode-hook nil
+  "Run at the very end of `sunrise-mode'."
+  :group 'sunrise
+  :type 'hook)
+
 (defcustom sunrise-init-hook nil
   "List of functions to be called before the Sunrise panes are displayed."
   :group 'sunrise
@@ -820,7 +826,7 @@ automatically:
   (set (make-local-variable 'track-mouse) sunrise-cursor-follows-mouse)
   (set (make-local-variable 'hl-line-sticky-flag) nil)
   (hl-line-mode 1)
-)
+  (run-mode-hooks 'sunrise-mode-hook))
 
 ;;;###autoload
 (define-derived-mode sunrise-virtual-mode dired-virtual-mode "Sunrise VIRTUAL"
