@@ -4605,7 +4605,7 @@ with advice matching REGEXP."
 
 (defmacro sunrise-rainbow (symbol spec regexp)
   `(progn
-     (defface ,symbol '((t ,spec)) "Sunrise rainbow face" :group 'sunrise)
+     (defface ,symbol '((t ,spec)) "Sunrise rainbow face" :group 'sunrise-faces)
      ,@(mapcar (lambda (m)
                  `(font-lock-add-keywords ',m '((,regexp 1 ',symbol))))
                '(sunrise-mode sunrise-virtual-mode))))
