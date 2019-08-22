@@ -202,11 +202,6 @@ view. LABEL is the name displayed in the tree representing FILEPATH")
 (defvar sunrise-tree-mode-map (make-sparse-keymap)
   "Keymap for the Sunrise Commander Tree View.")
 
-;; TODO: This does not have the`sunrise-tree-` prefix. Figure out how to solve.
-(defvar sunrise-buttons-command-adapter nil
-  "Compiler pacifier.
-See `sunrise-buttons-command-adapter' in sunrise-buttons.el.")
-
 (defvar sunrise-tree-omit-archives t "")
 
 (define-widget 'sunrise-tree-dir-widget 'tree-widget
@@ -919,15 +914,17 @@ Moves files from the active pane to the passive pane."
                                isearch-mode-end-hook
                                desktop-save-buffer
                                revert-buffer-function
-                               sunrise-goto-dir-function
-                               sunrise-buttons-command-adapter))
+                               sunrise-goto-dir-function))
   (add-hook 'isearch-mode-end-hook 'sunrise-tree-update-cursor)
   (setq desktop-save-buffer        'sunrise-tree-desktop-save-buffer
         hl-line-sticky-flag        nil
         revert-buffer-function     'sunrise-tree-revert-buffer
-        sunrise-goto-dir-function       'sunrise-tree-goto-dir
-        sunrise-buttons-command-adapter 'sunrise-tree-buttons-command-adapter)
+        sunrise-goto-dir-function       'sunrise-tree-goto-dir)
   (setq dired-omit-mode t)
+
+  (when (boundp 'sunrise-buttons-command-adapter)
+    (setq-local sunrise-buttons-command-adapter 'sunrise-tree-buttons-command-adapter))
+
   (set (make-local-variable 'buffer-quit-function) 'sunrise-quit)
   (set (make-local-variable 'track-mouse) sunrise-cursor-follows-mouse)
   (hl-line-mode 1)
