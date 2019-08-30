@@ -72,7 +72,8 @@
   "Generate a the bookmark record for a new checkpoint."
   `((filename . ,(format "Sunrise Checkpoint: %s | %s"
                          sunrise-left-directory sunrise-right-directory))
-    (sunrise-directories . (,sunrise-left-directory ,sunrise-right-directory))
+    (sunrise-directories . (,sunrise-left-directory
+                            ,sunrise-right-directory))
     (handler . sunrise-checkpoint-handler)))
 
 (defun sunrise-checkpoint-handler (&optional bookmark)
@@ -100,7 +101,8 @@
                      (format "Relocate %s [%s] to: " name (symbol-name x))))
                   sides))
          (result (cond ((< 1 (length relocs)) relocs)
-                       ((eq 'right (car sides)) (list (cadr dirs) (car relocs)))
+                       ((eq 'right (car sides))
+                        (list (cadr dirs) (car relocs)))
                        (t (list (car relocs) (caddr dirs))))))
     (setcdr dirs result)
     (bookmark-set-filename
