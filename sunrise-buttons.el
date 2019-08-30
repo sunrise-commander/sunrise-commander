@@ -200,7 +200,7 @@ If no buttons buffer exists yet, creates one."
     (sunrise-select-window sunrise-selected-window)))
 
 (defun sunrise-buttons-render ()
-  "Populate current buffer with all widgets described in `sunrise-buttons-list'."
+  "Populate current buffer with all widgets in `sunrise-buttons-list'."
   (sunrise-buttons-mode)
   (let ((mc-keys-on (sunrise-buttons-mc-keys-p))
         (maxlen (sunrise-buttons-maxtaglen)))
@@ -268,7 +268,7 @@ button."
             (make-string after fill-char))))
 
 (defun sunrise-buttons-action (action)
-  "Return a button command to perform ACTION inside the currently active pane."
+  "Return button command to perform ACTION inside the currently active pane."
   `(lambda (&rest ignore)
      (interactive)
      (sunrise-select-window sunrise-selected-window)
