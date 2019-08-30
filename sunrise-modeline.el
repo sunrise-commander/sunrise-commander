@@ -102,19 +102,24 @@
   "Face of the string used to separate the state indicators from one another."
   :group 'sunrise)
 
-(defconst sunrise-modeline-sep #(" " 0 1 (face sunrise-modeline-separator-face))
-          "Sunrise Modeline separator character.")
+(defconst sunrise-modeline-sep
+  #(" " 0 1 (face sunrise-modeline-separator-face))
+  "Sunrise Modeline separator character.")
 
 ;;; ==========================================================================
 ;;; Core functions:
 
 (defvar sunrise-modeline-mark-map (make-sparse-keymap))
-(define-key sunrise-modeline-mark-map [mode-line mouse-1] 'sunrise-modeline-popup-menu)
-(define-key sunrise-modeline-mark-map [mode-line mouse-2] 'sunrise-modeline-popup-menu)
+(define-key sunrise-modeline-mark-map [mode-line mouse-1]
+  'sunrise-modeline-popup-menu)
+(define-key sunrise-modeline-mark-map [mode-line mouse-2]
+  'sunrise-modeline-popup-menu)
 
 (defvar sunrise-modeline-path-map (make-sparse-keymap))
-(define-key sunrise-modeline-path-map [mode-line mouse-1] 'sunrise-modeline-navigate-path)
-(define-key sunrise-modeline-path-map [mode-line mouse-2] 'sunrise-modeline-navigate-path)
+(define-key sunrise-modeline-path-map [mode-line mouse-1]
+  'sunrise-modeline-navigate-path)
+(define-key sunrise-modeline-path-map [mode-line mouse-2]
+  'sunrise-modeline-navigate-path)
 
 (defun sunrise-modeline-select-mark (mark &optional slot)
   "Select the right character for the given MARK in SLOT.
@@ -152,7 +157,8 @@ On success, sets the mode line format by calling
   (let ((mode nil))
     (cl-case major-mode
       (sunrise-mode
-       (setq mode (sunrise-modeline-select-mode (if buffer-read-only 'norm 'edit))))
+       (setq mode (sunrise-modeline-select-mode
+                   (if buffer-read-only 'norm 'edit))))
       (sunrise-tree-mode
        (setq mode (sunrise-modeline-select-mode 'tree)))
       (sunrise-virtual-mode
@@ -168,10 +174,12 @@ the available width of the pane."
         (path-length (length default-directory))
         (max-length (- (window-width) 12)))
     (if (< max-length path-length)
-        (setq path (concat "..." (substring path (- path-length max-length)))))
+        (setq path
+              (concat "..." (substring path (- path-length max-length)))))
     (eval
      `(setq mode-line-format
-            '("%[" ,(sunrise-modeline-mark mark) "%] " ,(sunrise-modeline-path path))))))
+            '("%[" ,(sunrise-modeline-mark mark) "%] "
+              ,(sunrise-modeline-path path))))))
 
 (defun sunrise-modeline-mark (marks-string)
   "Propertize MARKS-STRING for use in displaying the mode line indicators."
@@ -190,7 +198,8 @@ the available width of the pane."
                    (memq 'sunrise-tree-post-isearch isearch-mode-end-hook))
                " | Sticky Search"
              "")
-           (if (buffer-live-p sunrise-backup-buffer) " | Snapshot Available" "")))
+           (if (buffer-live-p sunrise-backup-buffer)
+               " | Snapshot Available" "")))
     (propertize marks-string
                 'font 'bold
                 'mouse-face 'mode-line-highlight
@@ -214,7 +223,8 @@ accordingly."
   (interactive)
   (let* ((event (caddr (cddadr last-input-event)))
          (path (car event)) (pos (cdr event)) (slash) (levels))
-    (or (eq sunrise-selected-window (get-text-property 0 'sunrise-selected-window path))
+    (or (eq sunrise-selected-window
+            (get-text-property 0 'sunrise-selected-window path))
         (sunrise-change-window))
     (setq slash (string-match "/" path pos)
           levels (- (length (split-string (substring path slash) "/")) 2))
@@ -241,7 +251,8 @@ accordingly."
   "De-activate the navigation mode line format, restoring the default one."
   (remove-hook 'sunrise-refresh-hook 'sunrise-modeline-refresh)
   (setq mode-line-format (default-value 'mode-line-format))
-  (sunrise-in-other (setq mode-line-format (default-value 'mode-line-format))))
+  (sunrise-in-other
+   (setq mode-line-format (default-value 'mode-line-format))))
 
 (defun sunrise-modeline-toggle (&optional force)
   ;; FIXME explain the argument
@@ -264,12 +275,13 @@ accordingly."
   "Provide navigable mode line for the Sunrise Commander.
 This is a minor mode that provides a single keybinding:
 
-  C-c m ................ Toggle between navigation and default mode line formats
+  C-c m .............. Toggle between navigation and default mode line formats
 
   To totally disable this extension do: M-x sunrise-modeline <RET>"
 
   nil (sunrise-modeline-select-mode 'norm) sunrise-modeline-map
-  (unless (memq major-mode '(sunrise-mode sunrise-virtual-mode sunrise-tree-mode))
+  (unless (memq major-mode
+                '(sunrise-mode sunrise-virtual-mode sunrise-tree-mode))
     (setq sunrise-modeline nil)
     (error "Sorry, this mode can be used only within the Sunrise Commander"))
   (sunrise-modeline-toggle 1))
@@ -278,9 +290,11 @@ This is a minor mode that provides a single keybinding:
   (easy-menu-create-menu
    "Mode Line"
    '(["Toggle navigation mode line" sunrise-modeline-toggle t]
-     ["Navigation mode line help" (lambda ()
-                                    (interactive)
-                                    (describe-function 'sunrise-modeline))] )))
+     ["Navigation mode line help"
+      (lambda ()
+        (interactive)
+        (describe-function 'sunrise-modeline))])))
+
 (defun sunrise-modeline-popup-menu ()
   (interactive)
   (popup-menu sunrise-modeline-menu))
@@ -296,10 +310,12 @@ This is a minor mode that provides a single keybinding:
   (let ((menu-map (make-sparse-keymap "Mode Line")))
     (define-key sunrise-mode-map [menu-bar Sunrise mode-line]
       (cons "Mode Line" menu-map))
-    (define-key menu-map [help] '("Help" . (lambda ()
-                                             (interactive)
-                                             (describe-function 'sunrise-modeline))))
-    (define-key menu-map [disable] '("Toggle" . sunrise-modeline-toggle))))
+    (define-key menu-map [help]
+      '("Help" . (lambda ()
+                   (interactive)
+                   (describe-function 'sunrise-modeline))))
+    (define-key menu-map [disable]
+      '("Toggle" . sunrise-modeline-toggle))))
 
 (defun sunrise-modeline-start-once ()
   "Bootstrap the navigation mode line on the first execution of
