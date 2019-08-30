@@ -175,6 +175,7 @@ Do not touch, or else.")
 
 (defun sunrise-mirror-enable ()
   "Enable Sunrise mirror support.
+
 Sets the variable `sunrise-mirror-home' to a non-nil value and
 activates all advice necessary for mirror operations. This method
 is called every time a new mirror area is created."
@@ -186,9 +187,10 @@ is called every time a new mirror area is created."
 
 (defun sunrise-mirror-disable ()
   "Disable Sunrise mirror support.
-Resets `sunrise-mirror-home' and deactivates all advice used in mirror
-operations. This method is called after the last mirror area in
-the current mirror home is closed."
+
+Resets `sunrise-mirror-home' and deactivates all advice used in
+mirror operations. This method is called after the last mirror
+area in the current mirror home is closed."
   (when sunrise-mirror-home
     (setq sunrise-mirror-home nil)
     (ad-deactivate 'make-directory)
@@ -197,10 +199,11 @@ the current mirror home is closed."
 
 (defun sunrise-mirror-open ()
   "Set up a mirror area in the current pane.
-Uses unionfs-fuse to create a writeable filesystem overlay over the AVFS virtual
-filesystem of the selected compressed archive and displays it in the current
-pane. The result is a mirror of the contents of the original archive that is
-fully writeable."
+
+Uses unionfs-fuse to create a writeable filesystem overlay over
+the AVFS virtual filesystem of the selected compressed archive
+and displays it in the current pane. The result is a mirror of
+the contents of the original archive that is fully writeable."
   (interactive)
   (let ((path (or (dired-get-filename nil t)
                   (concat (expand-file-name (dired-current-directory)) "/.")))
@@ -208,14 +211,17 @@ fully writeable."
         (sunrise-avfs-root (expand-file-name sunrise-avfs-root))
         fname vpaths)
     (if (sunrise-overlapping-paths-p sunrise-avfs-root path)
-        (unless (and sunrise-mirror-home (sunrise-overlapping-paths-p sunrise-mirror-home path))
+        (unless (and sunrise-mirror-home
+                     (sunrise-overlapping-paths-p sunrise-mirror-home path))
           (setq path (substring path (length sunrise-avfs-root))
                 vpaths (split-string path "#[^/]*/")
                 path (car vpaths)
                 vpaths (cdr vpaths))))
     (setq fname (file-name-nondirectory path))
-    (if (null (assoc-default fname sunrise-mirror-pack-commands-alist 'string-match))
-        (error (concat "Sunrise: sorry, no packer was registered for " fname)))
+    (if (null (assoc-default
+               fname sunrise-mirror-pack-commands-alist 'string-match))
+        (error (concat "Sunrise: sorry, no packer was registered for "
+                       fname)))
     (sunrise-mirror-enable)
     (unless (file-exists-p sunrise-mirror-home)
       (make-directory sunrise-mirror-home))
@@ -233,6 +239,7 @@ fully writeable."
 
 (defun sunrise-mirror-mount (path)
   "Create and mount (if necessary) all the directories needed to mirror PATH.
+
 PATH identifies the compressed archive. Returns the path to the
 corresponding mirror area."
   (let* ((base (sunrise-mirror-mangle path))
@@ -258,12 +265,14 @@ corresponding mirror area."
 
 (defun sunrise-mirror-close (&optional do-commit local-commit moving)
   "Destroy the current mirror area.
-Unmounts and deletes the directories it was built upon. Tries to
-automatically repack the mirror and substitute the original archive
-with a new one containing the modifications made to the mirror.
 
-If optional argument DO-COMMIT is set, then all changes made to the
-mirror are unconditionally committed to the archive. If
+Unmounts and deletes the directories it was built upon. Tries to
+automatically repack the mirror and substitute the original
+archive with a new one containing the modifications made to the
+mirror.
+
+If optional argument DO-COMMIT is set, then all changes made to
+the mirror are unconditionally committed to the archive. If
 LOCAL-COMMIT is set, then the commit is considered local (changes
 effect a mirror nested inside another mirror). MOVING means that
 this operation was triggered by the user moving outside of the
@@ -279,13 +288,15 @@ current mirror area (the current buffer will be killed soon)."
     (unless (sunrise-overlapping-paths-p sunrise-mirror-home here)
       (error (concat "Sunrise: sorry, that's not a mirror area: " here)))
 
-    (setq pos (string-match "\\(?:/\\|$\\)" here (length sunrise-mirror-home))
+    (setq pos (string-match "\\(?:/\\|$\\)" here
+                            (length sunrise-mirror-home))
           mirror (substring here (length sunrise-mirror-home) pos)
           overlay (concat "." mirror )
           vpath (substring here (1+ pos))
-          do-commit (and (sunrise-mirror-files (concat sunrise-mirror-home overlay))
-                         (or do-commit
-                             (y-or-n-p "Sunrise: commit changes in mirror? "))))
+          do-commit
+          (and (sunrise-mirror-files (concat sunrise-mirror-home overlay))
+               (or do-commit
+                   (y-or-n-p "Sunrise: commit changes in mirror? "))))
 
     (unless local-commit
       (sunrise-unhighlight 'sunrise-mirror-path-face))
@@ -298,10 +309,12 @@ current mirror area (the current buffer will be killed soon)."
     (sunrise-mirror-unmount mirror overlay)
 
     (unless local-commit
-      (if (sunrise-overlapping-paths-p sunrise-mirror-home (dired-current-directory))
+      (if (sunrise-overlapping-paths-p
+           sunrise-mirror-home (dired-current-directory))
           (sunrise-mirror-close committed))
       (unless moving
-        (sunrise-find-file (expand-file-name (concat default-directory vroot)))
+        (sunrise-find-file
+         (expand-file-name (concat default-directory vroot)))
         (if (< 0 (length vpath)) (sunrise-goto-dir vpath)))))
 
   (sunrise-highlight)
@@ -312,6 +325,7 @@ current mirror area (the current buffer will be killed soon)."
 
 (defun sunrise-mirror-commit (mirror)
   "Commit all modifications made to MIRROR in directory OVERLAY.
+
 Replaces the mirrored archive with a new one built with the
 current contents of the mirror. Keeps a backup of the original
 archive if the variable `sunrise-mirror-backup' is non-nil (the
@@ -320,7 +334,8 @@ default)."
       (let ((repacked (sunrise-mirror-repack mirror))
             (target (dired-get-filename)))
         (if (and sunrise-mirror-keep-backups
-                 (not (sunrise-overlapping-paths-p sunrise-mirror-home target)))
+                 (not (sunrise-overlapping-paths-p
+                       sunrise-mirror-home target)))
             (rename-file target (concat target ".bak") 1)
           (delete-file target))
         (copy-file repacked (dired-current-directory) t nil nil)
@@ -332,7 +347,8 @@ default)."
                  (error err))))))
 
 (defun sunrise-mirror-unmount (mirror overlay)
-  "Unmount and delete all directories used for mirroring a compressed archive.
+  "Unmount and delete all directories used to mirror a compressed archive.
+
 MIRROR is the union of the AVFS directory that holds the contents
 of the archive (read-only) with OVERLAY, which contains all the
 modifications made to the union in the current session."
@@ -363,15 +379,17 @@ modifications made to the union in the current session."
 
 (defun sunrise-mirror-repack (mirror)
   "Try to repack the given MIRROR.
-On success, returns a string containing the full path to the newly
-packed archive, otherwise throws an error."
+
+On success, returns a string containing the full path to the
+newly packed archive, otherwise throws an error."
   (message "Sunrise: repacking mirror, please wait...")
   (let* ((target-home (concat sunrise-mirror-home ".repacked/"))
          (archive (replace-regexp-in-string "#[a-z0-9#]*$" "" mirror))
          (target (replace-regexp-in-string
                   "/?$" ""
                   (car (last (split-string archive "+")))))
-         (command (assoc-default archive sunrise-mirror-pack-commands-alist 'string-match)))
+         (command (assoc-default archive sunrise-mirror-pack-commands-alist
+                                 'string-match)))
 
     (if (null command)
         (error (concat "Sunrise: sorry, don't know how to repack " mirror)))
@@ -386,7 +404,8 @@ packed archive, otherwise throws an error."
 
 (defun sunrise-mirror-mangle (path)
   "Transform PATH into a string naming a new mirror area."
-  (let ((handler (assoc-default path sunrise-avfs-handlers-alist 'string-match)))
+  (let ((handler (assoc-default path sunrise-avfs-handlers-alist
+                                'string-match)))
     (if (eq ?/ (string-to-char path))
         (setq path (substring path 1)))
     (concat (replace-regexp-in-string
@@ -395,6 +414,7 @@ packed archive, otherwise throws an error."
 
 (defun sunrise-mirror-demangle (path)
   "Transform the given mirror area name into a regular filesystem path.
+
 Opposite of `sunrise-mirror-mangle'."
   (concat "/"
           (replace-regexp-in-string
@@ -403,12 +423,14 @@ Opposite of `sunrise-mirror-mangle'."
                                                 "#[a-z0-9#]*$" "" path)))))
 
 (defun sunrise-mirror-full-demangle (path)
-  "Demangle PATH recursively to obtain the current path of the original archive.
+  "Demangle PATH recursively to get the current path of the original archive.
+
 This is necessary because reflecting an archive that is itself a
 reflection causes deadlocks in FUSE."
   (let ((reflected path)
         (home-len (length sunrise-mirror-home))
-        (handler (assoc-default path sunrise-avfs-handlers-alist 'string-match))
+        (handler (assoc-default path sunrise-avfs-handlers-alist
+                                'string-match))
         (prev-path))
     (while (and (not (string= reflected prev-path))
                 (sunrise-overlapping-paths-p sunrise-mirror-home reflected))
@@ -419,7 +441,9 @@ reflection causes deadlocks in FUSE."
     reflected))
 
 (defun sunrise-mirror-files (directory)
-  "Return list of pathnames constituting mirror modifications inside overlay DIRECTORY."
+  "Return list of pathnames constituting mirror modifications
+
+inside overlay DIRECTORY."
   (if (not (file-directory-p directory))
       (ignore)
     (let ((files (directory-files directory)))
@@ -429,6 +453,7 @@ reflection causes deadlocks in FUSE."
 
 (defun sunrise-mirror-overlay-redir (dirname &optional force-root)
   "Adjust DIRNAME for use with a mirror filesystem.
+
 Analyses the given directory path and rewrites it (if necessary)
 to play nicely with the mirror fs the given path belongs to. If
 the path is not inside any mirror fs, it is returned unmodified."
@@ -442,7 +467,8 @@ the path is not inside any mirror fs, it is returned unmodified."
             (setq pos (string-match "/\\|$" mirror))
             (if pos
                 (progn
-                  (setq target (replace-regexp-in-string "^/" "" (substring mirror pos)))
+                  (setq target (replace-regexp-in-string
+                                "^/" "" (substring mirror pos)))
                   (setq mirror (substring mirror 0 pos))))
             (if (and target
                      (or (> (length target) 0) force-root)
@@ -461,7 +487,9 @@ the path is not inside any mirror fs, it is returned unmodified."
         (match-string 1 local-dir))))
 
 (defun sunrise-mirror-overlapping-p (mirror1 mirror2)
-  "Return non-nil if the surface of MIRROR2 maps an archive nested
+  "Return non-nil if MIRROR1 and MIRROR2 overlap.
+
+Check whether the surface of MIRROR2 maps an archive nested
 inside the archive mapped by the surface of MIRROR1."
   (let ((surface1 (sunrise-mirror-surface mirror1))
         (surface2 (sunrise-mirror-surface mirror2))
@@ -472,6 +500,7 @@ inside the archive mapped by the surface of MIRROR1."
 
 (defun sunrise-mirror-goto-dir (target)
   "Enhance `sunrise-goto-dir' with transparent navigation inside mirror areas.
+
 All calls to `sunrise-goto-dir' are diverted to this function."
   (let* ((here (expand-file-name default-directory))
          (target (expand-file-name (or target ".")))
@@ -479,28 +508,32 @@ All calls to `sunrise-goto-dir' are diverted to this function."
          (sunrise-mirror-divert-goto-dir nil)
          surface-target)
     (cond
-     ((null surface-here) (sunrise-goto-dir target))
-     ((sunrise-overlapping-paths-p sunrise-avfs-root target) (sunrise-mirror-open))
+     ((null surface-here)
+      (sunrise-goto-dir target))
+     ((sunrise-overlapping-paths-p sunrise-avfs-root target)
+      (sunrise-mirror-open))
      (t
-      (progn
-        (if (sunrise-equal-dirs target sunrise-mirror-home)
-            (setq target (expand-file-name
-                          (concat (sunrise-mirror-demangle surface-here) "/.."))
-                  surface-target (sunrise-mirror-surface (sunrise-mirror-mangle target)))
-          (setq surface-target (sunrise-mirror-surface target)))
-        (unless (equal surface-here surface-target)
-          (if (and surface-target
-                   (sunrise-overlapping-paths-p sunrise-mirror-home target)
-                   (sunrise-mirror-overlapping-p surface-target surface-here))
-              (sunrise-mirror-close t t)
-            (sunrise-mirror-close nil nil t)))
-        (unless (or (not (file-directory-p target))
-                    (sunrise-equal-dirs target (dired-current-directory)))
-          (sunrise-goto-dir target)))))
+      (if (sunrise-equal-dirs target sunrise-mirror-home)
+          (setq target
+                (expand-file-name
+                 (concat (sunrise-mirror-demangle surface-here) "/.."))
+                surface-target
+                (sunrise-mirror-surface (sunrise-mirror-mangle target)))
+        (setq surface-target (sunrise-mirror-surface target)))
+      (unless (equal surface-here surface-target)
+        (if (and surface-target
+                 (sunrise-overlapping-paths-p sunrise-mirror-home target)
+                 (sunrise-mirror-overlapping-p surface-target surface-here))
+            (sunrise-mirror-close t t)
+          (sunrise-mirror-close nil nil t)))
+      (unless (or (not (file-directory-p target))
+                  (sunrise-equal-dirs target (dired-current-directory)))
+        (sunrise-goto-dir target))))
     (sunrise-highlight)))
 
 (defun sunrise-mirror-on-kill-buffer ()
   "Handle navigation out of a mirror area other than through `sunrise-goto-dir'.
+
 This includes e.g. bookmark jumps and pane synchronizations."
   (when (and sunrise-mirror-home (eq major-mode 'sunrise-mode)
              (null (sunrise-mirror-surface sunrise-this-directory))
@@ -517,7 +550,11 @@ This includes e.g. bookmark jumps and pane synchronizations."
 
 (defadvice sunrise-clone-files
     (around sunrise-mirror-advice-clone-files
-            (file-path-list target-dir clone-op progress &optional do-overwrite))
+            (file-path-list
+             target-dir
+             clone-op
+             progress
+             &optional do-overwrite))
   "Redirect all `sunrise-copy' operations to the right path under the
 overlay directory."
   (if (null sunrise-mirror-home)
@@ -548,7 +585,8 @@ to the right path under the overlay directory."
         (let ((default-directory "~/")
               (target-dir (file-name-directory target)))
           (make-directory target-dir)
-          (shell-command-to-string (concat dired-chmod-program " a+x " target-dir))
+          (shell-command-to-string
+           (concat dired-chmod-program " a+x " target-dir))
           (write-file target nil))
       ad-do-it)))
 
