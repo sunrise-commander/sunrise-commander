@@ -50,9 +50,12 @@
 
 ;;; Code:
 
-(require 'sunrise)
+(eval-when-compile
+  (require 'cl-lib))
+
 (require 'bookmark)
-(eval-when-compile (require 'cl-lib))
+
+(require 'sunrise)
 
 (defun sunrise-checkpoint-save (&optional _arg)
   "Create a new checkpoint bookmark to save the location of both panes."

@@ -161,11 +161,14 @@
 
 ;;; Code:
 
-(require 'sunrise)
-(require 'tree-widget)
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'desktop))
+
 (require 'hl-line)
-(eval-when-compile (require 'cl-lib)
-                   (require 'desktop))
+(require 'tree-widget)
+
+(require 'sunrise)
 
 (defcustom sunrise-tree-explosion-ratio 3
   "Maximum number of directory levels to recursively open at a time.

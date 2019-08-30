@@ -72,10 +72,13 @@
 
 ;;; Code:
 
-(require 'sunrise)
+(eval-when-compile
+  (require 'cl-lib))
+
 (require 'desktop)
 (require 'easymenu)
-(eval-when-compile (require 'cl-lib))
+
+(require 'sunrise)
 
 (defcustom sunrise-modeline-use-utf8-marks nil
   "Set to t to use fancy marks (using UTF-8 glyphs) in the mode line."
