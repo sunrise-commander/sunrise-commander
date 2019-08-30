@@ -72,59 +72,107 @@
 
 (defvar sunrise-buttons-list
   '(
-    ("GotoDir([F2,]j,/)" 'sunrise-goto-dir                 "Go to any directory in active pane")
-    ("View([F3,]v,o)"    'sunrise-quick-view               "View selected file or directory in this window")
-    ("Open([F4,]Enter)"  'sunrise-advertised-find-file     "Visit selected file or directory")
-    ("Copy([F5,]C)"      'sunrise-do-copy                  "Copy selected files to passive pane")
-    ("Rename([F6,]R)"    'sunrise-do-rename                "Move selected files to passive pane")
-    ("Clone(K)"          'sunrise-do-clone                 "Clone selected files to passive pane")
-    ("NewDir([F7,]+)"    'dired-create-directory           "Create new directory in active pane")
-    ("Delete([F8,]D)"    'sunrise-do-delete                "Delete selected files from active pane")
+    ("GotoDir([F2,]j,/)" 'sunrise-goto-dir
+     "Go to any directory in active pane")
+    ("View([F3,]v,o)"    'sunrise-quick-view
+     "View selected file or directory in this window")
+    ("Open([F4,]Enter)"  'sunrise-advertised-find-file
+     "Visit selected file or directory")
+    ("Copy([F5,]C)"      'sunrise-do-copy
+     "Copy selected files to passive pane")
+    ("Rename([F6,]R)"    'sunrise-do-rename
+     "Move selected files to passive pane")
+    ("Clone(K)"          'sunrise-do-clone
+     "Clone selected files to passive pane")
+    ("NewDir([F7,]+)"    'dired-create-directory
+     "Create new directory in active pane")
+    ("Delete([F8,]D)"    'sunrise-do-delete
+     "Delete selected files from active pane")
     nil
-    ("DirUp([C-PgUp,]J)" 'sunrise-dired-prev-subdir        "Go to parent directory in active pane")
-    ("DirBack(M-y)"      'sunrise-history-prev             "Go to previous directory in history")
-    ("DirFrwd(M-u)"      'sunrise-history-next             "Go to next directory in history")
-    ("HardLink(H)"       'sunrise-do-hardlink              "Make hard link of selected file in passive pane")
-    ("SymLink(S)"        'sunrise-do-symlink               "Make absolute symlink of selected entry in passive pane")
-    ("RelSymLink(Y)"     'sunrise-do-relsymlink            "Make relative symlink of selected entry in passive pane")
-    ("Hidden(C-o)"       'sunrise-omit-mode                "Hide/Show hidden files in active pane")
-    ("Attrs(C-Bksp)"     'sunrise-toggle-attributes        "Hide/Show file attributes in active pane")
+    ("DirUp([C-PgUp,]J)" 'sunrise-dired-prev-subdir
+     "Go to parent directory in active pane")
+    ("DirBack(M-y)"      'sunrise-history-prev
+     "Go to previous directory in history")
+    ("DirFrwd(M-u)"      'sunrise-history-next
+     "Go to next directory in history")
+    ("HardLink(H)"       'sunrise-do-hardlink
+     "Make hard link of selected file in passive pane")
+    ("SymLink(S)"        'sunrise-do-symlink
+     "Make absolute symlink of selected entry in passive pane")
+    ("RelSymLink(Y)"     'sunrise-do-relsymlink
+     "Make relative symlink of selected entry in passive pane")
+    ("Hidden(C-o)"       'sunrise-omit-mode
+     "Hide/Show hidden files in active pane")
+    ("Attrs(C-Bksp)"     'sunrise-toggle-attributes
+     "Hide/Show file attributes in active pane")
     nil
-    ("Other(Tab)"        'sunrise-change-window            "Switch to passive pane")
-    ("ClonePane(M-o)"    'sunrise-synchronize-panes        "Make both panes contain the same directory")
-    ("Swap(M-t)"         'sunrise-transpose-panes          "Transpose panes")
-    ("Refresh(g)"        'revert-buffer                    "Rescan directory in active pane")
-    ("Align(C-cC-s)"     'sunrise-split-toggle             "Change panes alignment (vertical/horizontal/top)")
-    ("Sort(s)"           'sunrise-interactive-sort         "Sort interactively entries in active pane")
-    ("Mark([Ins,]m)"     'dired-mark                       "Mark selected entry in active pane")
-    ("Unmark(Bksp)"      'dired-unmark-backward            "Unmark last selected entry inactive pane")
+    ("Other(Tab)"        'sunrise-change-window
+     "Switch to passive pane")
+    ("ClonePane(M-o)"    'sunrise-synchronize-panes
+     "Make both panes contain the same directory")
+    ("Swap(M-t)"         'sunrise-transpose-panes
+     "Transpose panes")
+    ("Refresh(g)"        'revert-buffer
+     "Rescan directory in active pane")
+    ("Align(C-cC-s)"     'sunrise-split-toggle
+     "Change panes alignment (vertical/horizontal/top)")
+    ("Sort(s)"           'sunrise-interactive-sort
+     "Sort interactively entries in active pane")
+    ("Mark([Ins,]m)"     'dired-mark
+     "Mark selected entry in active pane")
+    ("Unmark(Bksp)"      'dired-unmark-backward
+     "Unmark last selected entry inactive pane")
     nil
-    ("History(C-cC-d)"   'sunrise-recent-directories       "Display listing of recently visited directories")
-    ("Recent(C-cC-r)"    'sunrise-recent-files             "Display listing of recently visited files")
-    ("Restore(C-cC-c)"   'sunrise-buttons-restore-mode     "Dismiss VIRTUAL or WDired mode")
-    ("Find(C-cC-f)"      'sunrise-find                     "Find files and directories interactively")
-    ("FName(C-cC-n)"     'sunrise-find-name                "Find files and directories by name pattern")
-    ("FGrep(C-cC-g)"     'sunrise-find-grep                "Find files containing some expression")
-    ("Follow(;)"         'sunrise-follow-file              "Follow file (go to same directory as file)")
-    ("Locate(C-cC-l)"    'sunrise-locate                   "Find files and directories using locate database")
+    ("History(C-cC-d)"   'sunrise-recent-directories
+     "Display listing of recently visited directories")
+    ("Recent(C-cC-r)"    'sunrise-recent-files
+     "Display listing of recently visited files")
+    ("Restore(C-cC-c)"   'sunrise-buttons-restore-mode
+     "Dismiss VIRTUAL or WDired mode")
+    ("Find(C-cC-f)"      'sunrise-find
+     "Find files and directories interactively")
+    ("FName(C-cC-n)"     'sunrise-find-name
+     "Find files and directories by name pattern")
+    ("FGrep(C-cC-g)"     'sunrise-find-grep
+     "Find files containing some expression")
+    ("Follow(;)"         'sunrise-follow-file
+     "Follow file (go to same directory as file)")
+    ("Locate(C-cC-l)"    'sunrise-locate
+     "Find files and directories using locate database")
     nil
-    ("Search(A)"         'sunrise-do-search                "Search for string/regexp in all marked entries")
-    ("Compare(C-M-=)"    'sunrise-compare-dirs             "Compare directories in panes")
-    ("Diff(=)"           'sunrise-diff                     "Compare selected entries using diff")
-    ("Ediff(C-=)"        'sunrise-ediff                    "Compare selected entries using ediff")
-    ("Store(C-c>)"       'sunrise-checkpoint-save          "Remember current position of panes as name")
-    ("Recall(C-c.)"      'sunrise-checkpoint-restore       "Set panes to a previously remembered position")
-    ("Home(M-a)"         'sunrise-beginning-of-buffer      "Go to first entry in active pane")
-    ("End(M-e)"          'sunrise-end-of-buffer            "Go to last entry in active pane")
+    ("Search(A)"         'sunrise-do-search
+     "Search for string/regexp in all marked entries")
+    ("Compare(C-M-=)"    'sunrise-compare-dirs
+     "Compare directories in panes")
+    ("Diff(=)"           'sunrise-diff
+     "Compare selected entries using diff")
+    ("Ediff(C-=)"        'sunrise-ediff
+     "Compare selected entries using ediff")
+    ("Store(C-c>)"       'sunrise-checkpoint-save
+     "Remember current position of panes as name")
+    ("Recall(C-c.)"      'sunrise-checkpoint-restore
+     "Set panes to a previously remembered position")
+    ("Home(M-a)"         'sunrise-beginning-of-buffer
+     "Go to first entry in active pane")
+    ("End(M-e)"          'sunrise-end-of-buffer
+     "Go to last entry in active pane")
     nil
-    ("FindReplace(Q)"    'sunrise-do-query-replace-regexp  "Find and replace in all selected entries")
-    ("Fuzzy(C-c/)"       'sunrise-fuzzy-narrow             "Narrow pane contents with fuzzy matching")
-    ("CmdLine(C-ct)"     'sunrise-term                     "Open Command line in this window")
-    ("WDired(C-xC-q)"    'sunrise-buttons-editable-pane    "Edit active pane using wdired")
-    ("SyncNav(C-cC-z)"   'sunrise-sync                     "Toggle on/off synchronized navigation mode")
-    ("LongLines(M-l)"    'sunrise-toggle-truncate-lines    "Truncate/Restore long lines in active pane")
-    ("More...(h)"        'sunrise-describe-mode            "More commands and keybindings")
-    ("Quit([F10,]q)"     'sunrise-quit                     "Dismiss Sunrise Commander")
+    ("FindReplace(Q)"    'sunrise-do-query-replace-regexp
+     "Find and replace in all selected entries")
+    ("Fuzzy(C-c/)"       'sunrise-fuzzy-narrow
+     "Narrow pane contents with fuzzy matching")
+    ("CmdLine(C-ct)"     'sunrise-term
+     "Open Command line in this window")
+    ("WDired(C-xC-q)"    'sunrise-buttons-editable-pane
+     "Edit active pane using wdired")
+    ("SyncNav(C-cC-z)"   'sunrise-sync
+     "Toggle on/off synchronized navigation mode")
+    ("LongLines(M-l)"    'sunrise-toggle-truncate-lines
+     "Truncate/Restore long lines in active pane")
+    ("More...(h)"        'sunrise-describe-mode
+     "More commands and keybindings")
+    ("Quit([F10,]q)"     'sunrise-quit
+     "Dismiss Sunrise Commander")
     )
   "Sunrise button definitions.")
 
