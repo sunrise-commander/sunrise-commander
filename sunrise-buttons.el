@@ -141,6 +141,10 @@
   (let ((buttons (get-buffer sunrise-buttons-buffer-name)))
     (if buttons (bury-buffer buttons))))
 
+(defun sunrise-buttons-kill-buffer-function ()
+  (if (and sunrise-running (eq (current-buffer) other-window-scroll-buffer))
+      (sunrise-buttons-display)))
+
 (define-derived-mode sunrise-buttons-mode Custom-mode "Sunrise Buttons"
   "Sunrise Commander Buttons panel mode."
   :group 'sunrise
@@ -166,11 +170,7 @@
 
 (add-hook 'sunrise-start-hook 'sunrise-buttons-display)
 (add-hook 'sunrise-quit-hook 'sunrise-buttons-sunrise-quit-function)
-(add-hook 'kill-buffer-hook
-          (defun sunrise-buttons-kill-buffer-function ()
-            (if (and sunrise-running
-                     (eq (current-buffer) other-window-scroll-buffer))
-                (sunrise-buttons-display))))
+(add-hook 'kill-buffer-hook 'sunrise-buttons-kill-buffer-function)
 
 (defun sunrise-buttons-display ()
   "Display the buttons buffer in the viewer window.
