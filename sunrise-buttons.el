@@ -13,18 +13,18 @@
 
 ;; This file is not part of GNU Emacs.
 
-;; This program is free software: you can redistribute it and/or modify it under
-;; the terms of the GNU General Public License as published by the Free Software
-;; Foundation,  either  version  3 of the License, or (at your option) any later
-;; version.
+;; This program is free software: you can redistribute it and/or modify it
+;; under the terms of the GNU General Public License as published by the Free
+;; Software Foundation, either version 3 of the License, or (at your option)
+;; any later version.
 ;;
-;; This  program  is distributed in the hope that it will be useful, but WITHOUT
-;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-;; FOR  A  PARTICULAR  PURPOSE.  See the GNU General Public License for more de-
-;; tails.
+;; This program is distributed in the hope that it will be useful, but WITHOUT
+;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+;; FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+;; more de- tails.
 
-;; You  should have received a copy of the GNU General Public License along with
-;; this program. If not, see <http://www.gnu.org/licenses/>.
+;; You should have received a copy of the GNU General Public License along
+;; with this program. If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -32,17 +32,18 @@
 ;; acquainted fast with the most frequent functions found in the Sunrise
 ;; Commander and their keybindings. Once installed, it displays a panel with
 ;; mouse clickable buttons that show some of the most useful actions performed
-;; by Sunrise and their respective bindings in the bottom window (a.k.a. viewer
-;; window here) every time the main panels are invoked. You can execute any of
-;; these functions by clicking the appropriate button, but the extension was
-;; conceived more as a simple cheat sheet (a very, very limited one, as you can
-;; easily learn by pressing the last button, labeled "More...") than as a real
-;; interface to Sunrise and Dired functions. Eventually, if you like this kind
-;; of interaction with the program you can add your own commands to the list and
-;; let this extension manage the creation and layout of the buttons for you.
+;; by Sunrise and their respective bindings in the bottom window (a.k.a.
+;; viewer window here) every time the main panels are invoked. You can execute
+;; any of these functions by clicking the appropriate button, but the
+;; extension was conceived more as a simple cheat sheet (a very, very limited
+;; one, as you can easily learn by pressing the last button, labeled
+;; "More...") than as a real interface to Sunrise and Dired functions.
+;; Eventually, if you like this kind of interaction with the program you can
+;; add your own commands to the list and let this extension manage the
+;; creation and layout of the buttons for you.
 
-;; This extension was developed on GNU Emacs 23 on Linux, and tested on
-;; GNU Emacs 22 and 23 for Linux and on EmacsW32 (version 22) for Windows.
+;; This extension was developed on GNU Emacs 23 on Linux, and tested on GNU
+;; Emacs 22 and 23 for Linux and on EmacsW32 (version 22) for Windows.
 
 ;;; Installation and Usage:
 
@@ -51,10 +52,11 @@
 ;; 2) Add a (require 'sunrise-buttons) to your .emacs file, preferably right
 ;; after (require 'sunrise).
 
-;; 3) Evaluate the new expression, or reload your .emacs file, or restart Emacs.
+;; 3) Evaluate the new expression, or reload your .emacs file, or restart
+;; Emacs.
 
-;; That's it - the next time you activate Sunrise you'll see a nice button panel
-;; in the viewer window.
+;; That's it - the next time you activate Sunrise you'll see a nice button
+;; panel in the viewer window.
 
 ;;; Code:
 
