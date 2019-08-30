@@ -74,9 +74,9 @@
   "Determines the way frames are used for quick viewing files:
 
 * Single Frame: reuse the same frame whenever possible.
-* Single Dedicated Frame: reuse and close frame when its last buffer is killed.
-* Multiple Frames: use a new frame for every new file (or terminal) displayed.
-* Dedicated Frames: use a new frame and close it whenever its buffer is killed."
+* Single Dedicated Frame: reuse frame, close when last buffer is killed.
+* Multiple Frames: new frame for every new file (or terminal) displayed.
+* Dedicated Frames: new frame, close it whenever its buffer is killed."
   :group 'sunrise
   :type '(choice
           (const single-frame)
@@ -102,7 +102,8 @@
     (horizontal (split-window-horizontally))
     (vertical   (split-window-vertically))
     (top        (ignore))
-    (t (error "Sunrise: don't know how to split this window: %s" sunrise-window-split-style)))
+    (t          (error "Sunrise: don't know how to split this window: %s"
+                       sunrise-window-split-style)))
 
   (sunrise-setup-visible-panes)
   (sunrise-select-window sunrise-selected-window)
@@ -124,12 +125,14 @@
   (let* ((vframe (sunrise-popviewer-get-frame)) (target-frame))
     (when vframe
       (select-frame vframe)
-      (if (memq sunrise-popviewer-style '(single-frame single-dedicated-frame))
+      (if (memq sunrise-popviewer-style
+                '(single-frame single-dedicated-frame))
           (setq target-frame vframe)
         (set-frame-name (buffer-name))))
     (unless target-frame
       (setq other-window-scroll-buffer nil)
-      (setq target-frame (make-frame `((name . ,sunrise-popviewer-frame-name)))))
+      (setq target-frame
+            (make-frame `((name . ,sunrise-popviewer-frame-name)))))
     (select-frame target-frame)
     (raise-frame)))
 
@@ -140,9 +143,12 @@
       (select-frame vframe)
       (set-window-dedicated-p
        (frame-first-window vframe)
-       (memq sunrise-popviewer-style '(single-dedicated-frame dedicated-frames))))
+       (memq sunrise-popviewer-style
+             '(single-dedicated-frame dedicated-frames))))
     (add-hook
-     'kill-buffer-hook (lambda () (sunrise-select-window sunrise-selected-window)) t t)))
+     'kill-buffer-hook
+     (lambda () (sunrise-select-window sunrise-selected-window))
+     t t)))
 
 (defun sunrise-popviewer-quick-view (&optional arg)
   "Quickly view the currently selected item.
@@ -154,7 +160,8 @@ passive pane."
   (setq
    other-window-scroll-buffer
    (let ((other-window-scroll-buffer
-          (if (memq sunrise-popviewer-style '(single-frame single-dedicated-frame))
+          (if (memq sunrise-popviewer-style
+                    '(single-frame single-dedicated-frame))
               other-window-scroll-buffer
             nil)))
      (sunrise-quick-view arg)
@@ -195,7 +202,9 @@ passive pane."
   :group 'sunrise
   :lighter ""
   (let ((hookfun (if sunrise-popviewer-mode 'remove-hook 'add-hook))
-        (adfun (if sunrise-popviewer-mode 'sunrise-ad-enable 'sunrise-ad-disable))
+        (adfun (if sunrise-popviewer-mode
+                   'sunrise-ad-enable
+                 'sunrise-ad-disable))
 
         (viewerfun (if sunrise-popviewer-mode
                        'sunrise-popviewer-select-viewer-window
