@@ -1,4 +1,4 @@
-;;; sunrise-buttons.el --- Mouse-clickable shortcut buttons for the Sunrise Commander -*- lexical-binding: t -*-
+;;; sunrise-buttons.el --- Clickable shortcut buttons for the Sunrise Commander -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2008-2012 José Alfredo Romero Latouche.
 
