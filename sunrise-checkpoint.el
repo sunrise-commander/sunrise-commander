@@ -109,7 +109,7 @@
   (sunrise-checkpoint-handler bookmark))
 
 (defadvice bookmark-relocate
-  (around sunrise-checkpoint-advice-bookmark-relocate (bookmark))
+    (around sunrise-checkpoint-advice-bookmark-relocate (bookmark))
   (let ((bmk (bookmark-get-bookmark bookmark)))
     (if (assq 'sunrise-directories bmk)
         (sunrise-checkpoint-relocate bmk)

@@ -122,12 +122,12 @@ file."
         (sunrise-loop (symbol-file 'sunrise-loop-cmd-loop))
         (emacs (concat invocation-directory invocation-name)))
     (setq sunrise-loop-process (start-process
-                         "Sunrise-Loop"
-                         (if sunrise-loop-debug "*SUNRISE-LOOP*" nil)
-                         emacs
-                         "-batch" "-q" "-no-site-file"
-                         "-l" sunrise-main "-l" sunrise-loop
-                         "-eval" "(sunrise-loop-cmd-loop)"))
+                                "Sunrise-Loop"
+                                (if sunrise-loop-debug "*SUNRISE-LOOP*" nil)
+                                emacs
+                                "-batch" "-q" "-no-site-file"
+                                "-l" sunrise-main "-l" sunrise-loop
+                                "-eval" "(sunrise-loop-cmd-loop)"))
     (sunrise-loop-enqueue `(setq load-path (quote ,load-path)))
     (sunrise-loop-enqueue '(require 'sunrise))
     (if sunrise-loop-debug
@@ -223,7 +223,7 @@ If no such interpreter is currently running, launches a new one."
             (message "[[Command successfully invoked in background]]"))
         (error (message "%s" (concat "[[*ERROR IN BACKGROUND JOB: "
                                      (prin1-to-string description) "*]]"))))
-        (message "^%s" signature))))
+      (message "^%s" signature))))
 
 (defun sunrise-loop-applicable-p ()
   "Return non-nil if an operation is suitable for the background interpreter."
@@ -264,7 +264,7 @@ operations to the background interpreter."
     (sunrise-do-rename)))
 
 (defadvice sunrise-progress-prompt (around sunrise-loop-advice-progress-prompt
-                                      activate)
+                                           activate)
   "Display \"Sunrise Loop\" instead of \"Sunrise\" in the prompt."
   (setq ad-return-value
         (concat (if sunrise-loop-scope "Sunrise Loop: " "Sunrise: ")
@@ -279,9 +279,9 @@ operations to the background interpreter."
            "\?" " in the background? (overwrites ALWAYS!)" (ad-get-arg 0)))))
 
 (defadvice dired-mark-read-file-name
-  (before sunrise-loop-advice-dired-mark-read-file-name
-          (prompt dir op-symbol arg files &optional default)
-          activate)
+    (before sunrise-loop-advice-dired-mark-read-file-name
+            (prompt dir op-symbol arg files &optional default)
+            activate)
   "Modify all queries from Dired inside a loop scope."
   (if sunrise-loop-scope
       (setq prompt (replace-regexp-in-string
@@ -289,10 +289,10 @@ operations to the background interpreter."
                     "\\1 (in background - overwrites ALWAYS!) \\2" prompt))))
 
 (defadvice dired-create-files
-  (around sunrise-loop-advice-dired-create-files
-          (file-creator operation fn-list name-constructor
-                        &optional marker-char)
-          activate)
+    (around sunrise-loop-advice-dired-create-files
+            (file-creator operation fn-list name-constructor
+                          &optional marker-char)
+            activate)
   "Delegate to the background interpreter all copy and rename operations
 triggered by `dired-do-copy' inside a loop scope."
   (if sunrise-loop-scope
@@ -306,9 +306,9 @@ triggered by `dired-do-copy' inside a loop scope."
     ad-do-it))
 
 (defadvice sunrise-clone-files
-  (around sunrise-loop-advice-clone-files
-          (file-path-list target-dir clone-op progress &optional do-overwrite)
-          activate)
+    (around sunrise-loop-advice-clone-files
+            (file-path-list target-dir clone-op progress &optional do-overwrite)
+            activate)
   "Delegate to the background interpreter all copy operations
 triggered by `sunrise-do-copy' inside a loop scope."
   (if sunrise-loop-scope
@@ -318,9 +318,9 @@ triggered by `sunrise-do-copy' inside a loop scope."
     ad-do-it))
 
 (defadvice sunrise-move-files
-  (around sunrise-loop-advice-move-files
-          (file-path-list target-dir progress &optional do-overwrite)
-          activate)
+    (around sunrise-loop-advice-move-files
+            (file-path-list target-dir progress &optional do-overwrite)
+            activate)
   "Delegate to the background interpreter all rename operations
 triggered by `sunrise-do-rename' inside a loop scope."
   (if sunrise-loop-scope

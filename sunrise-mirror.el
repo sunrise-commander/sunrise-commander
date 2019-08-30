@@ -131,7 +131,7 @@
     ("\\.\\(?:tar\\.gz\\|tgz\\)$"  . "tar cvzf %f *")
     ("\\.tar\\.bz2$"               . "tar cvjf %f *")
     ("\\.\\(?:tar\\.xz\\|txz\\)$"  . "tar cvJf %f *")
-   )
+    )
   "List of shell commands to repack particular archive contents.
 Used when repacking contents from a mirror area into a compressed
 archive of the appropriate type. Use %f as a placeholder for the
@@ -146,7 +146,7 @@ browseable through AVFS."
   "Implementation of unionfs to use for creating mirror areas."
   :group 'sunrise
   :type '(choice (const :tag "unionfs-fuse" unionfs-fuse)
-         (const :tag "funionfs" funionfs)))
+                 (const :tag "funionfs" funionfs)))
 
 (defface sunrise-mirror-path-face
   '((t (:background "blue" :foreground "yellow" :bold t :height 120)))
@@ -352,7 +352,7 @@ modifications made to the union in the current session."
                    (setq close-ok (sunrise-mirror-close))
                    (setq err-msg (cadr err1)))
                (error
-                  (setq err-msg (cadr err2))) )) )
+                (setq err-msg (cadr err2))) )) )
     (if (and (not open-ok) (not close-ok))
         (error err-msg)
       (sunrise-highlight))))
@@ -420,7 +420,7 @@ reflection causes deadlocks in FUSE."
       (ignore)
     (let ((files (directory-files directory)))
       (mapc (lambda (x) (setq files (delete x files)))
-              '("." ".." "._funionfs_control~"))
+            '("." ".." "._funionfs_control~"))
       files)))
 
 (defun sunrise-mirror-overlay-redir (dirname &optional force-root)
@@ -499,22 +499,22 @@ All calls to `sunrise-goto-dir' are diverted to this function."
   "Handle navigation out of a mirror area other than through `sunrise-goto-dir'.
 This includes e.g. bookmark jumps and pane synchronizations."
   (when (and sunrise-mirror-home (eq major-mode 'sunrise-mode)
-           (null (sunrise-mirror-surface sunrise-this-directory))
-           (sunrise-mirror-surface (dired-current-directory)))
-      (sunrise-mirror-goto-dir sunrise-this-directory)
-      (sunrise-unhighlight 'sunrise-mirror-path-face)))
+             (null (sunrise-mirror-surface sunrise-this-directory))
+             (sunrise-mirror-surface (dired-current-directory)))
+    (sunrise-mirror-goto-dir sunrise-this-directory)
+    (sunrise-unhighlight 'sunrise-mirror-path-face)))
 
 (defadvice sunrise-goto-dir
-  (around sunrise-mirror-advice-goto-dir (dir))
+    (around sunrise-mirror-advice-goto-dir (dir))
   "Divert all `sunrise-goto-dir' calls to `sunrise-mirror-goto-dir'."
   (if sunrise-mirror-divert-goto-dir
       (sunrise-mirror-goto-dir dir)
     ad-do-it))
 
 (defadvice sunrise-clone-files
-  (around sunrise-mirror-advice-clone-files
-          (file-path-list target-dir clone-op progress &optional do-overwrite))
-"Redirect all `sunrise-copy' operations to the right path under the
+    (around sunrise-mirror-advice-clone-files
+            (file-path-list target-dir clone-op progress &optional do-overwrite))
+  "Redirect all `sunrise-copy' operations to the right path under the
 overlay directory."
   (if (null sunrise-mirror-home)
       ad-do-it
@@ -526,7 +526,7 @@ overlay directory."
 (ad-activate 'sunrise-clone-files)
 
 (defadvice make-directory
-  (around sunrise-mirror-advice-make-directory (dirname &optional parents))
+    (around sunrise-mirror-advice-make-directory (dirname &optional parents))
   "Redirect directory creation operations to the right path under
 the overlay directory."
   (setq dirname (sunrise-mirror-overlay-redir dirname))
@@ -534,7 +534,7 @@ the overlay directory."
   ad-do-it)
 
 (defadvice save-buffer
-  (around sunrise-mirror-advice-save-buffer (&optional args))
+    (around sunrise-mirror-advice-save-buffer (&optional args))
   "Create all the subdirectories (and set their permissions)
 needed for enabling the redirection of buffer saving operations
 to the right path under the overlay directory."

@@ -153,13 +153,13 @@ tab."
   :group 'sunrise)
 
 (defconst sunrise-tabs-sep #(" " 0 1 (face sunrise-tabs-separator-face))
-  "Sunrise Tabs separator character.")
+          "Sunrise Tabs separator character.")
 
 (defconst sunrise-tabs-ligature #(" ║" 0 1 (face sunrise-tabs-separator-face))
-  "Sunrise Tabs line separator string.")
+          "Sunrise Tabs line separator string.")
 
 (defconst sunrise-tabs-max-cache-length 30
-  "Max number of tab labels cached for reuse.")
+          "Max number of tab labels cached for reuse.")
 
 (defvar sunrise-tabs '((left) (right)))
 (defvar sunrise-tabs-labels-cache '((left) (right)))
@@ -176,9 +176,9 @@ If a tab for the current buffer already exists, invoke `sunrise-tabs-rename'."
   (interactive)
   (let ((tab-name (buffer-name))
         (tab-set (assq sunrise-selected-window sunrise-tabs)))
-      (if (member tab-name (cdr tab-set))
-          (call-interactively 'sunrise-tabs-rename)
-        (setcdr tab-set (cons tab-name (cdr tab-set)))))
+    (if (member tab-name (cdr tab-set))
+        (call-interactively 'sunrise-tabs-rename)
+      (setcdr tab-set (cons tab-name (cdr tab-set)))))
   (sunrise-tabs-refresh))
 
 (defun sunrise-tabs-remove (&optional tab-buffer side)
@@ -395,7 +395,7 @@ By default, a tab is named after its assigned buffer. This function allows to
 give tabs names that are more readable or simply easier to remember."
   (let* ((alias (sunrise-tabs-trim-label (or alias ""))) (cache))
     (when (string= "" alias)
-        (setq alias (buffer-name)))
+      (setq alias (buffer-name)))
     (setq cache (assq sunrise-selected-window sunrise-tabs-labels-cache))
     (setcdr cache (delq nil
                         (mapcar (lambda(x)
@@ -639,8 +639,8 @@ after module installation."
       (if right-label (cons 'right-tab (sunrise-tabs-trim-label right-label)))))))
 
 (defun sunrise-tabs-desktop-restore-buffer (_desktop-buffer-file-name
-                                       _desktop-buffer-name
-                                       desktop-buffer-misc)
+                                            _desktop-buffer-name
+                                            desktop-buffer-misc)
   "Restore all tabs in a Sunrise (normal or VIRTUAL) buffer from a desktop file."
   (mapc (lambda (side)
           (let* ((sunrise-selected-window side)

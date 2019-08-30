@@ -161,8 +161,8 @@
 
 (add-hook 'sunrise-start-hook 'sunrise-buttons-display)
 (add-hook 'sunrise-quit-hook (defun sunrise-buttons-sunrise-quit-function ()
-                          (let ((buttons (get-buffer sunrise-buttons-buffer-name)))
-                            (if buttons (bury-buffer buttons)))))
+                               (let ((buttons (get-buffer sunrise-buttons-buffer-name)))
+                                 (if buttons (bury-buffer buttons)))))
 (add-hook 'kill-buffer-hook
           (defun sunrise-buttons-kill-buffer-function ()
             (if (and sunrise-running
@@ -188,7 +188,7 @@ If no buttons buffer exists yet, creates one."
                (let ((line-spacing 2)
                      (cursor-in-non-selected-windows nil))
                  (sunrise-buttons-render)))))
-  (sunrise-select-window sunrise-selected-window)))
+    (sunrise-select-window sunrise-selected-window)))
 
 (defun sunrise-buttons-render ()
   "Populate current buffer with all widgets described in `sunrise-buttons-list'."
@@ -217,8 +217,8 @@ list."
         (setq tag (replace-regexp-in-string "\\[.*\\]" "" tag)))
       (setq tag (sunrise-buttons-normalize-tag tag maxlen ? ))
       (widget-create 'push-button :tag tag
-                                  :action (sunrise-buttons-action action)
-                                  :help-echo hint)
+                     :action (sunrise-buttons-action action)
+                     :help-echo hint)
       (insert-char ?  1)
       (put-text-property
        (1- (point)) (point) 'display (list 'space :width 0.15)))))

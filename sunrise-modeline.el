@@ -101,7 +101,7 @@
   :group 'sunrise)
 
 (defconst sunrise-modeline-sep #(" " 0 1 (face sunrise-modeline-separator-face))
-  "Sunrise Modeline separator character.")
+          "Sunrise Modeline separator character.")
 
 ;;; ============================================================================
 ;;; Core functions:
@@ -185,9 +185,9 @@ the available width of the pane."
                  (t "Normal Mode"))
            (if sunrise-synchronized " | Synchronized Navigation" "")
            (if (or (memq 'sunrise-sticky-post-isearch isearch-mode-end-hook)
-                  (memq 'sunrise-tree-post-isearch isearch-mode-end-hook))
-              " | Sticky Search"
-            "")
+                   (memq 'sunrise-tree-post-isearch isearch-mode-end-hook))
+               " | Sticky Search"
+             "")
            (if (buffer-live-p sunrise-backup-buffer) " | Snapshot Available" "")))
     (propertize marks-string
                 'font 'bold
