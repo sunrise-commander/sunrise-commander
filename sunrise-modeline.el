@@ -13,45 +13,46 @@
 
 ;; This file is not part of GNU Emacs.
 
-;; This program is free software: you can redistribute it and/or modify it under
-;; the terms of the GNU General Public License as published by the Free Software
-;; Foundation, either version 3 of the License, or (at your option) any later
-;; version.
+;; This program is free software: you can redistribute it and/or modify it
+;; under the terms of the GNU General Public License as published by the Free
+;; Software Foundation, either version 3 of the License, or (at your option)
+;; any later version.
 ;;
 ;; This program is distributed in the hope that it will be useful, but WITHOUT
-;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-;; FOR A PARTICULAR PURPOSE. See the GNU General Public License for more de-
-;; tails.
+;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+;; FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+;; more de- tails.
 
-;; You should have received a copy of the GNU General Public License along with
-;; this program. If not, see <http://www.gnu.org/licenses/>.
+;; You should have received a copy of the GNU General Public License along
+;; with this program. If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;; This extension modifies the format of the mode lines under the Sunrise
-;; Commander panes so they display only the paths to the current directories (or
-;; the tail if the whole path is too long) and a row of three small icons. These
-;; icons are by default plain ASCII characters, but nicer semigraphical versions
-;; (in Unicode) can also be used by customizing the variable
+;; Commander panes so they display only the paths to the current directories
+;; (or the tail if the whole path is too long) and a row of three small icons.
+;; These icons are by default plain ASCII characters, but nicer semigraphical
+;; versions (in Unicode) can also be used by customizing the variable
 ;; `sunrise-modeline-use-utf8-marks'.
 ;;
-;; Here is the complete list of indicator icons (in ASCII and Unicode) and their
-;; respective meanings:
-;;                      (ascii) (unicode)
-;; 1. Pane modes:          *        ☼     Normal mode.
-;;                         !        ⚡     Editable Pane mode.
-;;                         @        ☯     Virtual Directory mode.
-;;                         T        ⚘     Tree View mode (with tree extension).
+;; Here is the complete list of indicator icons (in ASCII and Unicode) and
+;; their respective meanings:
 ;;
-;; 2. Navigation modes:    &        ⚓     Synchronized Navigation.
-;;                         $        ♻     Sticky Search.
+;;                     (ascii) (unicode)
+;; 1. Pane modes:         *        ☼    Normal mode
+;;                        !        ⚡    Editable Pane mode
+;;                        @        ☯    Virtual Directory mode
+;;                        T        ⚘    Tree View mode (with tree extension)
 ;;
-;; 3. Transient states:    #        ♥     Contents snapshot available.
+;; 2. Navigation modes:   &        ⚓    Synchronized Navigation
+;;                        $        ♻    Sticky Search
+;;
+;; 3. Transient states:   #        ♥    Contents snapshot available
 ;;
 ;; (if you can't see the icons on the right, don't use utf8 marks)
 
-;; The regular mode line format remains available: press C-c m to toggle between
-;; one format and the other.
+;; The regular mode line format remains available: press C-c m to toggle
+;; between one format and the other.
 
 ;; The extension is provided as a minor mode, so you can enable / disable it
 ;; totally by issuing the command `sunrise-modeline'.
@@ -66,7 +67,8 @@
 ;; 2) Add a (require 'sunrise-modeline) expression to your .emacs file
 ;; somewhere after the (require 'sunrise) one.
 
-;; 3) Evaluate the new expression, or reload your .emacs file, or restart Emacs.
+;; 3) Evaluate the new expression, or reload your .emacs file, or restart
+;; Emacs.
 
 ;; 4) Enjoy ;-)
 
@@ -103,7 +105,7 @@
 (defconst sunrise-modeline-sep #(" " 0 1 (face sunrise-modeline-separator-face))
           "Sunrise Modeline separator character.")
 
-;;; ============================================================================
+;;; ==========================================================================
 ;;; Core functions:
 
 (defvar sunrise-modeline-mark-map (make-sparse-keymap))
@@ -220,7 +222,7 @@ accordingly."
         (sunrise-dired-prev-subdir levels)
       (sunrise-beginning-of-buffer))))
 
-;;; ============================================================================
+;;; ==========================================================================
 ;;; Private interface:
 
 (defvar sunrise-modeline)
@@ -252,7 +254,7 @@ accordingly."
              (sunrise-modeline-engage)
            (sunrise-modeline-disengage)))))
 
-;;; ============================================================================
+;;; ==========================================================================
 ;;; User interface:
 
 (defvar sunrise-modeline-map (make-sparse-keymap))
@@ -283,7 +285,7 @@ This is a minor mode that provides a single keybinding:
   (interactive)
   (popup-menu sunrise-modeline-menu))
 
-;;; ============================================================================
+;;; ==========================================================================
 ;;; Bootstrap:
 
 (defun sunrise-modeline-menu-init ()
@@ -309,7 +311,7 @@ the Sunrise Commander, after module installation."
   (unintern 'sunrise-modeline-start-once obarray))
 (add-hook 'sunrise-start-hook 'sunrise-modeline-start-once)
 
-;;; ============================================================================
+;;; ==========================================================================
 ;;; Desktop support:
 
 (add-to-list 'desktop-minor-mode-table '(sunrise-modeline nil))
