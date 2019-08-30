@@ -126,29 +126,30 @@
     )
   "Sunrise button definitions.")
 
+(defun sunrise-buttons-click ()
+  "Handle all click events that take place in the buttons buffer."
+  (interactive)
+  (unwind-protect (call-interactively 'widget-button-click)
+    (sunrise-select-window sunrise-selected-window)))
+
+(defun sunrise-buttons-mouse ()
+  "Handle all mouse events other than clicks in the button buffers."
+  (interactive)
+  (sunrise-select-window sunrise-selected-window))
+
 (define-derived-mode sunrise-buttons-mode Custom-mode "Sunrise Buttons"
   "Sunrise Commander Buttons panel mode."
   :group 'sunrise
   (set-keymap-parent sunrise-buttons-mode-map custom-mode-map)
-
   (make-local-variable 'double-click-time)
   (setq double-click-time nil)
   (make-local-variable 'double-click-fuzz)
   (setq double-click-fuzz 0)
-
-  (defun sunrise-buttons-click ()
-    "Handle all click events that take place in the buttons buffer."
-    (interactive)
-    (unwind-protect
-        (call-interactively 'widget-button-click)
-      (sunrise-select-window sunrise-selected-window)))
-
-  (mapc (lambda (x) (define-key sunrise-buttons-mode-map x 'sunrise-buttons-click))
+  (mapc (lambda (x)
+          (define-key sunrise-buttons-mode-map x 'sunrise-buttons-click))
         '([down-mouse-1] [down-mouse-2] [down-mouse-3]))
-
-  (mapc (lambda (x) (define-key sunrise-buttons-mode-map x
-                      (lambda () (interactive)
-                        (sunrise-select-window sunrise-selected-window))))
+  (mapc (lambda (x)
+          (define-key sunrise-buttons-mode-map x 'sunrise-buttons-mouse))
         '([(control tab)] "\C-c\t"
           [mouse-1]             [mouse-2]             [mouse-3]
           [drag-mouse-1]        [drag-mouse-2]        [drag-mouse-3]
