@@ -191,6 +191,7 @@ passive pane."
       (sunrise-popviewer-setup-windows)
     ad-do-it))
 
+;;;###autoload
 (define-minor-mode sunrise-popviewer-mode "Use an alternative viewer window."
   :global t
   :group 'sunrise
