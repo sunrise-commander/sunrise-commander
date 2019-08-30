@@ -183,7 +183,7 @@ passive pane."
   (sunrise-popviewer-select-viewer-window))
 
 (defadvice sunrise-cd
-  (around sunrise-popviewer-advice-sunrise-cd (&optional norestore))
+  (around sunrise-popviewer-advice-cd (&optional norestore))
   "Redefine `sunrise-cd' not to disable Sunrise in PopViewer mode."
   (if sunrise-running
       (sunrise-popviewer-setup-windows)

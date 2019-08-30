@@ -307,7 +307,7 @@ removes the tab."
   (sunrise-in-other (sunrise-tabs-refresh))
   (sunrise-tabs-refresh))
 
-(defadvice sunrise-transpose-panes (after sunrise-tabs-advice-sunrise-transpose-panes ())
+(defadvice sunrise-transpose-panes (after sunrise-tabs-advice-transpose-panes ())
   "Synchronize the tabs with the panes if so required (see the variable
 `sunrise-tabs-follow-panes'). Activated in the function `sunrise-tabs-engage'."
   (if sunrise-tabs-follow-panes (sunrise-tabs-transpose)))
@@ -587,7 +587,7 @@ This minor mode provides the following keybindings:
     map)
   "Keymap for managing tabs inside Editable Dired mode panes.")
 
-(defadvice sunrise-editable-pane (after sunrise-tabs-advice-sunrise-editable-pane ())
+(defadvice sunrise-editable-pane (after sunrise-tabs-advice-editable-pane ())
   "Install `sunrise-tabs-editable-dired-map' when in Editable Dired mode."
   (add-to-list 'minor-mode-overriding-map-alist
                `(sunrise-tabs-mode . ,sunrise-tabs-editable-dired-map)))
