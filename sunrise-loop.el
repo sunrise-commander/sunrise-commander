@@ -340,6 +340,4 @@ triggered by `sunrise-do-rename' inside a loop scope."
 
 (provide 'sunrise-loop)
 
-;;;###autoload (eval-after-load 'sunrise '(sunrise-extend-with 'sunrise-loop))
-
 ;;; sunrise-loop.el ends here

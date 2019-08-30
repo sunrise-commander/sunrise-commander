@@ -1210,6 +1210,4 @@ switch to normal mode, then execute."
 
 (provide 'sunrise-tree)
 
-;;;###autoload (eval-after-load 'sunrise '(sunrise-extend-with 'sunrise-tree))
-
 ;;; sunrise-tree.el ends here

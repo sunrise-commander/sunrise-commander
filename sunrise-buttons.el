@@ -295,6 +295,4 @@ Used inside the Sunrise Buttons buffer."
 
 (provide 'sunrise-buttons)
 
-;;;###autoload (eval-after-load 'sunrise '(sunrise-extend-with 'sunrise-buttons))
-
 ;;; sunrise-buttons.el ends here

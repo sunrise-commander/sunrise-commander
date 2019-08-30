@@ -226,12 +226,6 @@ You can always toggle file attributes display pressing
   :group 'sunrise
   :type 'boolean)
 
-(defcustom sunrise-autoload-extensions t
-  "Whether to load extensions immediately after their declaration, or when the
-SC core is loaded (e.g. when using autoload cookies)."
-  :group 'sunrise
-  :type 'boolean)
-
 (defcustom sunrise-show-hidden-files nil
   "Whether to initially display hidden files in Sunrise panes.
 You can always toggle hidden files display pressing
@@ -1022,13 +1016,6 @@ This is done so all its dired-filename attributes are kept in the file."
   (if (memq major-mode '(sunrise-mode sunrise-virtual-mode))
       (enriched-mode 1)))
 (add-hook 'before-save-hook 'sunrise-enrich-buffer)
-
-(defun sunrise-extend-with (extension &optional filename)
-  "Try to enhance Sunrise with EXTENSION (argument must be a symbol).
-An extension can be loaded from optional FILENAME. If found, the extension is
-immediately loaded, but only if `sunrise-autoload-extensions' is not nil."
-  (when sunrise-autoload-extensions
-    (require extension filename t)))
 
 (defadvice dired-find-buffer-nocreate
     (before sunrise-advice-findbuffer (dirname &optional mode))

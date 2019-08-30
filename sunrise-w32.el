@@ -285,6 +285,4 @@ The names are separated by a space."
 
 (provide 'sunrise-w32)
 
-;;;###autoload (eval-after-load 'sunrise '(sunrise-extend-with 'sunrise-w32))
-
 ;;; sunrise-w32.el ends here

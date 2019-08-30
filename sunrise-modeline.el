@@ -326,6 +326,4 @@ the Sunrise Commander, after module installation."
 
 (provide 'sunrise-modeline)
 
-;;;###autoload (eval-after-load 'sunrise '(sunrise-extend-with 'sunrise-modeline))
-
 ;;; sunrise-modeline.el ends here
