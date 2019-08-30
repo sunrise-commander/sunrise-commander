@@ -154,18 +154,19 @@ been completed. Once this function is executed, if no new tasks
 are enqueued before `sunrise-loop-timeout' seconds, the interpreter is
 killed."
   (sunrise-loop-disable-timer)
-  (setq sunrise-loop-timer (run-with-timer sunrise-loop-timeout nil 'sunrise-loop-stop)))
+  (setq sunrise-loop-timer
+        (run-with-timer sunrise-loop-timeout nil 'sunrise-loop-stop)))
 
 (defun sunrise-loop-stop (&optional interrupt)
   "Shut down the background Elisp interpreter and clean up after it."
   (interactive "p")
   (sunrise-loop-disable-timer)
-  (if sunrise-loop-queue
-      (if interrupt
-          (progn
-            (sunrise-loop-notify "Aborted. Some operations may remain unfinished.")
-            (setq sunrise-loop-queue nil))
-        (sunrise-loop-enable-timer)))
+  (when sunrise-loop-queue
+    (cond (interrupt
+           (sunrise-loop-notify
+            "Aborted. Some operations may remain unfinished.")
+           (setq sunrise-loop-queue nil))
+          (t (sunrise-loop-enable-timer))))
   (unless sunrise-loop-queue
     (delete-process sunrise-loop-process)
     (setq sunrise-loop-process nil)))
@@ -309,7 +310,11 @@ triggered by `dired-do-copy' inside a loop scope."
 
 (defadvice sunrise-clone-files
     (around sunrise-loop-advice-clone-files
-            (file-path-list target-dir clone-op progress &optional do-overwrite)
+            (file-path-list
+             target-dir
+             clone-op
+             progress
+             &optional do-overwrite)
             activate)
   "Delegate to the background interpreter all copy operations
 triggered by `sunrise-do-copy' inside a loop scope."
@@ -327,7 +332,8 @@ triggered by `sunrise-do-copy' inside a loop scope."
 triggered by `sunrise-do-rename' inside a loop scope."
   (if sunrise-loop-scope
       (sunrise-loop-enqueue
-       `(sunrise-move-files (quote ,file-path-list) ,target-dir ',progress 'ALWAYS))
+       `(sunrise-move-files
+         (quote ,file-path-list) ,target-dir ',progress 'ALWAYS))
     ad-do-it))
 
 (define-key sunrise-mode-map "C" 'sunrise-loop-do-copy)
