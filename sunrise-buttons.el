@@ -137,6 +137,10 @@
   (interactive)
   (sunrise-select-window sunrise-selected-window))
 
+(defun sunrise-buttons-sunrise-quit-function ()
+  (let ((buttons (get-buffer sunrise-buttons-buffer-name)))
+    (if buttons (bury-buffer buttons))))
+
 (define-derived-mode sunrise-buttons-mode Custom-mode "Sunrise Buttons"
   "Sunrise Commander Buttons panel mode."
   :group 'sunrise
@@ -161,9 +165,7 @@
           [triple-down-mouse-1] [triple-down-mouse-2] [triple-down-mouse-3])))
 
 (add-hook 'sunrise-start-hook 'sunrise-buttons-display)
-(add-hook 'sunrise-quit-hook (defun sunrise-buttons-sunrise-quit-function ()
-                               (let ((buttons (get-buffer sunrise-buttons-buffer-name)))
-                                 (if buttons (bury-buffer buttons)))))
+(add-hook 'sunrise-quit-hook 'sunrise-buttons-sunrise-quit-function)
 (add-hook 'kill-buffer-hook
           (defun sunrise-buttons-kill-buffer-function ()
             (if (and sunrise-running
