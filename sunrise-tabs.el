@@ -743,6 +743,4 @@ tabs in the Sunrise Commander (used for desktop support)."
 
 (provide 'sunrise-tabs)
 
-;;;###autoload (eval-after-load 'sunrise '(sunrise-extend-with 'sunrise-tabs))
-
 ;;; sunrise-tabs.el ends here

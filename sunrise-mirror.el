@@ -607,6 +607,4 @@ so they are always writeable by default."
 
 (provide 'sunrise-mirror)
 
-;;;###autoload (eval-after-load 'sunrise '(sunrise-extend-with 'sunrise-mirror))
-
 ;;; sunrise-mirror.el ends here

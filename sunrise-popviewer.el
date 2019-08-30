@@ -238,6 +238,4 @@ passive pane."
 
 (provide 'sunrise-popviewer)
 
-;;;###autoload (eval-after-load 'sunrise '(sunrise-extend-with 'sunrise-popviewer))
-
 ;;; sunrise-popviewer.el ends here
