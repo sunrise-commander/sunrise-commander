@@ -119,8 +119,10 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'cl-lib))
+
 (require 'sunrise)
-(eval-when-compile (require 'cl-lib))
 
 (defcustom sunrise-mirror-keep-backups t
   "If non-nil, keep backup files when committing changes to read-only archives."

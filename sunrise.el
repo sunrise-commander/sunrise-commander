@@ -197,6 +197,10 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'recentf))
+
 (require 'advice)
 (require 'desktop)
 (require 'dired)
@@ -210,8 +214,6 @@
 (require 'sort)
 (require 'term)
 (require 'tramp)
-(eval-when-compile (require 'cl-lib)
-                   (require 'recentf))
 
 (defgroup sunrise nil
   "The Sunrise Commander File Manager."

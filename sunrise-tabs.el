@@ -96,9 +96,11 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'desktop))
+
 (require 'sunrise)
-(eval-when-compile (require 'cl-lib)
-                   (require 'desktop))
 
 (defcustom sunrise-tabs-follow-panes t
   "Whether tabs should be swapped too when transposing the Sunrise panes."

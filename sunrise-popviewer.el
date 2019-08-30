@@ -62,8 +62,10 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'cl-lib))
+
 (require 'sunrise)
-(eval-when-compile (require 'cl-lib))
 
 (defcustom sunrise-popviewer-enabled nil
   "Whether the popviewer extension should be active at startup."
@@ -232,6 +234,7 @@ passive pane."
   (sunrise-ad-disable "^sunrise-popviewer-"))
 
 (sunrise-popviewer-mode (if sunrise-popviewer-enabled 1 -1))
+
 (provide 'sunrise-popviewer)
 
 ;;;###autoload (eval-after-load 'sunrise '(sunrise-extend-with 'sunrise-popviewer))
