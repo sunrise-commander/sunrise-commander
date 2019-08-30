@@ -166,7 +166,8 @@
           [double-drag-mouse-1] [double-drag-mouse-2] [double-drag-mouse-3]
           [triple-drag-mouse-1] [triple-drag-mouse-2] [triple-drag-mouse-3]
           [double-down-mouse-1] [double-down-mouse-2] [double-down-mouse-3]
-          [triple-down-mouse-1] [triple-down-mouse-2] [triple-down-mouse-3])))
+          [triple-down-mouse-1] [triple-down-mouse-2] [triple-down-mouse-3]
+          )))
 
 (add-hook 'sunrise-start-hook 'sunrise-buttons-display)
 (add-hook 'sunrise-quit-hook 'sunrise-buttons-sunrise-quit-function)
@@ -175,12 +176,15 @@
 (defun sunrise-buttons-display ()
   "Display the buttons buffer in the viewer window.
 If no buttons buffer exists yet, creates one."
-  (unless (and (boundp 'sunrise-popviewer-mode) (symbol-value 'sunrise-popviewer-mode))
+  (unless (and (boundp 'sunrise-popviewer-mode)
+               (symbol-value 'sunrise-popviewer-mode))
     (apply 'require '(cus-edit))
     (sunrise-select-viewer-window t)
-    (cond ((buffer-live-p other-window-scroll-buffer) ;;<-- don't nuke quick views!
+    (cond ((buffer-live-p other-window-scroll-buffer)
+           ;; Don't nuke quick views!
            (switch-to-buffer other-window-scroll-buffer))
-          ((get-buffer "*terminal*")                  ;;<-- prefer terminals
+          ((get-buffer "*terminal*")
+           ;; Prefer terminals.
            (switch-to-buffer "*terminal*"))
           (t
            (switch-to-buffer sunrise-buttons-buffer-name)
@@ -198,7 +202,8 @@ If no buttons buffer exists yet, creates one."
   (sunrise-buttons-mode)
   (let ((mc-keys-on (sunrise-buttons-mc-keys-p))
         (maxlen (sunrise-buttons-maxtaglen)))
-    (mapc (lambda (x) (sunrise-buttons-build x mc-keys-on maxlen)) sunrise-buttons-list))
+    (mapc (lambda (x) (sunrise-buttons-build x mc-keys-on maxlen))
+          sunrise-buttons-list))
   (sunrise-buttons-eol)
   (goto-char (point-min)))
 
@@ -266,14 +271,16 @@ button."
      (interactive)
      (sunrise-select-window sunrise-selected-window)
      (if sunrise-buttons-command-adapter
-         (run-with-timer 0.01 nil (funcall sunrise-buttons-command-adapter ,action))
+         (run-with-timer 0.01 nil
+                         (funcall sunrise-buttons-command-adapter ,action))
        (run-with-timer 0.01 nil (sunrise-buttons-do ,action)))))
 
 (defun sunrise-buttons-do (action)
   "Execute ACTION interactively as response to the click of a button."
   (hl-line-mode -1)
   (call-interactively action)
-  (when (memq major-mode '(sunrise-mode sunrise-virtual-mode sunrise-tree-mode))
+  (when (memq major-mode
+              '(sunrise-mode sunrise-virtual-mode sunrise-tree-mode))
     (hl-line-mode 1)
     (sunrise-graphical-highlight))
   t)
@@ -283,7 +290,8 @@ button."
 Used inside the Sunrise Buttons buffer."
   (interactive)
   (sunrise-editable-pane)
-  (message "Push [Restore] button or C-c C-c when done, ESC C-c C-c to cancel"))
+  (message
+   "Push [Restore] button or C-c C-c when done, ESC C-c C-c to cancel"))
 
 (defun sunrise-buttons-restore-mode ()
   "Implement the [Restore] action in the Sunrise buttons panel."
