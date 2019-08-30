@@ -155,22 +155,34 @@ tab."
   "Face of the string used to separate the Sunrise tabs from one another."
   :group 'sunrise)
 
-(defconst sunrise-tabs-sep #(" " 0 1 (face sunrise-tabs-separator-face))
-          "Sunrise Tabs separator character.")
+(defconst sunrise-tabs-sep
+  #(" " 0 1 (face sunrise-tabs-separator-face))
+  "Sunrise Tabs separator character.")
 
-(defconst sunrise-tabs-ligature #(" ║" 0 1 (face sunrise-tabs-separator-face))
-          "Sunrise Tabs line separator string.")
+(defconst sunrise-tabs-ligature
+  #(" ║" 0 1 (face sunrise-tabs-separator-face))
+  "Sunrise Tabs line separator string.")
 
-(defconst sunrise-tabs-max-cache-length 30
-          "Max number of tab labels cached for reuse.")
+(defconst sunrise-tabs-max-cache-length
+  30
+  "Max number of tab labels cached for reuse.")
 
-(defvar sunrise-tabs '((left) (right)))
-(defvar sunrise-tabs-labels-cache '((left) (right)))
-(defvar sunrise-tabs-line-cache '((left) (right)))
-(defvar sunrise-tabs-mode nil)
-(defvar sunrise-tabs-on nil)
+(defvar sunrise-tabs
+  '((left) (right)))
 
-;;; ============================================================================
+(defvar sunrise-tabs-labels-cache
+  '((left) (right)))
+
+(defvar sunrise-tabs-line-cache
+  '((left) (right)))
+
+(defvar sunrise-tabs-mode
+  nil)
+
+(defvar sunrise-tabs-on
+  nil)
+
+;;; ==========================================================================
 ;;; Core functions:
 
 (defun sunrise-tabs-add ()
@@ -216,8 +228,10 @@ another tab."
   (let ((to-kill (or (and name (get-buffer name)) (current-buffer)))
         (side (or side sunrise-selected-window)))
     (sunrise-tabs-remove to-kill side)
-    (if (and (not (memq to-kill (list sunrise-left-buffer sunrise-right-buffer)))
-             (not (member to-kill (apply 'append (mapcar 'cdr sunrise-tabs)))))
+    (if (and (not (memq to-kill
+                        (list sunrise-left-buffer sunrise-right-buffer)))
+             (not (member to-kill
+                          (apply 'append (mapcar 'cdr sunrise-tabs)))))
         (kill-buffer to-kill))
     (sunrise-tabs-refresh)))
 
@@ -245,7 +259,8 @@ The direction depends on the value of BACK."
       (if (or (null count) (zerop count))
           (setq count 1))
       (if (< 1 (length target))
-          (sunrise-tabs-switch-to-buffer (or (nth count target) (car (last target))))
+          (sunrise-tabs-switch-to-buffer
+           (or (nth count target) (car (last target))))
         (sunrise-tabs-switch-to-buffer (car stack))))))
 
 (defun sunrise-tabs-switch-to-buffer (to-buffer)
@@ -256,8 +271,10 @@ The direction depends on the value of BACK."
     (unless (eq from-buffer to-buffer)
       (sunrise-save-aspect (switch-to-buffer to-buffer))
       (setq sunrise-this-directory default-directory)
-      (set (sunrise-symbol sunrise-selected-window 'buffer) (current-buffer))
-      (set (sunrise-symbol sunrise-selected-window 'directory) default-directory)
+      (set (sunrise-symbol sunrise-selected-window 'buffer)
+           (current-buffer))
+      (set (sunrise-symbol sunrise-selected-window 'directory)
+           default-directory)
       (unless (eq from-buffer (sunrise-other 'buffer))
         (with-current-buffer from-buffer
           (set-buffer-modified-p nil)
@@ -304,18 +321,22 @@ removes the tab."
 (defun sunrise-tabs-transpose ()
   "Swap the sets of tabs from one pane to the other."
   (interactive)
-  (cl-labels ((flip (side) (setcar side (cdr (assq (car side) sunrise-side-lookup)))))
+  (cl-labels ((flip (side) (setcar side (cdr (assq (car side)
+                                                   sunrise-side-lookup)))))
     (dolist (registry (list sunrise-tabs sunrise-tabs-labels-cache))
       (mapc #'flip registry)))
   (sunrise-in-other (sunrise-tabs-refresh))
   (sunrise-tabs-refresh))
 
-(defadvice sunrise-transpose-panes (after sunrise-tabs-advice-transpose-panes ())
-  "Synchronize the tabs with the panes if so required (see the variable
-`sunrise-tabs-follow-panes'). Activated in the function `sunrise-tabs-engage'."
+(defadvice sunrise-transpose-panes
+    (after sunrise-tabs-advice-transpose-panes ())
+  "Synchronize the tabs with the panes if so required.
+
+See the variable `sunrise-tabs-follow-panes'. Activated in the
+function `sunrise-tabs-engage'."
   (if sunrise-tabs-follow-panes (sunrise-tabs-transpose)))
 
-;;; ============================================================================
+;;; ==========================================================================
 ;;; Graphical interface:
 
 (defun sunrise-tabs-focus-cmd (name side)
@@ -345,7 +366,8 @@ removes the tab."
   "Propertize STRING with FACE and KEYMAP so it can be used as a tab tag."
   (propertize string
               'face face
-              'help-echo "mouse-1: select tab\n\mouse-2: rename tab\n\mouse-3: kill tab"
+              'help-echo
+              "mouse-1: select tab\n\mouse-2: rename tab\n\mouse-3: kill tab"
               'local-map keymap))
 
 (defun sunrise-tabs-make-tag (name as-active &optional tag)
@@ -357,9 +379,12 @@ TAG allows to provide a pretty name to label the tab."
         (side sunrise-selected-window)
         (keymap (make-sparse-keymap)))
     (setq tag (concat sunrise-tabs-sep tag sunrise-tabs-sep))
-    (define-key keymap [header-line mouse-1] (sunrise-tabs-focus-cmd name side))
-    (define-key keymap [header-line mouse-2] (sunrise-tabs-rename-cmd name))
-    (define-key keymap [header-line mouse-3] (sunrise-tabs-kill-cmd name side))
+    (define-key keymap [header-line mouse-1]
+      (sunrise-tabs-focus-cmd name side))
+    (define-key keymap [header-line mouse-2]
+      (sunrise-tabs-rename-cmd name))
+    (define-key keymap [header-line mouse-3]
+      (sunrise-tabs-kill-cmd name side))
     (if as-active
         (sunrise-tabs-propertize-tag tag 'sunrise-tabs-active-face keymap)
       (sunrise-tabs-propertize-tag tag 'sunrise-tabs-inactive-face keymap))))
@@ -427,10 +452,12 @@ nil = inactive, t = active. Creates new labels when needed."
             (current-name (buffer-name)))
         (mapc (lambda (x)
                 (let ((is-current (equal current-name x)))
-                  (setq tab-line (concat tab-line sunrise-tabs-sep
-                                         (sunrise-tabs-get-tag x is-current)))))
+                  (setq tab-line
+                        (concat tab-line sunrise-tabs-sep
+                                (sunrise-tabs-get-tag x is-current)))))
               tab-set)
-        (setcdr (assq sunrise-selected-window sunrise-tabs-line-cache) tab-line)
+        (setcdr (assq sunrise-selected-window sunrise-tabs-line-cache)
+                tab-line)
         tab-line)
     nil))
 
@@ -491,7 +518,7 @@ contain the same buffer, glues together the tab lines with a
             (setq header-line-format (cadr line-list)))))))
   (force-window-update))
 
-;;; ============================================================================
+;;; ==========================================================================
 ;;; Private interface:
 
 (defun sunrise-tabs-bury-all ()
@@ -527,9 +554,10 @@ by Sunrise when moving to another directory (called from
   (ad-deactivate 'sunrise-transpose-panes)
   (ad-deactivate 'sunrise-editable-pane)
   (setq header-line-format (default-value 'header-line-format))
-  (sunrise-in-other (setq header-line-format (default-value 'header-line-format))))
+  (sunrise-in-other
+   (setq header-line-format (default-value 'header-line-format))))
 
-;;; ============================================================================
+;;; ==========================================================================
 ;;; User interface:
 
 (defvar sunrise-tabs-mode-map (make-sparse-keymap))
@@ -541,17 +569,34 @@ by Sunrise when moving to another directory (called from
 (define-key sunrise-tabs-mode-map [(meta tab)] 'sunrise-tabs-next)
 
 (define-key sunrise-tabs-mode-map [(control meta ?j)]
-  (lambda () (interactive) (sunrise-in-other (sunrise-tabs-add))))
+  (lambda ()
+    (interactive)
+    (sunrise-in-other (sunrise-tabs-add))))
+
 (define-key sunrise-tabs-mode-map [(control meta ?k)]
-  (lambda () (interactive) (sunrise-in-other (call-interactively 'sunrise-tabs-remove))))
+  (lambda ()
+    (interactive)
+    (sunrise-in-other (call-interactively 'sunrise-tabs-remove))))
+
 (define-key sunrise-tabs-mode-map [(control meta ?p)]
-  (lambda () (interactive) (sunrise-in-other (sunrise-tabs-prev))))
+  (lambda ()
+    (interactive)
+    (sunrise-in-other (sunrise-tabs-prev))))
+
 (define-key sunrise-tabs-mode-map [(control meta ?n)]
-  (lambda () (interactive) (sunrise-in-other (sunrise-tabs-next))))
+  (lambda ()
+    (interactive)
+    (sunrise-in-other (sunrise-tabs-next))))
+
 (define-key sunrise-tabs-mode-map [(control meta tab)]
-  (lambda () (interactive) (sunrise-in-other (sunrise-tabs-next))))
+  (lambda ()
+    (interactive)
+    (sunrise-in-other (sunrise-tabs-next))))
+
 (define-key sunrise-tabs-mode-map "*\C-\M-k"
-  (lambda () (interactive) (sunrise-in-other (sunrise-tabs-clean))))
+  (lambda ()
+    (interactive)
+    (sunrise-in-other (sunrise-tabs-clean))))
 
 (define-key sunrise-tabs-mode-map "\C-xk" 'sunrise-tabs-kill-and-go)
 (define-key sunrise-tabs-mode-map "\M-T"  'sunrise-tabs-transpose)
@@ -560,20 +605,21 @@ by Sunrise when moving to another directory (called from
   "Tabs support for the Sunrise Commander file manager.
 This minor mode provides the following keybindings:
 
-        C-j ........... Create new tab (or rename existing tab) in active pane.
-        C-k ........... Kill the tab of the current buffer in the active pane.
-        C-n ........... Move to the next tab in the active pane.
-        C-p ........... Move to the previous tab in the active pane.
+       C-j ........... Create new tab (or rename existing tab) in active pane.
+       C-k ........... Kill the tab of the current buffer in the active pane.
+       C-n ........... Move to the next tab in the active pane.
+       C-p ........... Move to the previous tab in the active pane.
 
-        C-M-j ......... Assign the current buffer to a tab in the passive pane.
-        C-M-k ......... Kill the tab of the current buffer in the passive pane.
-        C-M-n ......... Move to the next tab in the passive pane.
-        C-M-p ......... Move to the previous tab in the passive pane.
+       C-M-j ......... Assign the current buffer to a tab in the passive pane.
+       C-M-k ......... Kill the tab of the current buffer in the passive pane.
+       C-M-n ......... Move to the next tab in the passive pane.
+       C-M-p ......... Move to the previous tab in the passive pane.
 
-        C-x k ......... Kill buffer and move to the next tabbed one (if any).
+       C-x k ......... Kill buffer and move to the next tabbed one (if any).
 "
   nil nil sunrise-tabs-mode-map
-  (unless (memq major-mode '(sunrise-mode sunrise-virtual-mode sunrise-tree-mode))
+  (unless (memq major-mode
+                '(sunrise-mode sunrise-virtual-mode sunrise-tree-mode))
     (setq sunrise-tabs-mode nil)
     (error "Sorry, this mode can be used only within the Sunrise Commander."))
   (if sunrise-tabs-mode
@@ -595,7 +641,7 @@ This minor mode provides the following keybindings:
   (add-to-list 'minor-mode-overriding-map-alist
                `(sunrise-tabs-mode . ,sunrise-tabs-editable-dired-map)))
 
-;;; ============================================================================
+;;; ==========================================================================
 ;;; Bootstrap:
 
 (defun sunrise-tabs-menu-init ()
@@ -604,16 +650,25 @@ This minor mode provides the following keybindings:
     (define-key sunrise-mode-map [menu-bar Sunrise]
       (cons "Sunrise" (make-sparse-keymap))))
   (let ((menu-map (make-sparse-keymap "Tabs")))
-    (define-key sunrise-mode-map [menu-bar Sunrise tabs] (cons "Tabs" menu-map))
-    (define-key menu-map [help] '("Help" . (lambda ()
-                                             (interactive)
-                                             (describe-function 'sunrise-tabs-mode))))
-    (define-key menu-map [transpose] '("Transpose" . sunrise-tabs-transpose))
-    (define-key menu-map [kill]      '("Kill and go to next" . sunrise-tabs-kill-and-go))
-    (define-key menu-map [next]      '("Next"         . sunrise-tabs-next))
-    (define-key menu-map [prev]      '("Previous"     . sunrise-tabs-prev))
-    (define-key menu-map [remove]    '("Remove"       . sunrise-tabs-remove))
-    (define-key menu-map [add]       '("Add/Rename"   . sunrise-tabs-add))))
+    (define-key sunrise-mode-map [menu-bar Sunrise tabs]
+      (cons "Tabs" menu-map))
+    (define-key menu-map [help]
+      '("Help" . (lambda ()
+                   (interactive)
+                   (describe-function 'sunrise-tabs-mode))))
+    (define-key menu-map [transpose]
+      '("Transpose" . sunrise-tabs-transpose))
+    (define-key menu-map [kill]
+      '("Kill and go to next" . sunrise-tabs-kill-and-go))
+    (define-key menu-map [next]
+      '("Next"         . sunrise-tabs-next))
+    (define-key menu-map [prev]
+      '("Previous"     . sunrise-tabs-prev))
+    (define-key menu-map [remove]
+      '("Remove"       . sunrise-tabs-remove))
+    (define-key menu-map [add]
+      '("Add/Rename"   . sunrise-tabs-add))))
+
 (defun sunrise-tabs-start-once ()
   "Bootstrap the tabs mode on the first execution of the Sunrise Commander,
 after module installation."
@@ -624,11 +679,11 @@ after module installation."
   (unintern 'sunrise-tabs-start-once obarray))
 (add-hook 'sunrise-start-hook 'sunrise-tabs-start-once)
 
-;;; ============================================================================
+;;; ==========================================================================
 ;;; Desktop support:
 
 (defun sunrise-tabs-desktop-save-buffer (_desktop-dir)
-  "Return additional desktop data for saving tabs of the current Sunrise buffer."
+  "Return additional desktop data to save tabs of the current Sunrise buffer."
   (let* ((left-tab (car (member (buffer-name) (assoc 'left sunrise-tabs))))
          (left-cache (cdr (assq 'left sunrise-tabs-labels-cache)))
          (left-label (cadr (assoc left-tab left-cache)))
@@ -638,8 +693,10 @@ after module installation."
     (delq
      nil
      (list
-      (if left-label (cons 'left-tab (sunrise-tabs-trim-label left-label)))
-      (if right-label (cons 'right-tab (sunrise-tabs-trim-label right-label)))))))
+      (and left-label
+           (cons 'left-tab (sunrise-tabs-trim-label left-label)))
+      (and right-label
+           (cons 'right-tab (sunrise-tabs-trim-label right-label)))))))
 
 (defun sunrise-tabs-desktop-restore-buffer (_desktop-buffer-file-name
                                             _desktop-buffer-name
@@ -665,11 +722,13 @@ tabs in the Sunrise Commander (used for desktop support)."
   (mapc (lambda (x) (setcdr x nil)) sunrise-tabs)
   nil)
 
-;; These append the previous functions to the generic desktop support in Sunrise:
-(add-to-list 'sunrise-desktop-save-handlers 'sunrise-tabs-desktop-save-buffer)
-(add-to-list 'sunrise-desktop-restore-handlers 'sunrise-tabs-desktop-restore-buffer)
+;; Append the previous functions to the generic desktop support in Sunrise:
+(add-to-list 'sunrise-desktop-save-handlers
+             'sunrise-tabs-desktop-save-buffer)
+(add-to-list 'sunrise-desktop-restore-handlers
+             'sunrise-tabs-desktop-restore-buffer)
 
-;; This activates the tabs support after desktop restoration:
+;; Activate tabs support after desktop restoration:
 (add-hook
  'desktop-after-read-hook
  (defun sunrise-tabs-desktop-after-read-function ()
