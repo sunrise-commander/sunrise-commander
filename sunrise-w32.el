@@ -89,19 +89,19 @@ affect the target of the shortcut."
   :type 'boolean)
 
 (defvar sunrise-w32-local-map (let ((map (make-sparse-keymap)))
-                           (set-keymap-parent map sunrise-virtual-mode-map)
-                           (define-key map "s" 'ignore)
-                           (define-key map "r" 'ignore)
-                           (define-key map "l" 'ignore)
-                           (define-key map "d" 'ignore)
-                           map)
+                                (set-keymap-parent map sunrise-virtual-mode-map)
+                                (define-key map "s" 'ignore)
+                                (define-key map "r" 'ignore)
+                                (define-key map "l" 'ignore)
+                                (define-key map "d" 'ignore)
+                                map)
   "Local keymap used inside the \"Windows Drives and Special Folders\" pane.")
 
 (define-key sunrise-mode-map "\C-cw" 'sunrise-w32-virtual-entries)
 (define-key sunrise-mode-map "\S-w" 'sunrise-w32-copy-paths-as-kill)
 
 (defadvice sunrise-dired-prev-subdir
-  (around sunrise-w32-advice-dired-prev-subdir (&optional count))
+    (around sunrise-w32-advice-dired-prev-subdir (&optional count))
   "Bring up the drivers pane when navigating up from a topmost directory."
   (if (sunrise-equal-dirs default-directory (expand-file-name ".."))
       (sunrise-w32-virtual-entries)
@@ -109,7 +109,7 @@ affect the target of the shortcut."
 (ad-activate 'sunrise-dired-prev-subdir)
 
 (defadvice sunrise-find-file
-  (before sunrise-w32-advice-find-file (filename &optional wildcards))
+    (before sunrise-w32-advice-find-file (filename &optional wildcards))
   "Implement virtual folder resolution on Windows."
   (when sunrise-w32-follow-shortcuts
     (let ((info) (target (format "%s/target.lnk" filename)))
@@ -120,7 +120,7 @@ affect the target of the shortcut."
 (ad-activate 'sunrise-find-file)
 
 (defadvice dired-get-filename
-  (after sunrise-w32-advice-dired-get-filename (&optional LOCALP NO-ERROR))
+    (after sunrise-w32-advice-dired-get-filename (&optional LOCALP NO-ERROR))
   "Implement standard Windows shortcut resolution."
   (when sunrise-w32-follow-shortcuts
     (let ((filename (or ad-return-value "")))

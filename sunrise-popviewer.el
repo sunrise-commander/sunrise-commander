@@ -110,7 +110,7 @@
   (run-hooks 'sunrise-start-hook))
 
 (defadvice sunrise-setup-windows
-  (around sunrise-popviewer-advice-setup-windows)
+    (around sunrise-popviewer-advice-setup-windows)
   "Set up the Sunrise window configuration (two windows in `sunrise-mode')."
   (sunrise-popviewer-setup-windows))
 
@@ -161,11 +161,11 @@ passive pane."
      other-window-scroll-buffer)))
 
 (defadvice sunrise-term
-  (around sunrise-popviewer-advice-term (&optional cd newterm program))
+    (around sunrise-popviewer-advice-term (&optional cd newterm program))
   "Make terminal windows dedicated when using multiple viewers."
   (let ((sunrise-popviewer-style (if (or newterm program)
-                                sunrise-popviewer-style
-                              'single-frame)))
+                                     sunrise-popviewer-style
+                                   'single-frame)))
     ad-do-it)
   (sunrise-popviewer-dedicate-frame))
 
@@ -173,17 +173,17 @@ passive pane."
   "Popviewer replacement for `sunrise-select-viewer-window'."
   (interactive)
   (cond (sunrise-popviewer-select-viewer-action
-          (funcall sunrise-popviewer-select-viewer-action))
+         (funcall sunrise-popviewer-select-viewer-action))
         ((null window-system) (other-window 1))
         (t (sunrise-popviewer-pop-frame))))
 
 (defadvice sunrise-select-viewer-window
-  (around sunrise-popviewer-advice-select-viewer-window)
+    (around sunrise-popviewer-advice-select-viewer-window)
   "Try to select a window that is not a SC pane in a separate frame."
   (sunrise-popviewer-select-viewer-window))
 
 (defadvice sunrise-cd
-  (around sunrise-popviewer-advice-cd (&optional norestore))
+    (around sunrise-popviewer-advice-cd (&optional norestore))
   "Redefine `sunrise-cd' not to disable Sunrise in PopViewer mode."
   (if sunrise-running
       (sunrise-popviewer-setup-windows)
@@ -197,8 +197,8 @@ passive pane."
         (adfun (if sunrise-popviewer-mode 'sunrise-ad-enable 'sunrise-ad-disable))
 
         (viewerfun (if sunrise-popviewer-mode
-                        'sunrise-popviewer-select-viewer-window
-                      'sunrise-select-viewer-window))
+                       'sunrise-popviewer-select-viewer-window
+                     'sunrise-select-viewer-window))
 
         (quickviewfun (if sunrise-popviewer-mode
                           'sunrise-popviewer-quick-view

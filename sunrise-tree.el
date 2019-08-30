@@ -179,8 +179,8 @@ Used by the command `sunrise-tree-explode-branch'."
   :type 'boolean)
 
 (defcustom sunrise-tree-avfs-handlers-alist '(("\\.od[fgpst]$" . "#uzip/")
-                                         ("\\.oxt$"       . "#uzip/")
-                                         ("\\.sx[dmicw]$" . "#uzip/"))
+                                              ("\\.oxt$"       . "#uzip/")
+                                              ("\\.sx[dmicw]$" . "#uzip/"))
   "List of AVFS handlers to manage specific file extensions in Tree View mode."
   :group 'sunrise
   :type 'alist)
@@ -367,7 +367,7 @@ Returns nil if AVFS cannot manage this kind of file."
   (let* ((handler
           (or (assoc-default filename sunrise-tree-avfs-handlers-alist 'string-match)
               (assoc-default filename sunrise-avfs-handlers-alist 'string-match)))
-          (vdir (concat filename handler)))
+         (vdir (concat filename handler)))
     (unless (sunrise-overlapping-paths-p sunrise-avfs-root vdir)
       (setq vdir (concat sunrise-avfs-root vdir)))
     (sunrise-tree-path-line vdir)))
@@ -379,8 +379,8 @@ Returns nil if AVFS cannot manage this kind of file."
         (message "Reading directory '%s'..." dir)
         (condition-case err
             (prog1
-                (mapcar 'sunrise-tree-widget (sunrise-tree-list dir))
-              (message "Reading directory '%s'...done" dir))
+             (mapcar 'sunrise-tree-widget (sunrise-tree-list dir))
+             (message "Reading directory '%s'...done" dir))
           (error
            (widget-put tree :open nil)
            (message "%s" (error-message-string err))
@@ -439,13 +439,13 @@ See also the variable `sunrise-goto-dir-function'."
         (open-paths sunrise-tree-open-paths))
     (sunrise-tree-build-new root)
     (when keep-state
-        (setq sunrise-tree-cursor cursor
-              sunrise-tree-open-paths (mapcar 'identity open-paths))))
+      (setq sunrise-tree-cursor cursor
+            sunrise-tree-open-paths (mapcar 'identity open-paths))))
   (sunrise-keep-buffer)
   (sunrise-history-push root))
 
 (defadvice sunrise-focus-filename
-  (around sunrise-tree-advice-focus-filename (filename))
+    (around sunrise-tree-advice-focus-filename (filename))
   "Force deactivation of Sunrise Tree View before focusing a regular file."
   (if (eq major-mode 'sunrise-tree-mode)
       (if (file-directory-p filename)
@@ -1115,10 +1115,10 @@ switch to normal mode, then execute."
 
 (define-key sunrise-tree-mode-map [mouse-1] 'sunrise-tree-mouse-toggle-branch)
 (define-key sunrise-tree-mode-map [mouse-2] (lambda ()
-                                         (interactive)
-                                         (call-interactively 'mouse-set-point)
-                                         (sunrise-advertised-find-file)
-                                         (sunrise-tree-update-cursor)))
+                                              (interactive)
+                                              (call-interactively 'mouse-set-point)
+                                              (sunrise-advertised-find-file)
+                                              (sunrise-tree-update-cursor)))
 (define-key sunrise-tree-mode-map [double-mouse-1] 'sunrise-tree-mouse-advertised-find-file)
 (define-key sunrise-tree-mode-map [S-mouse-1] 'sunrise-tree-mouse-focus-branch)
 (define-key sunrise-tree-mode-map [M-mouse-1] 'sunrise-tree-mouse-blur-branch)
@@ -1183,8 +1183,8 @@ switch to normal mode, then execute."
               (sunrise-tabs-desktop-save-buffer desktop-dir))))
 
 (defun sunrise-tree-desktop-restore-buffer (desktop-buffer-file-name
-                                       desktop-buffer-name
-                                       desktop-buffer-misc)
+                                            desktop-buffer-name
+                                            desktop-buffer-misc)
   "Restore a Sunrise tree buffer from a description in a desktop file."
   (sunrise-tree-view t)
   (setq sunrise-tree-open-paths (cdr (assoc 'open-paths desktop-buffer-misc)))
@@ -1199,8 +1199,8 @@ switch to normal mode, then execute."
         '(left right))
   (if (fboundp 'sunrise-tabs-desktop-restore-buffer)
       (sunrise-tabs-desktop-restore-buffer desktop-buffer-file-name
-                                      desktop-buffer-name
-                                      desktop-buffer-misc)))
+                                           desktop-buffer-name
+                                           desktop-buffer-misc)))
 
 (add-to-list 'desktop-buffer-mode-handlers
              '(sunrise-tree-mode . sunrise-tree-desktop-restore-buffer))
