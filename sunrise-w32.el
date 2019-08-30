@@ -101,7 +101,7 @@ affect the target of the shortcut."
 (define-key sunrise-mode-map "\S-w" 'sunrise-w32-copy-paths-as-kill)
 
 (defadvice sunrise-dired-prev-subdir
-  (around sunrise-w32-advice-sunrise-dired-prev-subdir (&optional count))
+  (around sunrise-w32-advice-dired-prev-subdir (&optional count))
   "Bring up the drivers pane when navigating up from a topmost directory."
   (if (sunrise-equal-dirs default-directory (expand-file-name ".."))
       (sunrise-w32-virtual-entries)
@@ -109,7 +109,7 @@ affect the target of the shortcut."
 (ad-activate 'sunrise-dired-prev-subdir)
 
 (defadvice sunrise-find-file
-  (before sunrise-w32-advice-sunrise-find-file (filename &optional wildcards))
+  (before sunrise-w32-advice-find-file (filename &optional wildcards))
   "Implement virtual folder resolution on Windows."
   (when sunrise-w32-follow-shortcuts
     (let ((info) (target (format "%s/target.lnk" filename)))

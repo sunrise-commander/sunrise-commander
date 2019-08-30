@@ -505,14 +505,14 @@ This includes e.g. bookmark jumps and pane synchronizations."
       (sunrise-unhighlight 'sunrise-mirror-path-face)))
 
 (defadvice sunrise-goto-dir
-  (around sunrise-mirror-advice-sunrise-goto-dir (dir))
+  (around sunrise-mirror-advice-goto-dir (dir))
   "Divert all `sunrise-goto-dir' calls to `sunrise-mirror-goto-dir'."
   (if sunrise-mirror-divert-goto-dir
       (sunrise-mirror-goto-dir dir)
     ad-do-it))
 
 (defadvice sunrise-clone-files
-  (around sunrise-mirror-advice-sunrise-clone-files
+  (around sunrise-mirror-advice-clone-files
           (file-path-list target-dir clone-op progress &optional do-overwrite))
 "Redirect all `sunrise-copy' operations to the right path under the
 overlay directory."

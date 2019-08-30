@@ -263,7 +263,7 @@ operations to the background interpreter."
         (sunrise-do-rename))
     (sunrise-do-rename)))
 
-(defadvice sunrise-progress-prompt (around sunrise-loop-advice-sunrise-progress-prompt
+(defadvice sunrise-progress-prompt (around sunrise-loop-advice-progress-prompt
                                       activate)
   "Display \"Sunrise Loop\" instead of \"Sunrise\" in the prompt."
   (setq ad-return-value
@@ -306,7 +306,7 @@ triggered by `dired-do-copy' inside a loop scope."
     ad-do-it))
 
 (defadvice sunrise-clone-files
-  (around sunrise-loop-advice-sunrise-clone-files
+  (around sunrise-loop-advice-clone-files
           (file-path-list target-dir clone-op progress &optional do-overwrite)
           activate)
   "Delegate to the background interpreter all copy operations
@@ -318,7 +318,7 @@ triggered by `sunrise-do-copy' inside a loop scope."
     ad-do-it))
 
 (defadvice sunrise-move-files
-  (around sunrise-loop-advice-sunrise-move-files
+  (around sunrise-loop-advice-move-files
           (file-path-list target-dir progress &optional do-overwrite)
           activate)
   "Delegate to the background interpreter all rename operations

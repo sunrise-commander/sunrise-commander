@@ -445,7 +445,7 @@ See also the variable `sunrise-goto-dir-function'."
   (sunrise-history-push root))
 
 (defadvice sunrise-focus-filename
-  (around sunrise-tree-advice-sunrise-focus-filename (filename))
+  (around sunrise-tree-advice-focus-filename (filename))
   "Force deactivation of Sunrise Tree View before focusing a regular file."
   (if (eq major-mode 'sunrise-tree-mode)
       (if (file-directory-p filename)
