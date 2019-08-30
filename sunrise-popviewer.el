@@ -13,26 +13,26 @@
 
 ;; This file is not part of GNU Emacs.
 
-;; This program is free software: you can redistribute it and/or modify it under
-;; the terms of the GNU General Public License as published by the Free Software
-;; Foundation, either version 3 of the License, or (at your option) any later
-;; version.
+;; This program is free software: you can redistribute it and/or modify it
+;; under the terms of the GNU General Public License as published by the Free
+;; Software Foundation, either version 3 of the License, or (at your option)
+;; any later version.
 ;;
 ;; This program is distributed in the hope that it will be useful, but WITHOUT
-;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-;; FOR A PARTICULAR PURPOSE. See the GNU General Public License for more de-
-;; tails.
+;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+;; FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+;; more de- tails.
 
-;; You should have received a copy of the GNU General Public License along with
-;; this program. If not, see <http://www.gnu.org/licenses/>.
+;; You should have received a copy of the GNU General Public License along
+;; with this program. If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;; This extension advises several Sunrise Commander functions in order to make
-;; the viewer window "float", i.e. instead of having a dedicated window sitting
-;; under the panes all the time, a new frame is displayed whenever the user
-;; requests to view a file (by pressing "o" or "v") or to open a command line in
-;; the current directory.
+;; the viewer window "float", i.e. instead of having a dedicated window
+;; sitting under the panes all the time, a new frame is displayed whenever the
+;; user requests to view a file (by pressing "o" or "v") or to open a command
+;; line in the current directory.
 
 ;; WARNING: This code and the Buttons extension (sunrise-buttons) do NOT mix
 ;; together, if you're using the Buttons extension remove it first from your
@@ -48,7 +48,8 @@
 ;; 2) Add a (require 'sunrise-popviewer) expression to your .emacs file
 ;; somewhere after the (require 'sunrise) one.
 
-;; 3) Evaluate the new expression, or reload your .emacs file, or restart Emacs.
+;; 3) Evaluate the new expression, or reload your .emacs file, or restart
+;; Emacs.
 
 ;; 4) Use `sunrise-popviewer-mode' to toggle the functionality.
 
