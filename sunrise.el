@@ -1474,7 +1474,7 @@ path line."
           (setq end (point)
                 next (search-forward sunrise-avfs-root (point-at-eol) t)))
         (when end
-          (add-text-properties start end '(invisible t))))))
+          (put-text-property start end 'invisible t)))))
 
 (defun sunrise-highlight-broken-links ()
   "Mark broken symlinks with an exclamation mark."
@@ -1495,7 +1495,6 @@ Returns t if the overlay is no longer valid and should be replaced."
   "Set up the graphical path line in the current buffer.
 \(Fancy fonts and clickable path.)"
   (let ((begin) (end) (inhibit-read-only t))
-
     (when (sunrise-invalid-overlayp)
       ;;determine begining and end
       (save-excursion
@@ -1512,12 +1511,8 @@ Returns t if the overlay is no longer valid and should be replaced."
            (make-overlay begin end))
 
       ;;path line hover effect:
-      (add-text-properties
-       begin
-       end
-       '(mouse-face sunrise-highlight-path-face
-                    help-echo "click to move up")
-       nil))
+      (put-text-property begin end 'mouse-face 'sunrise-highlight-path-face)
+      (put-text-property begin end 'help-echo "click to move up"))
     (when face
       (setq sunrise-current-path-faces (cons face sunrise-current-path-faces)))
     (overlay-put sunrise-current-window-overlay 'face
@@ -2341,7 +2336,7 @@ Kills any other buffer opened previously the same way."
   "Manage the hiding of attributes in region from BEG to END.
 Selective hiding of specific attributes can be controlled by customizing the
 `sunrise-attributes-display-mask' variable."
-  (let ((cursor beg) props)
+  (let ((cursor beg))
     (cl-labels ((sunrise-make-display-props
                  (display-function-or-flag)
                  (cond ((functionp display-function-or-flag)
@@ -2356,14 +2351,13 @@ Selective hiding of specific attributes can be controlled by customizing the
                     (search-forward-regexp "\\w")
                     (search-forward-regexp "\\s-")
                     (forward-char -1)
-                    (setq props (sunrise-make-display-props do-display))
-                    (when props
-                      (add-text-properties cursor (point) props))
+                    (add-text-properties
+                     cursor (point) (sunrise-make-display-props do-display))
                     (setq cursor (point))
                     (if (>= (point) end) (cl-return-from block)))
                   sunrise-attributes-display-mask))
         (unless (>= cursor end)
-          (add-text-properties cursor (1- end) '(invisible t)))))))
+          (put-text-property cursor (1- end) 'invisible t))))))
 
 (defun sunrise-display-attributes (beg end visiblep)
   "Manage the display of file attributes in the region from BEG to END.
