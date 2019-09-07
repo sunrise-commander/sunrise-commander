@@ -154,8 +154,6 @@
 ;; file size (y).
 
 ;; All directory commands from the Sunrise Buttons extension are also supported.
-;; It is required to upgrade the Buttons extension to version 1R293 or better to
-;; make this integration work correctly, though.
 
 ;; Hey, and don't forget to enjoy ;-)
 
