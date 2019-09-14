@@ -3407,18 +3407,20 @@ as its first argument."
 (defun sunrise-ediff-before-setup-windows-function ()
   (setq sunrise-ediff-on t))
 
+(defun sunrise-ediff-quit-function ()
+  (setq sunrise-ediff-on nil)
+  (when sunrise-running
+    (if (buffer-live-p sunrise-restore-buffer)
+        (switch-to-buffer sunrise-restore-buffer))
+    (delete-other-windows)
+    (sunrise-setup-windows)
+    (sunrise-graphical-highlight)))
+
 (add-hook 'ediff-before-setup-windows-hook
           'sunrise-ediff-before-setup-windows-function)
 
 (add-hook 'ediff-quit-hook
-          (defun sunrise-ediff-quit-function ()
-            (setq sunrise-ediff-on nil)
-            (when sunrise-running
-              (if (buffer-live-p sunrise-restore-buffer)
-                  (switch-to-buffer sunrise-restore-buffer))
-              (delete-other-windows)
-              (sunrise-setup-windows)
-              (sunrise-graphical-highlight))))
+          'sunrise-ediff-quit-function)
 
 (defun sunrise-diff-form (fun)
   "Return the appropriate form to evaluate for comparing files using FUN."
