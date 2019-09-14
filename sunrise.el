@@ -1466,15 +1466,15 @@ path line."
 
 (defun sunrise-hide-avfs-root ()
   "Hide the AVFS virtual filesystem root (if any) on the path line."
-  (if sunrise-avfs-root
-      (let ((start nil) (end nil)
-            (next (search-forward sunrise-avfs-root (point-at-eol) t)))
-        (if next (setq start (- next (length sunrise-avfs-root))))
-        (while next
-          (setq end (point)
-                next (search-forward sunrise-avfs-root (point-at-eol) t)))
-        (when end
-          (put-text-property start end 'invisible t)))))
+  (when sunrise-avfs-root
+    (let ((start nil) (end nil)
+          (next (search-forward sunrise-avfs-root (point-at-eol) t)))
+      (if next (setq start (- next (length sunrise-avfs-root))))
+      (while next
+        (setq end (point)
+              next (search-forward sunrise-avfs-root (point-at-eol) t)))
+      (when end
+        (put-text-property start end 'invisible 'sunrise)))))
 
 (defun sunrise-highlight-broken-links ()
   "Mark broken symlinks with an exclamation mark."
