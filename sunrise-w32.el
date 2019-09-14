@@ -209,7 +209,7 @@ Also includes some selected special folders."
 (defun sunrise-w32-entry-overlay (start end)
   "Create an invisible, tangible overlay from start to end."
   (let ((overlay (make-overlay start end)))
-    (overlay-put overlay 'invisible t)
+    (overlay-put overlay 'invisible 'sunrise)
     (overlay-put overlay 'before-string "  ")))
 
 (defun sunrise-w32-create-drivers-script ()

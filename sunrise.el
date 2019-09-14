@@ -1009,7 +1009,9 @@ Used as a cache during revert operations."
 (add-hook 'kill-buffer-hook       'sunrise-kill-backup-buffer)
 (add-hook 'change-major-mode-hook 'sunrise-kill-backup-buffer)
 
-(add-to-list 'enriched-translations '(invisible (t "x-invisible")))
+(add-to-list 'enriched-translations
+             '(invisible (sunrise "x-sunrise-invisible")))
+
 (defun sunrise-enrich-buffer ()
   "Activate `enriched-mode' before saving a Sunrise buffer to a file.
 This is done so all its dired-filename attributes are kept in the file."
@@ -2343,7 +2345,8 @@ Selective hiding of specific attributes can be controlled by customizing the
                         `(display
                           ,(apply display-function-or-flag
                                   (list (buffer-substring cursor (1- (point)))))))
-                       ((null display-function-or-flag) '(invisible t))
+                       ((null display-function-or-flag)
+                        '(invisible sunrise))
                        (t nil))))
       (if sunrise-attributes-display-mask
           (cl-block block
@@ -2357,7 +2360,7 @@ Selective hiding of specific attributes can be controlled by customizing the
                     (if (>= (point) end) (cl-return-from block)))
                   sunrise-attributes-display-mask))
         (unless (>= cursor end)
-          (put-text-property cursor (1- end) 'invisible t))))))
+          (put-text-property cursor (1- end) 'invisible 'sunrise))))))
 
 (defun sunrise-display-attributes (beg end visiblep)
   "Manage the display of file attributes in the region from BEG to END.
@@ -2374,7 +2377,7 @@ if VISIBLEP is nil then shows file attributes in region, otherwise hides them."
         (forward-char 1)
         (if (not visiblep)
             (sunrise-mask-attributes (point) next)
-          (remove-text-properties (point) next '(invisible t))
+          (remove-text-properties (point) next '(invisible sunrise))
           (remove-text-properties (point) next '(display)))
         (forward-line 1)
         (setq next (dired-move-to-filename))))))
