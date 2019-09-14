@@ -3724,53 +3724,53 @@ pane."
   Once narrowed and accepted, you can restore the original contents of the pane
   by pressing g (`revert-buffer')."
   (interactive)
-  (when sunrise-running
-    (sunrise-beginning-of-buffer)
-    (let ((stack nil) (filter "") (regex "") (next-char nil) (inhibit-quit t))
-      (cl-labels ((read-next (f) (read-char (concat "Fuzzy narrow: " f))))
-        (setq next-char (read-next filter))
-        (sunrise-backup-buffer)
-        (while next-char
-          (cl-case next-char
-            ((?\e ?\C-g) (setq next-char nil) (sunrise-revert-buffer))
-            (?\C-n (setq next-char nil) (sunrise-beginning-of-buffer))
-            (?\C-p (setq next-char nil) (sunrise-end-of-buffer))
-            ((?\n ?\r) (setq next-char nil))
-            ((?\b ?\d)
-             (revert-buffer)
-             (setq stack (cdr stack) filter (caar stack) regex (cdar stack))
-             (unless stack (setq next-char nil)))
-            (t
-             (setq filter (concat filter (char-to-string next-char)))
-             (if (not (eq next-char sunrise-fuzzy-negation-character))
-                 (setq next-char (char-to-string next-char)
-                       regex (if (string= "" regex) ".*" regex)
-                       regex (concat regex (regexp-quote next-char) ".*"))
-               (setq next-char (char-to-string (read-next filter))
-                     filter (concat filter next-char)
-                     regex (replace-regexp-in-string "\\.\\*\\'" "" regex)
-                     regex (concat regex "[^"(regexp-quote next-char)"]*")
-                     regex (replace-regexp-in-string "\\]\\*\\[\\^" "" regex)))
-             (setq stack (cons (cons filter regex) stack))))
-          (when next-char
-            (add-to-invisibility-spec 'sunrise-narrow)
-            (let ((inhibit-read-only t))
-              (save-excursion
-                (goto-char (point-min))
-                (while (not (eobp))
-                  (let* ((start (dired-move-to-filename))
-                         (end (and start (dired-move-to-end-of-filename t))))
-                    (when (and start end)
-                      (let ((old (get-text-property start 'invisible)))
-                        (put-text-property
-                         (point-at-bol) (1+ (point-at-eol)) 'invisible
-                         (if (string-match-p
-                              regex (buffer-substring-no-properties start end))
-                             (cl-set-difference old '(sunrise-narrow))
-                           (cl-union old '(sunrise-narrow)))))))
-                  (goto-char (point-at-bol))
-                  (forward-line 1))))
-            (setq next-char (read-next filter))))))))
+  (assert sunrise-running)
+  (sunrise-beginning-of-buffer)
+  (let ((stack nil) (filter "") (regex "") (next-char nil) (inhibit-quit t))
+    (cl-labels ((read-next (f) (read-char (concat "Fuzzy narrow: " f))))
+      (setq next-char (read-next filter))
+      (sunrise-backup-buffer)
+      (while next-char
+        (cl-case next-char
+          ((?\e ?\C-g) (setq next-char nil) (sunrise-revert-buffer))
+          (?\C-n (setq next-char nil) (sunrise-beginning-of-buffer))
+          (?\C-p (setq next-char nil) (sunrise-end-of-buffer))
+          ((?\n ?\r) (setq next-char nil))
+          ((?\b ?\d)
+           (revert-buffer)
+           (setq stack (cdr stack) filter (caar stack) regex (cdar stack))
+           (unless stack (setq next-char nil)))
+          (t
+           (setq filter (concat filter (char-to-string next-char)))
+           (if (not (eq next-char sunrise-fuzzy-negation-character))
+               (setq next-char (char-to-string next-char)
+                     regex (if (string= "" regex) ".*" regex)
+                     regex (concat regex (regexp-quote next-char) ".*"))
+             (setq next-char (char-to-string (read-next filter))
+                   filter (concat filter next-char)
+                   regex (replace-regexp-in-string "\\.\\*\\'" "" regex)
+                   regex (concat regex "[^"(regexp-quote next-char)"]*")
+                   regex (replace-regexp-in-string "\\]\\*\\[\\^" "" regex)))
+           (setq stack (cons (cons filter regex) stack))))
+        (when next-char
+          (add-to-invisibility-spec 'sunrise-narrow)
+          (let ((inhibit-read-only t))
+            (save-excursion
+              (goto-char (point-min))
+              (while (not (eobp))
+                (let* ((start (dired-move-to-filename))
+                       (end (and start (dired-move-to-end-of-filename t))))
+                  (when (and start end)
+                    (let ((old (get-text-property start 'invisible)))
+                      (put-text-property
+                       (point-at-bol) (1+ (point-at-eol)) 'invisible
+                       (if (string-match-p
+                            regex (buffer-substring-no-properties start end))
+                           (cl-set-difference old '(sunrise-narrow))
+                         (cl-union old '(sunrise-narrow)))))))
+                (goto-char (point-at-bol))
+                (forward-line 1))))
+          (setq next-char (read-next filter)))))))
 
 (defun sunrise-recent-files ()
   "Display the history of recent files in Sunrise virtual mode."
