@@ -2342,12 +2342,13 @@ Kills any other buffer opened previously the same way."
 (defun sunrise-quit-function ()
   (setq other-window-scroll-buffer nil))
 
+(defun sunrise-kill-viewer-function ()
+  (if (eq (current-buffer) other-window-scroll-buffer)
+      (setq other-window-scroll-buffer  nil)))
+
 ;; These clean up after a quick view:
 (add-hook 'sunrise-quit-hook 'sunrise-quit-function)
-(add-hook 'kill-buffer-hook
-          (defun sunrise-kill-viewer-function ()
-            (if (eq (current-buffer) other-window-scroll-buffer)
-                (setq other-window-scroll-buffer  nil))))
+(add-hook 'kill-buffer-hook 'sunrise-kill-viewer-function)
 
 (defun sunrise-mask-attributes (beg end)
   "Manage the hiding of attributes in region from BEG to END.
