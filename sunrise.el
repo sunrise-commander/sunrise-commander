@@ -4452,22 +4452,23 @@ Used for desktop support."
   (if sunrise-running (sunrise-quit))
   nil)
 
+(defun sunrise-desktop-after-read-function ()
+  (unless (assoc 'sunrise-running desktop-globals-to-clear)
+    (add-to-list 'desktop-globals-to-clear
+                 '(sunrise-running . (sunrise-reset-state))))
+  (when (and (buffer-live-p sunrise-left-buffer)
+             (get-buffer-window sunrise-left-buffer))
+    (sunrise-setup-windows)
+    (sunrise-highlight)
+    (setq sunrise-current-frame (window-frame (selected-window))
+          sunrise-running t)))
+
 ;; This registers the previous functions in the desktop framework:
 (add-to-list 'desktop-buffer-mode-handlers
              '(sunrise-mode . sunrise-desktop-restore-buffer))
 
 ;; This initializes (and sometimes starts) Sunrise after desktop restoration:
-(add-hook 'desktop-after-read-hook
-          (defun sunrise-desktop-after-read-function ()
-            (unless (assoc 'sunrise-running desktop-globals-to-clear)
-              (add-to-list 'desktop-globals-to-clear
-                           '(sunrise-running . (sunrise-reset-state))))
-            (when (and (buffer-live-p sunrise-left-buffer)
-                       (get-buffer-window sunrise-left-buffer))
-              (sunrise-setup-windows)
-              (sunrise-highlight)
-              (setq sunrise-current-frame (window-frame (selected-window))
-                    sunrise-running t))))
+(add-hook 'desktop-after-read-hook 'sunrise-desktop-after-read-function)
 
 ;;; ============================================================================
 ;;; Miscellaneous functions:
