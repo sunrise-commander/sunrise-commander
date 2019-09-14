@@ -285,14 +285,7 @@ Should not contain the -D option. See also `sunrise-listing-switches'."
 follow the mouse in graphical environments."
   :group 'sunrise
   :type 'boolean
-  :set (defun sunrise-set-cursor-follows-mouse (symbol value)
-         "Setter function for the `sunrise-set-cursor-follows-mouse' custom option."
-         (mapc (lambda (buf)
-                 (with-current-buffer buf
-                   (when (memq major-mode '(sunrise-mode sunrise-virtual-mode sunrise-tree-mode))
-                     (setq track-mouse value))))
-               (buffer-list))
-         (set-default symbol value)))
+  :set 'sunrise-set-cursor-follows-mouse)
 
 (defcustom sunrise-mouse-events-threshold 10
   "Number of mouse movement events to ignore before following it
@@ -852,6 +845,18 @@ automatically:
 
   (define-key sunrise-virtual-mode-map "\C-c\C-c" 'sunrise-virtual-dismiss)
   (define-key sunrise-virtual-mode-map "\C-cv"    'sunrise-backup-buffer))
+
+(defun sunrise-set-cursor-follows-mouse (symbol value)
+  "Setter function for the `sunrise-cursor-follows-mouse' custom option."
+  (mapc (lambda (buf)
+          (with-current-buffer buf
+            (when (memq major-mode
+                        '(sunrise-mode
+                          sunrise-tree-mode
+                          sunrise-virtual-mode))
+              (setq track-mouse value))))
+        (buffer-list))
+  (set-default symbol value))
 
 (defmacro sunrise-within (dir form)
   "Evaluate FORM in Sunrise context."
