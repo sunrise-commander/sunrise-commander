@@ -341,11 +341,7 @@ May be `horizontal', `vertical' or `top'."
 Commander panes."
   :group 'sunrise
   :type 'integer
-  :set (defun sunrise-set-windows-default-ratio (symbol value)
-         "Setter function for the `sunrise-windows-default-ratio' custom option."
-         (if (and (integerp value) (>= value 0) (<= value 100))
-             (set-default symbol value)
-           (error "Invalid value: %s" value))))
+  :set 'sunrise-set-windows-default-ratio)
 
 (defcustom sunrise-history-length 20
   "Number of entries to keep in each pane's history rings."
@@ -857,6 +853,12 @@ automatically:
               (setq track-mouse value))))
         (buffer-list))
   (set-default symbol value))
+
+(defun sunrise-set-windows-default-ratio (symbol value)
+  "Setter function for the `sunrise-windows-default-ratio' custom option."
+  (if (and (integerp value) (>= value 0) (<= value 100))
+      (set-default symbol value)
+    (error "Invalid value: %s" value)))
 
 (defmacro sunrise-within (dir form)
   "Evaluate FORM in Sunrise context."
