@@ -254,12 +254,13 @@ destroyed when the buffer is killed.
           (function :tag "Other")))
 
 (defcustom sunrise-terminal-kill-buffer-on-exit t
-  "Whether to kill terminal buffers after their shell process ends."
+  "If non-nil, kill terminal buffers after their shell process ends."
   :group 'sunrise
   :type 'boolean)
 
 (defcustom sunrise-terminal-program "eshell"
   "The program to use for terminal emulation.
+
 If this value is set to \"eshell\", the Emacs shell (`eshell')
 will be used."
   :group 'sunrise
@@ -267,6 +268,7 @@ will be used."
 
 (defcustom sunrise-listing-switches "-al"
   "Listing switches passed to `ls' when building Sunrise buffers.
+
 \(Cf. `dired-listing-switches'.)
   Most portable value: -al
   Recommended value on GNU systems: \
@@ -276,12 +278,15 @@ will be used."
 
 (defcustom sunrise-virtual-listing-switches "-ald"
   "Listing switches for building buffers in `sunrise-virtual-mode'.
+
 Should not contain the -D option. See also `sunrise-listing-switches'."
   :group 'sunrise
   :type 'string)
 
 (defun sunrise-set-cursor-follows-mouse (symbol value)
-  "Setter function for the `sunrise-cursor-follows-mouse' custom option."
+  "Helper for `sunrise-cursor-follows-mouse' custom option.
+
+Set SYMBOL to VALUE whenever the option is set."
   (mapc (lambda (buf)
           (with-current-buffer buf
             (when (memq major-mode
@@ -293,22 +298,25 @@ Should not contain the -D option. See also `sunrise-listing-switches'."
   (set-default symbol value))
 
 (defcustom sunrise-cursor-follows-mouse t
-  "Determines whether the cursor inside the Sunrise panes should
-follow the mouse in graphical environments."
+  "Whether text cursor inside Sunrise panes follows mouse cursor.
+
+The mouse is only followed in graphical environments."
   :group 'sunrise
   :type 'boolean
   :set 'sunrise-set-cursor-follows-mouse)
 
 (defcustom sunrise-mouse-events-threshold 10
-  "Number of mouse movement events to ignore before following it
-with the cursor. This helps to avoid capturing accidentally the
-cursor when Sunrise is activated."
+  "Minimum number of mouse movement events before cursor follows mouse.
+
+Helps avoid accidentally capturing the text cursor when Sunrise
+is activated."
   :group 'sunrise
   :type 'integer)
 
 (defcustom sunrise-avfs-root nil
-  "Root of the AVFS virtual filesystem used for navigating compressed archives.
-Setting this value activates AVFS support."
+  "Root of AVFS virtual filesystem used to navigate compressed archives.
+
+Setting this option activates AVFS support."
   :group 'sunrise
   :type '(choice
           (const :tag "AVFS support disabled" nil)
@@ -349,14 +357,15 @@ May be `horizontal', `vertical' or `top'."
   :type 'boolean)
 
 (defun sunrise-set-windows-default-ratio (symbol value)
-  "Setter function for the `sunrise-windows-default-ratio' custom option."
+  "Helper for `sunrise-windows-default-ratio' custom option.
+
+Set SYMBOL to VALUE whenever the option is set."
   (if (and (integerp value) (>= value 0) (<= value 100))
       (set-default symbol value)
     (error "Invalid value: %s" value)))
 
 (defcustom sunrise-windows-default-ratio 66
-  "Percentage of the total height of the frame to use by default for the Sunrise
-Commander panes."
+  "Percentage of frame height to use for Sunrise panes by default."
   :group 'sunrise
   :type 'integer
   :set 'sunrise-set-windows-default-ratio)
@@ -367,25 +376,23 @@ Commander panes."
   :type 'integer)
 
 (defcustom sunrise-kill-unused-buffers t
-  "Whether buffers should be killed automatically by Sunrise when not displayed
-in any of the panes."
+  "If non-nil, kill Sunrise buffers no longer shown in any pane."
   :group 'sunrise
   :type 'boolean)
 
 (defcustom sunrise-kill-quick-view-buffers t
-  "Whether opening a new buffer in quick-view mode should kill any other buffer
-opened previously in the same manner."
+  "If non-nil, kill prior quick-view buffers when opening a new one."
   :group 'sunrise
   :type 'boolean)
 
 (defcustom sunrise-confirm-kill-viewer t
-  "Whether to ask for confirmation before killing a buffer opened in quick-view
-mode."
+  "If non-nil, confirm before killing a quick-view buffer."
   :group 'sunrise
   :type 'boolean)
 
 (defcustom sunrise-attributes-display-mask nil
   "Contols hiding/transforming columns with `sunrise-toggle-attributes'.
+
 If set, its value must be a list of symbols, one for each
 attributes column. If the symbol is nil, then the corresponding
 column will be hidden, and if it's not nil then the column will
@@ -398,9 +405,9 @@ displayed instead."
   :type '(repeat symbol))
 
 (defcustom sunrise-fast-backup-extension ".bak"
-  "Determines the extension to append to the names of new files
-created with the `sunrise-fast-backup-files' function (@!). This can
-be either a simple string or an s-expression to be evaluated at
+  "Extension for files created by `sunrise-fast-backup-files' (@!).
+
+This can be either a string or an Lisp form to be evaluated at
 run-time."
   :group 'sunrise
   :type '(choice
@@ -408,10 +415,13 @@ run-time."
           (sexp :tag "Symbolic expression")))
 
 (defcustom sunrise-traditional-other-window nil
-  "Sunrise modifies the behavior of the `other-window' command,
-so that focus is always given to the currently selected pane when
-switching from external windows. If you'd prefer the original
-Emacs behavior instead, then set this flag to t."
+  "If non-nil, focus selected pane when switching from non-Sunrise windows.
+
+By default, Sunrise modifies the behavior of Emacs `other-window'
+command so that focus is always given to the currently selected
+pane when switching to any Sunrise window from a non-Sunrise
+window. If you'd prefer the default Emacs behavior instead, set
+this flag to t."
   :group 'sunrise
   :type 'boolean)
 
@@ -453,15 +463,15 @@ Emacs behavior instead, then set this flag to t."
   :options '(auto-insert))
 
 (defcustom sunrise-recursive-grep-supported t
-  "Whether the command specified by `sunrise-grep-command' supports
-the 'recursive' (-r) option."
+  "If non-nil, `sunrise-grep-command' supports the \"-r\" recursive flag."
   :group 'sunrise
   :type 'boolean)
 
 (defcustom sunrise-grep-command "grep"
-  "Full path to the grep command for Sunrise to use in grep
-  operations. In contrast to `grep-command' this one does *not*
-  support any options."
+  "Full path to the grep command for Sunrise to use.
+
+In contrast to Emacs' own `grep-command', this one does not
+support any options."
   :group 'sunrise
   :type 'string)
 
@@ -472,10 +482,10 @@ the 'recursive' (-r) option."
   "Window configuration before Sunrise was started.")
 
 (defvar sunrise-running nil
-  "True when Sunrise commander mode is running.")
+  "Non-nil when Sunrise Commander is running.")
 
 (defvar sunrise-synchronized nil
-  "True when synchronized navigation is on")
+  "Non-nil when synchronized navigation is on.")
 
 (defvar sunrise-current-window-overlay nil
   "Holds the current overlay which marks the current Dired buffer.")
@@ -522,6 +532,7 @@ This isn't necessarily the same as `dired-directory'.")
 
 (defvar sunrise-history-stack '((left 0 . 0) (right 0 . 0))
   "History stack counters.
+
 The first counter on each side tracks (by value) the absolute
 depth of the stack and (by sign) the direction it is currently
 being traversed. The second counter points at the position of the
@@ -536,9 +547,8 @@ element that is immediately beneath the top of the stack.")
 (defvar sunrise-clex-on nil
   "Flag that indicates that a CLEX operation is taking place.")
 
-(defvar sunrise-virtual-buffer nil
-  "Local flag that indicates the current buffer was originally in
-  VIRTUAL mode.")
+(defvar-local sunrise-virtual-buffer nil
+  "If non-nil, the current buffer was originally in Sunrise virtual mode.")
 
 (defvar sunrise-dired-directory ""
   "Directory inside which `sunrise-mode' is currently active.")
@@ -551,9 +561,8 @@ element that is immediately beneath the top of the stack.")
   "Current height of the pane windows.
 Initial value is 2/3 the viewport height.")
 
-(defvar sunrise-current-path-faces nil
+(defvar-local sunrise-current-path-faces nil
   "List of faces to display the path in the current pane (first wins)")
-(make-variable-buffer-local 'sunrise-current-path-faces)
 
 (defvar sunrise-inhibit-highlight nil
   "Special variable used to temporarily inhibit highlighting in panes.")
@@ -570,18 +579,20 @@ Initial value is 2/3 the viewport height.")
 (defvar sunrise-desktop-restore-handlers nil
   "List of extension-defined handlers to restore Sunrise buffers from desktop.")
 
-(defvar sunrise-backup-buffer nil
+(defvar-local sunrise-backup-buffer nil
   "Variable holding a buffer-local value of the backup buffer.")
-(make-variable-buffer-local 'sunrise-backup-buffer)
 
 (defvar sunrise-goto-dir-function nil
-  "Function to use to navigate to a given directory, or nil to do
-the default.  The function receives one argument DIR, which is
-the directory to go to.")
+  "Function to use to navigate to a particular directory.
+
+Set to nil for default behavior. The function receives one
+argument DIR which is the directory to go to.")
 
 (defvar sunrise-mouse-events-count 0
-  "Number of mouse movement events received before activating the
-  `sunrise-cursor-follows-mouse' feature.")
+  "Number of mouse movement events received since switching to Sunrise.
+
+Used with `sunrise-mouse-events-threshold' to selectively
+activate `sunrise-cursor-follows-mouse'.")
 
 (defconst sunrise-side-lookup (list '(left . right) '(right . left))
           "Trivial alist used by the Sunrise Commander to lookup its own passive side.")
@@ -861,7 +872,7 @@ automatically:
   (define-key sunrise-virtual-mode-map "\C-cv"    'sunrise-backup-buffer))
 
 (defmacro sunrise-within (dir form)
-  "Evaluate FORM in Sunrise context."
+  "Evaluate FORM in Sunrise Commander context in directory DIR."
   `(unwind-protect
        (progn
          (setq sunrise-dired-directory
@@ -872,7 +883,9 @@ automatically:
      (setq sunrise-dired-directory "")))
 
 (defmacro sunrise-save-aspect (&rest body)
-  "Restore omit mode, hidden attributes and point after a directory transition."
+  "Restore omit mode, hidden attributes and point after a directory transition.
+
+BODY is the code to evaluate within an implicit `progn'."
   `(let ((inhibit-read-only t)
          (omit (or dired-omit-mode -1))
          (attrs (eval 'sunrise-show-file-attributes))
@@ -937,7 +950,7 @@ Helper macro for passive & synchronized navigation."
             (sunrise-change-window)))))
 
 (defmacro sunrise-silently (&rest body)
-  "Inhibit calls to `message' in BODY."
+  "Silence all `message' output within BODY."
   `(cl-letf (((symbol-function 'message) (lambda (_msg &rest _args) (ignore))))
      ,@body))
 
@@ -1025,8 +1038,10 @@ Used as a cache during revert operations."
              '(invisible (sunrise "x-sunrise-invisible")))
 
 (defun sunrise-enrich-buffer ()
-  "Activate `enriched-mode' before saving a Sunrise buffer to a file.
-This is done so all its dired-filename attributes are kept in the file."
+  "Ensure enriched mode is enabled in the current buffer.
+
+This is done before saving the buffer to a file so that its dired
+file attributes are preserved. See the function `enriched-mode'."
   (when (memq major-mode '(sunrise-mode sunrise-virtual-mode))
     (enriched-mode 1)))
 
@@ -1050,7 +1065,7 @@ This is done so all its dired-filename attributes are kept in the file."
 
 (defadvice select-window
     (after sunrise-ad-select-window (window &optional norecord))
-  "Detect Sunrise pane switches and update tracking state accordingly."
+  "Detect Sunrise pane switch and update tracking state accordingly."
   (sunrise-detect-switch))
 
 (ad-activate 'select-window)
@@ -1084,8 +1099,9 @@ This is done so all its dired-filename attributes are kept in the file."
 
 (defadvice dired-insert-set-properties
     (around sunrise-advice-dired-insert-set-properties (beg end))
-  "Manage hidden attributes in files added externally (e.g. from find-dired) to
-the Sunrise Commander."
+  "Manage hidden attributes in files added externally to Sunrise.
+
+E.g. from `find-dired'."
   (if (not (memq major-mode '(sunrise-mode sunrise-virtual-mode)))
       ad-do-it
     (with-no-warnings
@@ -1251,7 +1267,9 @@ the Sunrise Commander."
   "Traditional commander-style keybindings for the Sunrise Commander.")
 
 (defun sunrise-set-use-commander-keys (symbol value)
-  "Setter function for the `sunrise-use-commander-keys' custom option."
+  "Helper for `sunrise-use-commander-keys' custom option.
+
+Set SYMBOL to VALUE whenever the option is set."
   (if value
       (mapc (lambda (x)
               (define-key sunrise-mode-map (car x) (cdr x)))
@@ -1262,7 +1280,7 @@ the Sunrise Commander."
   (set-default symbol value))
 
 (defcustom sunrise-use-commander-keys t
-  "Whether to use traditional commander-style function keys (F5 = copy, etc)"
+  "If non-nil, enable traditional Commander function keys: F5 = copy, etc."
   :group 'sunrise
   :type 'boolean
   :set 'sunrise-set-use-commander-keys)
@@ -1273,9 +1291,12 @@ the Sunrise Commander."
 ;;;###autoload
 (defun sunrise (&optional left-directory right-directory filename)
   "Toggle the Sunrise Commander file manager.
+
 If LEFT-DIRECTORY is given, the left window will display that
-directory (same for RIGHT-DIRECTORY). Specifying nil for any of
-these values uses the default, ie. $HOME."
+directory (same for RIGHT-DIRECTORY). Specifying nil for either
+of these values uses the default, ie. $HOME.
+
+If FILENAME is non-nil, it is the basename of a file to focus."
   (interactive)
   (message "Starting Sunrise Commander...")
 
@@ -1375,7 +1396,9 @@ buffer or window."
 ;;; Window management functions:
 
 (defmacro sunrise-setup-pane (side)
-  "Helper macro for the function `sunrise-setup-windows'."
+  "Helper macro for the function `sunrise-setup-windows'.
+
+SIDE is one of the symbols left or right."
   `(let ((sunrise-selected-window ',side))
      (setq ,(sunrise-symbol side 'window) (selected-window))
      (if (buffer-live-p ,(sunrise-symbol side 'buffer))
@@ -1436,7 +1459,8 @@ buffer or window."
         (setq start nil)))))
 
 (defun sunrise-restore-prior-configuration ()
-  "Restore the configuration stored in `sunrise-prior-window-configuration' if any.
+  "Restore configuration (if any) from `sunrise-prior-window-configuration'.
+
 Return t if a configuration to restore could be found, nil otherwise."
   (when sunrise-prior-window-configuration
     (set-window-configuration sunrise-prior-window-configuration)
@@ -1522,7 +1546,10 @@ Returns t if the overlay is no longer valid and should be replaced."
 
 (defun sunrise-graphical-highlight (&optional face)
   "Set up the graphical path line in the current buffer.
-\(Fancy fonts and clickable path.)"
+
+\(Fancy fonts and clickable path.)
+
+If FACE is non-nil, it is added to `sunrise-current-path-faces'."
   (let ((begin) (end) (inhibit-read-only t))
     (when (sunrise-invalid-overlayp)
       ;;determine begining and end
@@ -1561,7 +1588,11 @@ With optional argument REVERT, executes `revert-buffer' on the passive buffer."
         (revert-buffer)))))
 
 (defun sunrise-quit (&optional norestore)
-  "Quit Sunrise and restore Emacs to the previous state."
+  "Quit Sunrise and restore Emacs to the previous state.
+
+If NORESTORE is nil, restore the Emacs window configuration to
+the state it was in before Sunrise was entered. Otherwise put the
+Emacs window configuration into a default state."
   (interactive)
   (if (not sunrise-running)
       (bury-buffer)
@@ -1646,7 +1677,9 @@ With optional argument REVERT, executes `revert-buffer' on the passive buffer."
     (sunrise-save-panes-width)))
 
 (defun sunrise-get-panes-size (&optional size)
-  "Tell what the maximal, minimal and normal pane sizes should be."
+  "Tell what the maximal, minimal and normal pane sizes should be.
+
+SIZE is one of the symbols max, min or t."
   (let ((frame (frame-height)))
     (cl-case size
       (max (max (- frame window-min-height 1) 5))
@@ -1693,9 +1726,10 @@ With optional argument REVERT, executes `revert-buffer' on the passive buffer."
 
 (defun sunrise-lock-panes (&optional height)
   "Resize and lock the panes at some vertical position.
-The optional argument determines the height to lock the panes at.
-Valid values are `min' and `max'; given any other value, locks
-the panes at normal position."
+
+HEIGHT is the height to lock the panes at. Valid values are `min'
+and `max'; given any other value, locks the panes at normal
+position."
   (interactive)
   (cond ((not sunrise-running)
          (sunrise))
@@ -1727,8 +1761,10 @@ the panes at normal position."
   (sunrise-lock-panes 'min))
 
 (defun sunrise-mouse-disown-cursor ()
-  "Reset the mouse movement event counter. This is used to
-implement the `sunrise-cursor-follows-mouse' feature."
+  "Reset the Sunrise mouse movement event counter.
+
+This is used to implement the `sunrise-cursor-follows-mouse'
+feature."
   (setq sunrise-mouse-events-count 0))
 
 (add-hook 'sunrise-init-hook 'sunrise-mouse-disown-cursor)
@@ -2110,7 +2146,7 @@ For checkpoints to work, add sunrise-checkpoint.el to your `load-path'")))
 This function is called only if the `sunrise-cursor-follows-mouse' custom variable
 \(which see) has not been set to nil."
   (interactive "e")
-  (if (<= sunrise-mouse-events-count sunrise-mouse-events-threshold)
+  (if (< sunrise-mouse-events-count sunrise-mouse-events-threshold)
       (setq sunrise-mouse-events-count (1+ sunrise-mouse-events-count))
     (when (mouse-movement-p event)
       (let ((mouse-pos (cadadr event))
