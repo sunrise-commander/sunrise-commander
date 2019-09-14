@@ -1710,6 +1710,7 @@ the panes at normal position."
   "Reset the mouse movement event counter. This is used to
 implement the `sunrise-cursor-follows-mouse' feature."
   (setq sunrise-mouse-events-count 0))
+
 (add-hook 'sunrise-init-hook 'sunrise-mouse-disown-cursor)
 
 ;;; ============================================================================
@@ -2867,6 +2868,7 @@ cl-macs at runtime."
           (sunrise-unhighlight 'sunrise-editing-path-face)))))
    'around 'last)
   (ad-activate fun nil))
+
 (sunrise-terminate-wdired 'wdired-finish-edit)
 (sunrise-terminate-wdired 'wdired-abort-changes)
 
