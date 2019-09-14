@@ -3371,18 +3371,20 @@ displayed."
        (sunrise-buffer-files (current-buffer))
      (directory-files default-directory))))
 
-(defvar sunrise-md5 '(nil) "Memoization cache for the sunrise-md5 function.")
+(defvar sunrise-md5-cache '(nil)
+  "Memoization cache for the sunrise-md5 function.")
+
 (defun sunrise-md5 (file-alist &optional memoize)
   "Build and execute a shell command to calculate the MD5 checksum of a file.
 Second element of FILE-ALIST is the absolute path of the file. If
-MEMOIZE is non-nil, save the result into the `sunrise-md5' alist so it
+MEMOIZE is non-nil, save the result into the `sunrise-md5-cache' alist so it
 can be reused the next time this function is called with the same
 path. This cache can be cleared later calling `sunrise-md5' with nil
 as its first argument."
   (if (null file-alist)
-      (setq sunrise-md5 '(nil))
+      (setq sunrise-md5-cache '(nil))
     (let* ((filename (cadr file-alist))
-           (md5-digest (cdr (assoc filename sunrise-md5)))
+           (md5-digest (cdr (assoc filename sunrise-md5-cache)))
            (md5-command))
       (unless md5-digest
         (setq md5-command
@@ -3390,7 +3392,7 @@ as its first argument."
                "%f" (format "\"%s\"" filename) sunrise-md5-shell-command))
         (setq md5-digest (shell-command-to-string md5-command))
         (if memoize
-            (push (cons filename md5-digest) sunrise-md5)))
+            (push (cons filename md5-digest) sunrise-md5-cache)))
       md5-digest)))
 
 (defun sunrise-diff ()
