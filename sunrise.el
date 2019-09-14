@@ -2029,16 +2029,18 @@ depending on the version of bookmark.el being used."
       (error "Feature `sunrise-checkpoint' not found!\
 For checkpoints to work, add sunrise-checkpoint.el to your `load-path'")))
 
-(defmacro sunrise-checkpoint-command (function-name)
+(defmacro sunrise-define-checkpoint-command (function-name)
   `(defun ,function-name (&optional arg)
      (interactive)
      (sunrise-require-checkpoint-extension)
      (if (commandp #',function-name)
          (call-interactively #',function-name)
        (funcall #',function-name arg))))
-(sunrise-checkpoint-command sunrise-checkpoint-save)
-(sunrise-checkpoint-command sunrise-checkpoint-restore)
-(sunrise-checkpoint-command sunrise-checkpoint-handler)
+
+(sunrise-define-checkpoint-command sunrise-checkpoint-save)
+(sunrise-define-checkpoint-command sunrise-checkpoint-restore)
+(sunrise-define-checkpoint-command sunrise-checkpoint-handler)
+
 ;;;###autoload (autoload 'sunrise-checkpoint-handler "sunrise" "" t)
 
 (defun sunrise-do-find-marked-files (&optional noselect)
