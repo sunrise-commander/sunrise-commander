@@ -879,12 +879,12 @@ automatically:
          (path-faces sunrise-current-path-faces))
      ,@body
      (dired-omit-mode omit)
-     (if path-faces
-         (setq sunrise-current-path-faces path-faces))
-     (if (string= "NUMBER" (get sunrise-selected-window 'sorting-order))
-         (sunrise-sort-by-operation 'sunrise-numerical-sort-op))
-     (if (get sunrise-selected-window 'sorting-reverse)
-         (sunrise-reverse-pane))
+     (when path-faces
+       (setq sunrise-current-path-faces path-faces))
+     (when (string= "NUMBER" (get sunrise-selected-window 'sorting-order))
+       (sunrise-sort-by-operation 'sunrise-numerical-sort-op))
+     (when (get sunrise-selected-window 'sorting-reverse)
+       (sunrise-reverse-pane))
      (setq sunrise-show-file-attributes attrs)
      (sunrise-display-attributes (point-min) (point-max) sunrise-show-file-attributes)
      (sunrise-restore-point-if-same-buffer)))
@@ -924,15 +924,17 @@ Uses `save-selected-window' internally."
 Helper macro for passive & synchronized navigation."
   `(let ((home sunrise-selected-window))
      (let ((sunrise-inhibit-highlight t))
-       (if sunrise-synchronized ,form)
+       (when sunrise-synchronized
+         ,form)
        (sunrise-change-window)
        (condition-case description
            ,form
          (error (message (cadr description)))))
-     (if (not sunrise-running)
-         (sunrise-select-window home)
-       (run-hooks 'sunrise-refresh-hook)
-       (sunrise-change-window))))
+     (cond ((not sunrise-running)
+            (sunrise-select-window home))
+           (t
+            (run-hooks 'sunrise-refresh-hook)
+            (sunrise-change-window)))))
 
 (defmacro sunrise-silently (&rest body)
   "Inhibit calls to `message' in BODY."
@@ -957,6 +959,7 @@ Helper macro for passive & synchronized navigation."
                 (concat sunrise-listing-switches sorting-options)))
         (sunrise-mode)
         (dired-unadvertise dired-directory))))
+
 (add-hook 'dired-before-readin-hook 'sunrise-dired-mode)
 
 (defun sunrise-bookmark-jump ()
@@ -972,6 +975,7 @@ Helper macro for passive & synchronized navigation."
       (sunrise-keep-buffer)
       (unless (memq last-buf (list (current-buffer) (sunrise-other 'buffer)))
         (kill-buffer last-buf)))))
+
 (add-hook 'bookmark-after-jump-hook 'sunrise-bookmark-jump)
 
 (defun sunrise-virtualize-pane ()
@@ -984,7 +988,7 @@ Helper macro for passive & synchronized navigation."
          (dired default-directory)
          (sunrise-keep-buffer))
        (sunrise-virtual-mode))
-      (if focus (sunrise-focus-filename focus)))))
+      (when focus (sunrise-focus-filename focus)))))
 
 (defun sunrise-virtual-dismiss ()
   "Restore normal pane view in Sunrise VIRTUAL mode."
@@ -994,7 +998,7 @@ Helper macro for passive & synchronized navigation."
       (sunrise-process-kill)
       (sunrise-save-aspect
        (sunrise-alternate-buffer (sunrise-goto-dir sunrise-this-directory))
-       (if focus (sunrise-focus-filename focus))
+       (when focus (sunrise-focus-filename focus))
        (revert-buffer)))))
 
 (defun sunrise-backup-buffer ()
@@ -1013,6 +1017,7 @@ Used as a cache during revert operations."
   (when (buffer-live-p sunrise-backup-buffer)
     (kill-buffer sunrise-backup-buffer)
     (setq sunrise-backup-buffer nil)))
+
 (add-hook 'kill-buffer-hook       'sunrise-kill-backup-buffer)
 (add-hook 'change-major-mode-hook 'sunrise-kill-backup-buffer)
 
@@ -1022,16 +1027,17 @@ Used as a cache during revert operations."
 (defun sunrise-enrich-buffer ()
   "Activate `enriched-mode' before saving a Sunrise buffer to a file.
 This is done so all its dired-filename attributes are kept in the file."
-  (if (memq major-mode '(sunrise-mode sunrise-virtual-mode))
-      (enriched-mode 1)))
+  (when (memq major-mode '(sunrise-mode sunrise-virtual-mode))
+    (enriched-mode 1)))
+
 (add-hook 'before-save-hook 'sunrise-enrich-buffer)
 
+;; Activated by the `sunrise-within' macro.
 (defadvice dired-find-buffer-nocreate
     (before sunrise-advice-findbuffer (dirname &optional mode))
   "A hack to avoid some Dired mode quirks in the Sunrise Commander."
-  (if (sunrise-equal-dirs sunrise-dired-directory dirname)
-      (setq mode 'sunrise-mode)))
-;; ^--- activated by sunrise-within macro
+  (when (sunrise-equal-dirs sunrise-dired-directory dirname)
+    (setq mode 'sunrise-mode)))
 
 (defadvice dired-dwim-target-directory
     (around sunrise-advice-dwim-target ())
@@ -1039,12 +1045,14 @@ This is done so all its dired-filename attributes are kept in the file."
   (if (and sunrise-running (eq (selected-frame) sunrise-current-frame))
       (setq ad-return-value sunrise-other-directory)
     ad-do-it))
+
 (ad-activate 'dired-dwim-target-directory)
 
 (defadvice select-window
     (after sunrise-ad-select-window (window &optional norecord))
   "Detect Sunrise pane switches and update tracking state accordingly."
   (sunrise-detect-switch))
+
 (ad-activate 'select-window)
 
 (defadvice other-window
@@ -1060,6 +1068,7 @@ This is done so all its dired-filename attributes are kept in the file."
           ad-do-it
         (sunrise-select-window sunrise-selected-window))))
   (sunrise-detect-switch))
+
 (ad-activate 'other-window)
 
 (defadvice use-hard-newlines
@@ -1070,6 +1079,7 @@ This is done so all its dired-filename attributes are kept in the file."
         (setq insert 'guess)
         ad-do-it)
     ad-do-it))
+
 (ad-activate 'use-hard-newlines)
 
 (defadvice dired-insert-set-properties
@@ -1080,6 +1090,7 @@ the Sunrise Commander."
       ad-do-it
     (with-no-warnings
       (sunrise-display-attributes beg end sunrise-show-file-attributes))))
+
 (ad-activate 'dired-insert-set-properties)
 
 ;;; ============================================================================
@@ -1270,20 +1281,20 @@ these values uses the default, ie. $HOME."
 
   (if (not sunrise-running)
       (let ((welcome sunrise-start-message))
-        (if left-directory
-            (setq sunrise-left-directory left-directory))
-        (if right-directory
-            (setq sunrise-right-directory right-directory))
+        (when left-directory
+          (setq sunrise-left-directory left-directory))
+        (when right-directory
+          (setq sunrise-right-directory right-directory))
 
         (sunrise-switch-to-nonpane-buffer)
         (setq sunrise-restore-buffer (current-buffer)
               sunrise-current-frame (window-frame (selected-window))
               sunrise-prior-window-configuration (current-window-configuration))
         (sunrise-setup-windows)
-        (if filename
-            (condition-case description
-                (sunrise-focus-filename (file-name-nondirectory filename))
-              (error (setq welcome (cadr description)))))
+        (when filename
+          (condition-case description
+              (sunrise-focus-filename (file-name-nondirectory filename))
+            (error (setq welcome (cadr description)))))
         (setq sunrise-this-directory default-directory)
         (sunrise-highlight) ;;<-- W32Emacs needs this
         (hl-line-mode 1)
@@ -1332,11 +1343,14 @@ If Sunrise is off, enable it and focus the file displayed in the current buffer.
 If Sunrise is on, disable it and switch to the buffer currently displayed in the
 viewer window."
   (interactive)
-  (if (not (and sunrise-running
-                (eq (window-frame sunrise-left-window) (selected-frame))))
-      (sunrise-dired (or (buffer-file-name) (sunrise-choose-cd-target)))
+  (cond
+   ((not (and sunrise-running
+              (eq (window-frame sunrise-left-window) (selected-frame))))
+    (sunrise-dired (or (buffer-file-name) (sunrise-choose-cd-target))))
+   (t
     (sunrise-quit t)
-    (message "Hast thou a charm to stay the morning-star in his steep course?")))
+    (message
+     "Hast thou a charm to stay the morning-star in his steep course?"))))
 
 (defun sunrise-this (&optional type)
   "Return object of type TYPE corresponding to the active side of the manager.
@@ -1391,9 +1405,9 @@ buffer or window."
   ;;now create the viewer window
   (unless (and sunrise-panes-height (< sunrise-panes-height (frame-height)))
     (setq sunrise-panes-height (sunrise-get-panes-size)))
-  (if (and (<= sunrise-panes-height (* 2 window-min-height))
-           (eq sunrise-window-split-style 'vertical))
-      (setq sunrise-panes-height (* 2 window-min-height)))
+  (when (and (<= sunrise-panes-height (* 2 window-min-height))
+             (eq sunrise-window-split-style 'vertical))
+    (setq sunrise-panes-height (* 2 window-min-height)))
   (split-window (selected-window) sunrise-panes-height)
 
   (cl-case sunrise-window-split-style
@@ -1418,15 +1432,16 @@ buffer or window."
             (or (memq major-mode '(sunrise-mode sunrise-virtual-mode sunrise-tree-mode))
                 (memq (current-buffer) (list sunrise-left-buffer sunrise-right-buffer))))
       (bury-buffer)
-      (if (eq start (current-buffer)) (setq start nil)))))
+      (when (eq start (current-buffer))
+        (setq start nil)))))
 
 (defun sunrise-restore-prior-configuration ()
   "Restore the configuration stored in `sunrise-prior-window-configuration' if any.
 Return t if a configuration to restore could be found, nil otherwise."
   (when sunrise-prior-window-configuration
     (set-window-configuration sunrise-prior-window-configuration)
-    (if (buffer-live-p sunrise-restore-buffer)
-        (set-buffer sunrise-restore-buffer))
+    (when (buffer-live-p sunrise-restore-buffer)
+      (set-buffer sunrise-restore-buffer))
     t))
 
 (defun sunrise-lock-window (_frame)
@@ -1482,7 +1497,8 @@ path line."
   (when sunrise-avfs-root
     (let ((start nil) (end nil)
           (next (search-forward sunrise-avfs-root (point-at-eol) t)))
-      (if next (setq start (- next (length sunrise-avfs-root))))
+      (when next
+        (setq start (- next (length sunrise-avfs-root))))
       (while next
         (setq end (point)
               next (search-forward sunrise-avfs-root (point-at-eol) t)))
@@ -1562,7 +1578,8 @@ With optional argument REVERT, executes `revert-buffer' on the passive buffer."
 
 (add-hook 'delete-frame-functions
           (lambda (frame)
-            (if (and sunrise-running (eq frame sunrise-current-frame)) (sunrise-quit))))
+            (when (and sunrise-running (eq frame sunrise-current-frame))
+              (sunrise-quit))))
 
 (defun sunrise-save-directories ()
   "Save current directories in the panes to use them at the next startup."
@@ -1588,12 +1605,13 @@ With optional argument REVERT, executes `revert-buffer' on the passive buffer."
 (defun sunrise-save-panes-width ()
   "Save the width of the panes to use them at the next startup."
   (unless sunrise-selected-window-width
-    (if (and (window-live-p sunrise-left-window)
-             (window-live-p sunrise-right-window))
-        (setq sunrise-selected-window-width
+    (setq sunrise-selected-window-width
+          (if (and (window-live-p sunrise-left-window)
+                   (window-live-p sunrise-right-window))
               (window-width
-               (symbol-value (sunrise-symbol sunrise-selected-window 'window))))
-      (setq sunrise-selected-window-width t))))
+               (symbol-value
+                (sunrise-symbol sunrise-selected-window 'window)))
+            t))))
 
 (defun sunrise-restore-panes-width ()
   "Restore the last registered pane width."
@@ -1647,11 +1665,11 @@ With optional argument REVERT, executes `revert-buffer' on the passive buffer."
        (select-window sunrise-right-window)
        (setq ratio 2)
        (setq delta (- max (window-height)))
-       (if (> (/ max ratio) (window-height))
-           (shrink-window (if (< 2 delta) -2 -1))))
+       (when (> (/ max ratio) (window-height))
+         (shrink-window (if (< 2 delta) -2 -1))))
      (select-window sunrise-left-window)
-     (if (> (/ max ratio) (window-height))
-         (shrink-window -1))
+     (when (> (/ max ratio) (window-height))
+       (shrink-window -1))
      (setq sunrise-panes-height (* (window-height) ratio)))))
 
 (defun sunrise-shrink-panes ()
@@ -1666,11 +1684,11 @@ With optional argument REVERT, executes `revert-buffer' on the passive buffer."
        (select-window sunrise-right-window)
        (setq ratio 2)
        (setq delta (- (window-height) min))
-       (if (< min (window-height))
-           (shrink-window (if (< 2 delta) 2 1))))
+       (when (< min (window-height))
+         (shrink-window (if (< 2 delta) 2 1))))
      (select-window sunrise-left-window)
-     (if (< min (window-height))
-         (shrink-window 1))
+     (when  (< min (window-height))
+       (shrink-window 1))
      (setq sunrise-panes-height (* (window-height) ratio)))))
 
 (defun sunrise-lock-panes (&optional height)
@@ -1679,22 +1697,24 @@ The optional argument determines the height to lock the panes at.
 Valid values are `min' and `max'; given any other value, locks
 the panes at normal position."
   (interactive)
-  (if sunrise-running
-      (if (not (and (window-live-p sunrise-left-window)
-                    (or (window-live-p sunrise-right-window)
-                        (eq sunrise-window-split-style 'top))))
-          (sunrise-setup-windows)
-        (setq sunrise-panes-height (sunrise-get-panes-size height))
-        (let ((locked sunrise-windows-locked))
-          (setq sunrise-windows-locked t)
-          (if height
-              (shrink-window 1)
-            (setq sunrise-selected-window-width t)
-            (balance-windows))
-          (unless locked
-            (sit-for 0.1)
-            (setq sunrise-windows-locked nil))))
-    (sunrise)))
+  (cond ((not sunrise-running)
+         (sunrise))
+        ((not (and (window-live-p sunrise-left-window)
+                   (or (window-live-p sunrise-right-window)
+                       (eq sunrise-window-split-style 'top))))
+         (sunrise-setup-windows))
+        (t
+         (setq sunrise-panes-height (sunrise-get-panes-size height))
+         (let ((locked sunrise-windows-locked))
+           (setq sunrise-windows-locked t)
+           (cond (height
+                  (shrink-window 1))
+                 (t
+                  (setq sunrise-selected-window-width t)
+                  (balance-windows)))
+           (unless locked
+             (sit-for 0.1)
+             (setq sunrise-windows-locked nil))))))
 
 (defun sunrise-max-lock-panes ()
   (interactive)
@@ -1729,10 +1749,10 @@ Includes cases when the user presses return, f or clicks on the path line."
             (sunrise-beginning-of-buffer)))
       (setq filename (dired-get-filename nil t)
             filename (and filename (expand-file-name filename)))))
-  (if filename
-      (if (file-exists-p filename)
-          (sunrise-find-file filename)
-        (error "Sunrise: nonexistent target"))))
+  (when filename
+    (if (file-exists-p filename)
+        (sunrise-find-file filename)
+      (error "Sunrise: nonexistent target"))))
 
 (defun sunrise-advertised-execute-file (&optional prefix)
   "Execute the currently selected file in a new subprocess."
@@ -1827,11 +1847,11 @@ Returns nil if AVFS cannot manage this kind of file."
   (if sunrise-goto-dir-function
       (funcall sunrise-goto-dir-function dir)
     (unless (and (eq major-mode 'sunrise-mode) (sunrise-equal-dirs dir default-directory))
-      (if (and sunrise-avfs-root
-               (null (posix-string-match "#" dir)))
-          (setq dir
-                (replace-regexp-in-string
-                 (directory-file-name (expand-file-name sunrise-avfs-root)) "" dir)))
+      (when (and sunrise-avfs-root
+                 (null (posix-string-match "#" dir)))
+        (setq dir
+              (replace-regexp-in-string
+               (directory-file-name (expand-file-name sunrise-avfs-root)) "" dir)))
       (sunrise-save-aspect
        (sunrise-within dir (sunrise-alternate-buffer (dired dir))))
       (sunrise-history-push default-directory)
@@ -1855,8 +1875,8 @@ Returns nil if AVFS cannot manage this kind of file."
   "Go to the same directory where the selected file is.
 Very useful inside Sunrise VIRTUAL buffers."
   (interactive)
-  (if (null target-path)
-      (setq target-path (dired-get-filename nil t)))
+  (unless target-path
+    (setq target-path (dired-get-filename nil t)))
 
   (let ((target-dir (file-name-directory target-path))
         (target-symlink (file-symlink-p target-path))
@@ -1884,15 +1904,15 @@ Very useful inside Sunrise VIRTUAL buffers."
   (interactive)
   (when sunrise-running
     (let* ((viewer (sunrise-viewer-window))
-           (viewer-buffer (if viewer (window-buffer viewer)))
+           (viewer-buffer (when viewer (window-buffer viewer)))
            (target-dir) (target-file))
       (when viewer-buffer
         (with-current-buffer viewer-buffer
           (setq target-dir default-directory
                 target-file (sunrise-directory-name-proper (buffer-file-name)))))
       (sunrise-select-window sunrise-selected-window)
-      (if target-dir (sunrise-goto-dir target-dir))
-      (if target-file (sunrise-focus-filename target-file)))))
+      (when target-dir (sunrise-goto-dir target-dir))
+      (when target-file (sunrise-focus-filename target-file)))))
 
 (defun sunrise-project-path ()
   "Find projections of the active directory over the passive one.
@@ -1913,11 +1933,13 @@ visited in order, from longest path to shortest."
   (interactive)
   (let* ((sunrise-synchronized nil)
          (path (sunrise-chop ?/ (expand-file-name (dired-current-directory))))
-         (pos (if (< 0 (length path)) 1)) (candidate) (next-key))
+         (pos (when (< 0 (length path)) 1))
+         (candidate)
+         (next-key))
     (while pos
       (setq candidate (concat sunrise-other-directory (substring path pos))
             pos (string-match "/" path (1+ pos))
-            pos (if pos (1+ pos)))
+            pos (when pos (1+ pos)))
       (when (and (file-directory-p candidate)
                  (not (sunrise-equal-dirs sunrise-this-directory candidate)))
         (sunrise-goto-dir-other candidate)
@@ -1936,8 +1958,8 @@ visited in order, from longest path to shortest."
       (let* ((pane (assoc sunrise-selected-window sunrise-history-registry))
              (hist (cdr pane))
              (len (length hist)))
-        (if (>= len sunrise-history-length)
-            (nbutlast hist (- len sunrise-history-length)))
+        (when (>= len sunrise-history-length)
+          (nbutlast hist (- len sunrise-history-length)))
         (when (eq 'local type)
           (setq element (abbreviate-file-name (sunrise-chop ?/ element))))
         (setq hist (delete element hist))
@@ -2002,10 +2024,11 @@ Evaluate to: 'tramp if the entry is a valid remote entry, 'local
 if the entry represents a directory in the local file system, or
 nil if the argument is not a valid history entry."
   (when entry
-    (let ((isTramp (string-match tramp-file-name-regexp entry)))
-      (if isTramp
-          'tramp
-        (if (file-accessible-directory-p entry) 'local)))))
+    (cond ((string-match tramp-file-name-regexp entry)
+           'tramp)
+          ((file-accessible-directory-p entry)
+           'local)
+          (t nil))))
 
 (defun sunrise-history-purge-remote()
   "Remove all remote entries from the history of directories."
@@ -2120,13 +2143,15 @@ calls the function `sunrise-setup-windows' and tries once again."
   (interactive "p")
   (let ((selected sunrise-selected-window)
         (viewer (sunrise-viewer-window)))
-    (if (memq major-mode '(sunrise-mode sunrise-virtual-mode sunrise-tree-mode))
-        (hl-line-mode 1))
-    (if viewer
-        (select-window viewer)
-      (when force-setup
-        (sunrise-setup-windows)
-        (select-window (sunrise-viewer-window))))
+    (when (memq major-mode '(sunrise-mode
+                             sunrise-tree-mode
+                             sunrise-virtual-mode))
+      (hl-line-mode 1))
+    (cond (viewer
+           (select-window viewer))
+          (force-setup
+           (sunrise-setup-windows)
+           (select-window (sunrise-viewer-window))))
     (setq sunrise-selected-window selected)))
 
 (defun sunrise-beginning-of-buffer()
@@ -2147,9 +2172,9 @@ calls the function `sunrise-setup-windows' and tries once again."
 
 (defun sunrise-focus-filename (filename)
   "Try to select FILENAME in the current buffer."
-  (if (and dired-omit-mode
-           (string-match (dired-omit-regexp) filename))
-      (dired-omit-mode -1))
+  (when (and dired-omit-mode
+             (string-match (dired-omit-regexp) filename))
+    (dired-omit-mode -1))
   (let ((sunrise-inhibit-highlight t)
         (expr (sunrise-chop ?/ filename)))
     (cond ((file-symlink-p filename)
@@ -2213,10 +2238,11 @@ to that in the other one."
   (sunrise-assert-other)
   (let ((target (current-buffer)) (sunrise-inhibit-highlight t))
     (sunrise-change-window)
-    (if reverse
-        (setq target (current-buffer))
-      (sunrise-alternate-buffer (switch-to-buffer target))
-      (sunrise-history-push default-directory))
+    (cond (reverse
+           (setq target (current-buffer)))
+          (t
+           (sunrise-alternate-buffer (switch-to-buffer target))
+           (sunrise-history-push default-directory)))
     (sunrise-change-window)
     (when reverse
       (sunrise-alternate-buffer (switch-to-buffer target))
@@ -2261,17 +2287,20 @@ If the buffer is non-virtual the backup buffer is killed."
         (insert-buffer-substring sunrise-backup-buffer)
         (sunrise-beginning-of-buffer)
         (dired-mark-remembered marks)
-        (if focus (sunrise-focus-filename focus))
+        (when focus
+          (sunrise-focus-filename focus))
         (dired-change-marks ?\t ?*)
-        (if (eq 'sunrise-mode major-mode) (sunrise-kill-backup-buffer)))
+        (when (eq 'sunrise-mode major-mode)
+          (sunrise-kill-backup-buffer)))
     (unless (or (eq major-mode 'sunrise-virtual-mode)
                 (local-variable-p 'sunrise-virtual-buffer))
       (dired-revert)
-      (if (string= "NUMBER" (get sunrise-selected-window 'sorting-order))
-          (sunrise-sort-by-number t)
-        (if (get sunrise-selected-window 'sorting-reverse)
-            (sunrise-reverse-pane)))))
-  (sunrise-display-attributes (point-min) (point-max) sunrise-show-file-attributes)
+      (cond ((string= "NUMBER" (get sunrise-selected-window 'sorting-order))
+             (sunrise-sort-by-number t))
+            ((get sunrise-selected-window 'sorting-reverse)
+             (sunrise-reverse-pane)))))
+  (sunrise-display-attributes
+   (point-min) (point-max) sunrise-show-file-attributes)
   (sunrise-highlight))
 
 (defun sunrise-kill-pane-buffer ()
@@ -2281,11 +2310,13 @@ killed automatically by Sunrise when the user navigates away from the directory
 they contain. When this flag is set, all requests to kill the current buffer are
 managed by just calling `sunrise-quit'."
   (interactive)
-  (if sunrise-kill-unused-buffers
-      (sunrise-quit)
-    (kill-buffer (current-buffer))
-    (let ((_x (pop (cdr (assoc sunrise-selected-window sunrise-history-registry)))))
-      (sunrise-history-stack-reset))))
+  (cond (sunrise-kill-unused-buffers
+         (sunrise-quit))
+        (t
+         (kill-buffer (current-buffer))
+         (let ((_x (pop (cdr (assoc sunrise-selected-window
+                                    sunrise-history-registry)))))
+           (sunrise-history-stack-reset)))))
 
 (defun sunrise-quick-view (&optional arg)
   "Quickly view the currently selected item.
@@ -2333,10 +2364,10 @@ Kills any other buffer opened previously the same way."
          (progn
            (sunrise-select-viewer-window)
            (find-file filename)
-           (if (and sunrise-kill-quick-view-buffers
-                    (not (eq (current-buffer) other-window-scroll-buffer))
-                    (buffer-live-p other-window-scroll-buffer))
-               (kill-buffer other-window-scroll-buffer))
+           (when (and sunrise-kill-quick-view-buffers
+                      (not (eq (current-buffer) other-window-scroll-buffer))
+                      (buffer-live-p other-window-scroll-buffer))
+             (kill-buffer other-window-scroll-buffer))
            (sunrise-scrollable-viewer (current-buffer)))
        (error (message "%s" (cadr description)))))))
 
@@ -2344,8 +2375,8 @@ Kills any other buffer opened previously the same way."
   (setq other-window-scroll-buffer nil))
 
 (defun sunrise-kill-viewer-function ()
-  (if (eq (current-buffer) other-window-scroll-buffer)
-      (setq other-window-scroll-buffer  nil)))
+  (when (eq (current-buffer) other-window-scroll-buffer)
+    (setq other-window-scroll-buffer  nil)))
 
 ;; These clean up after a quick view:
 (add-hook 'sunrise-quit-hook 'sunrise-quit-function)
@@ -2374,7 +2405,8 @@ Selective hiding of specific attributes can be controlled by customizing the
                     (add-text-properties
                      cursor (point) (sunrise-make-display-props do-display))
                     (setq cursor (point))
-                    (if (>= (point) end) (cl-return-from block)))
+                    (when (>= (point) end)
+                      (cl-return-from block)))
                   sunrise-attributes-display-mask))
         (unless (>= cursor end)
           (put-text-property cursor (1- end) 'invisible 'sunrise))))))
@@ -2392,10 +2424,11 @@ if VISIBLEP is nil then shows file attributes in region, otherwise hides them."
       (while (and next (< next end))
         (beginning-of-line)
         (forward-char 1)
-        (if (not visiblep)
-            (sunrise-mask-attributes (point) next)
-          (remove-text-properties (point) next '(invisible sunrise))
-          (remove-text-properties (point) next '(display)))
+        (cond ((not visiblep)
+               (sunrise-mask-attributes (point) next))
+              (t
+               (remove-text-properties (point) next '(invisible sunrise))
+               (remove-text-properties (point) next '(display))))
         (forward-line 1)
         (setq next (dired-move-to-filename))))))
 
@@ -2408,13 +2441,12 @@ if VISIBLEP is nil then shows file attributes in region, otherwise hides them."
 (defun sunrise-toggle-truncate-lines ()
   "Enable/Disable truncation of long lines in the active pane."
   (interactive)
-  (if (sunrise-truncate-p)
-      (progn
-        (setq truncate-partial-width-windows (sunrise-truncate-v nil))
-        (message "Sunrise: wrapping long lines"))
-    (progn
-      (setq truncate-partial-width-windows (sunrise-truncate-v t))
-      (message "Sunrise: truncating long lines")))
+  (cond ((sunrise-truncate-p)
+         (setq truncate-partial-width-windows (sunrise-truncate-v nil))
+         (message "Sunrise: wrapping long lines"))
+        (t
+         (setq truncate-partial-width-windows (sunrise-truncate-v t))
+         (message "Sunrise: truncating long lines")))
   (sunrise-silently (dired-do-redisplay)))
 
 (defun sunrise-truncate-p ()
@@ -2466,13 +2498,14 @@ Displays entries containing unpadded numbers in a more logical
 order than when sorted alphabetically by name."
   (interactive)
   (sunrise-sort-by-operation 'sunrise-numerical-sort-op (unless inhibit-label "NUMBER"))
-  (if (get sunrise-selected-window 'sorting-reverse) (sunrise-reverse-pane)))
+  (when (get sunrise-selected-window 'sorting-reverse)
+    (sunrise-reverse-pane)))
 
 (defun sunrise-interactive-sort (order)
   "Prompt for a new sorting order for the active pane and apply it."
   (interactive "cSort by (n)ame, n(u)mber, (s)ize, (t)ime or e(x)tension? ")
-  (if (>= order 97)
-      (setq order (- order 32)))
+  (when (>= order 97)
+    (setq order (- order 32)))
   (cl-case order
     (?U (sunrise-sort-by-number))
     (?T (sunrise-sort-by-time))
@@ -2523,13 +2556,13 @@ and `sunrise-attribute-sort-op' for examples of OPERATIONs."
   (let ((messages (> (- (point-max) (point-min)) 50000))
         (focus (dired-get-filename 'verbatim t))
         (inhibit-read-only t))
-    (if messages (message "Finding sort keys..."))
+    (when messages (message "Finding sort keys..."))
     (let* ((sort-lists (sunrise-build-sort-lists))
            (old (reverse sort-lists))
            (beg) (end))
-      (if messages (message "Sorting records..."))
+      (when messages (message "Sorting records..."))
       (setq sort-lists (apply operation (list sort-lists)))
-      (if messages (message "Reordering buffer..."))
+      (when messages (message "Reordering buffer..."))
       (save-excursion
         (save-restriction
           (sunrise-end-of-buffer)
@@ -2538,9 +2571,9 @@ and `sunrise-attribute-sort-op' for examples of OPERATIONs."
           (setq beg (point-at-bol))
           (narrow-to-region beg end)
           (sort-reorder-buffer sort-lists old)))
-      (if messages (message "Reordering buffer... Done")))
+      (when messages (message "Reordering buffer... Done")))
     (sunrise-highlight)
-    (if focus (sunrise-focus-filename focus))
+    (when focus (sunrise-focus-filename focus))
     (when label
       (put sunrise-selected-window 'sorting-order label)
       (message "Sunrise: sorting entries by %s" label)))
@@ -2621,7 +2654,11 @@ comparison is inverted: (sunrise-compare -1 a b) === (sunrise-compare 1
 b a). Compares numbers using `<', strings case-insensitively
 using `string<' and lists recursively until the first two
 elements that are non-equal are found."
-  (if (< mode 0) (let (tmp) (setq tmp a a b b tmp mode (abs mode))))
+  (when (< mode 0)
+    (setq mode (abs mode))
+    (let ((olda a))
+      (setq a b)
+      (setq b olda)))
   (cond ((or (null a) (null b)) nil)
         ((and (listp a) (listp b)) (if (= (car a) (car b))
                                        (sunrise-compare mode (cdr a) (cdr b))
@@ -2651,12 +2688,14 @@ elements that are non-equal are found."
 (defun sunrise-scroll-quick-view ()
   "Scroll down the viewer window during a quick view."
   (interactive)
-  (if other-window-scroll-buffer (scroll-other-window)))
+  (when other-window-scroll-buffer
+    (scroll-other-window)))
 
 (defun sunrise-scroll-quick-view-down ()
   "Scroll down the viewer window during a quick view."
   (interactive)
-  (if other-window-scroll-buffer (scroll-other-window-down nil)))
+  (when other-window-scroll-buffer
+    (scroll-other-window-down nil)))
 
 (defun sunrise-undo ()
   "Restore selection as it was before the last file operation."
@@ -2672,7 +2711,8 @@ elements that are non-equal are found."
   (interactive)
   (setq sunrise-synchronized (not sunrise-synchronized))
   (mapc 'sunrise-mark-sync (list sunrise-left-buffer sunrise-right-buffer))
-  (message "Sunrise: sync navigation is now %s" (if sunrise-synchronized "ON" "OFF"))
+  (message "Sunrise: sync navigation is now %s"
+           (if sunrise-synchronized "ON" "OFF"))
   (run-hooks 'sunrise-refresh-hook)
   (sunrise-in-other (run-hooks 'sunrise-refresh-hook)))
 
@@ -2681,8 +2721,9 @@ elements that are non-equal are found."
   (save-window-excursion
     (if buffer
         (switch-to-buffer buffer))
-    (setq mode-name (concat "Sunrise "
-                            (if sunrise-synchronized "SYNC-NAV" "Commander")))))
+    (setq mode-name
+          (concat "Sunrise "
+                  (if sunrise-synchronized "SYNC-NAV" "Commander")))))
 
 ;; This advertises synchronized navigation in all new buffers:
 (add-hook 'sunrise-mode-hook 'sunrise-mark-sync)
@@ -2707,15 +2748,15 @@ elements that are non-equal are found."
 (defun sunrise-advertised-find-file-other ()
   "Open the file/directory selected in the passive pane."
   (interactive)
-  (if sunrise-synchronized
-      (let ((target (sunrise-directory-name-proper (dired-get-filename))))
-        (sunrise-change-window)
-        (if (file-directory-p target)
-            (sunrise-goto-dir (expand-file-name target))
-          (if (y-or-n-p "Unable to synchronize. Disable sync navigation? ")
-              (sunrise-sync)))
-        (sunrise-change-window)
-        (sunrise-advertised-find-file))
+  (when sunrise-synchronized
+    (let ((target (sunrise-directory-name-proper (dired-get-filename))))
+      (sunrise-change-window)
+      (cond ((file-directory-p target)
+             (sunrise-goto-dir (expand-file-name target)))
+            ((y-or-n-p "Unable to synchronize. Disable sync navigation? ")
+             (sunrise-sync)))
+      (sunrise-change-window)
+      (sunrise-advertised-find-file))
     (sunrise-in-other (sunrise-advertised-find-file))))
 
 (defun sunrise-mouse-advertised-find-file (_e)
@@ -2808,7 +2849,8 @@ specifiers are: d (decimal), x (hex) or o (octal)."
          (filename (read-file-name prompt)) (name))
     (with-temp-buffer
       (if (>= 1 qty)
-          (unless (file-exists-p filename) (write-file filename))
+          (unless (file-exists-p filename)
+            (write-file filename))
         (unless (string-match "%[0-9]*[dox]" filename)
           (setq filename (concat filename ".%d")))
         (setq filename (replace-regexp-in-string "%\\([^%]\\)" "%%\\1" filename)
@@ -2816,7 +2858,8 @@ specifiers are: d (decimal), x (hex) or o (octal)."
                         "%%\\([0-9]*[dox]\\)" "%\\1" filename))
         (dotimes (n qty)
           (setq name (format filename (1+ n)))
-          (unless (file-exists-p name) (write-file name)))))
+          (unless (file-exists-p name)
+            (write-file name)))))
     (sunrise-revert-buffer)))
 
 (defun sunrise-editable-pane ()
@@ -2826,8 +2869,8 @@ specifiers are: d (decimal), x (hex) or o (octal)."
   (let* ((was-virtual (eq major-mode 'sunrise-virtual-mode))
          (major-mode 'dired-mode))
     (wdired-change-to-wdired-mode)
-    (if was-virtual
-        (set (make-local-variable 'sunrise-virtual-buffer) t)))
+    (when was-virtual
+      (set (make-local-variable 'sunrise-virtual-buffer) t)))
   (run-hooks 'sunrise-refresh-hook))
 
 (defun sunrise-readonly-pane (as-virtual)
@@ -2879,18 +2922,18 @@ cl-macs at runtime."
          (vtarget (sunrise-virtual-target))
          (target (or vtarget sunrise-other-directory))
          (progress))
-    (if (and (not vtarget) (sunrise-equal-dirs default-directory sunrise-other-directory))
+    (if (and (not vtarget)
+             (sunrise-equal-dirs default-directory sunrise-other-directory))
         (dired-do-copy)
       (when (sunrise-ask "Copy" target items #'y-or-n-p)
-        (if vtarget
-            (progn
-              (sunrise-copy-virtual)
-              (message "Done: %d items(s) copied" (length items)))
-          (progn
-            (setq progress (sunrise-make-progress-reporter
-                            "copying" (sunrise-files-size items)))
-            (sunrise-clone items target #'copy-file progress ?C)
-            (sunrise-progress-reporter-done progress)))
+        (cond (vtarget
+               (sunrise-copy-virtual)
+               (message "Done: %d items(s) copied" (length items)))
+              (t
+               (setq progress (sunrise-make-progress-reporter
+                               "copying" (sunrise-files-size items)))
+               (sunrise-clone items target #'copy-file progress ?C)
+               (sunrise-progress-reporter-done progress)))
         (sunrise-silently (dired-unmark-all-marks))))))
 
 (defun sunrise-do-symlink ()
@@ -2984,14 +3027,15 @@ See `dired-make-relative-symlink'."
   "Clone all selected items recursively into the passive pane."
   (interactive (sunrise-do-clone-prompt))
 
-  (if (sunrise-virtual-target)
-      (error "Cannot clone into a VIRTUAL buffer, try (C)opying instead"))
-  (if (sunrise-equal-dirs default-directory sunrise-other-directory)
-      (error "Cannot clone inside one single directory, please select a\
+  (when (sunrise-virtual-target)
+    (error "Cannot clone into a VIRTUAL buffer, try (C)opying instead"))
+  (when (sunrise-equal-dirs default-directory sunrise-other-directory)
+    (error "Cannot clone inside one single directory, please select a\
  different one in the passive pane"))
 
   (let ((target sunrise-other-directory) clone-op items progress)
-    (if (and mode (>= mode 97)) (setq mode (- mode 32)))
+    (when (and mode (>= mode 97))
+      (setq mode (- mode 32)))
     (setq clone-op
           (cl-case mode
             (?D nil)
@@ -3015,10 +3059,10 @@ The extension to append to each filename can be controlled by
 setting the value of the `sunrise-fast-backup-extension' custom
 variable. Directories are not copied."
   (interactive)
-  (let ((extension (if (listp sunrise-fast-backup-extension)
-                       (eval sunrise-fast-backup-extension)
-                     sunrise-fast-backup-extension)))
-    (dired-do-copy-regexp "$" extension))
+  (dired-do-copy-regexp
+   "$" (if (listp sunrise-fast-backup-extension)
+           (eval sunrise-fast-backup-extension)
+         sunrise-fast-backup-extension))
   (revert-buffer))
 
 (defun sunrise-clone-fs (items target clone-op progress)
@@ -3069,8 +3113,8 @@ clone the files. FILE-PATHS should be a list of absolute paths."
         (cond
          (symlink-to
           (progn
-            (if (file-exists-p symlink-to)
-                (setq symlink-to (expand-file-name symlink-to)))
+            (when (file-exists-p symlink-to)
+              (setq symlink-to (expand-file-name symlink-to)))
             (make-symbolic-link symlink-to target-file do-overwrite)))
 
          ((file-directory-p f)
@@ -3081,9 +3125,9 @@ clone the files. FILE-PATHS should be a list of absolute paths."
 
          (clone-op
           ;; (message "[[Cloning: %s => %s]]" f target-file)
-          (if (eq clone-op 'copy-file)
-              (setq clone-args
-                    (append clone-args (list dired-copy-preserve-time))))
+          (when (eq clone-op 'copy-file)
+            (setq clone-args
+                  (append clone-args (list dired-copy-preserve-time))))
           (if (file-exists-p target-file)
               (if (or (eq do-overwrite 'ALWAYS)
                       (setq do-overwrite (sunrise-ask-overwrite target-file)))
@@ -3095,8 +3139,8 @@ clone the files. FILE-PATHS should be a list of absolute paths."
   "Clone directory IN-DIR/D and all its files recursively to TO-DIR.
 IN-DIR/D => TO-DIR/D using CLONE-OP to clone the files."
   (setq d (replace-regexp-in-string "/?$" "/" d))
-  (if (string= "" d)
-      (setq to-dir (concat to-dir (sunrise-directory-name-proper in-dir))))
+  (when (string= "" d)
+    (setq to-dir (concat to-dir (sunrise-directory-name-proper in-dir))))
   (let* ((files-in-d (sunrise-list-of-contents (concat in-dir d)))
          (file-paths-in-d
           (mapcar (lambda (f) (concat in-dir d f)) files-in-d)))
@@ -3548,6 +3592,7 @@ abort."
   (with-current-buffer (process-buffer proc)
     (when (eq 'sunrise-virtual-mode major-mode)
       (sunrise-backup-buffer))))
+
 (ad-activate 'find-dired-sentinel)
 
 (defadvice find-dired-filter
@@ -3560,6 +3605,7 @@ by the Sunrise Commander."
                (string-match "G" sunrise-virtual-listing-switches)))
       (let ((find-ls-option nil)) ad-do-it)
     ad-do-it))
+
 (ad-activate 'find-dired-filter)
 
 (defun sunrise-multifind-handler (operation &rest args)
@@ -4578,6 +4624,7 @@ when any of the options -p or -F is used with ls."
             (set sym val)))
         '(sunrise-listing-switches sunrise-virtual-listing-switches))
   (remove-hook 'sunrise-init-hook 'sunrise-fix-listing-switches))
+
 (add-hook 'sunrise-init-hook 'sunrise-fix-listing-switches)
 
 (defun sunrise-chop (char path)
@@ -4605,21 +4652,23 @@ when any of the options -p or -F is used with ls."
   "Put all or FUNCTION-specific advice matching REGEXP into effect.
 If provided, only update FUNCTION itself, otherwise all functions
 with advice matching REGEXP."
-  (if function
-      (progn (ad-enable-advice function 'any regexp)
-             (ad-activate function))
-    (ad-enable-regexp regexp)
-    (ad-activate-regexp regexp)))
+  (cond ((not function)
+         (ad-enable-regexp regexp)
+         (ad-activate-regexp regexp))
+        (t
+         (ad-enable-advice function 'any regexp)
+         (ad-activate function))))
 
 (defun sunrise-ad-disable (regexp &optional function)
   "Stop all FUNCTION-specific advice matching REGEXP from taking effect.
 If provided, only update FUNCTION itself, otherwise all functions
 with advice matching REGEXP."
-  (if function
-      (progn (ad-disable-advice function 'any regexp)
-             (ad-update function))
-    (ad-disable-regexp regexp)
-    (ad-update-regexp regexp)))
+  (cond ((not function)
+         (ad-disable-regexp regexp)
+         (ad-update-regexp regexp))
+        (t
+         (ad-disable-advice function 'any regexp)
+         (ad-update function))))
 
 (defun sunrise-unload-function ()
   (sunrise-ad-disable "^sunrise-advice-"))
