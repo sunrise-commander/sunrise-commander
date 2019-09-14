@@ -3726,7 +3726,6 @@ pane."
   (interactive)
   (when sunrise-running
     (sunrise-beginning-of-buffer)
-    (dired-change-marks ?* ?\t)
     (let ((stack nil) (filter "") (regex "") (next-char nil) (inhibit-quit t))
       (cl-labels ((read-next (f) (read-char (concat "Fuzzy narrow: " f))))
         (setq next-char (read-next filter))
@@ -3754,11 +3753,23 @@ pane."
                      regex (replace-regexp-in-string "\\]\\*\\[\\^" "" regex)))
              (setq stack (cons (cons filter regex) stack))))
           (when next-char
-            (dired-mark-files-regexp (concat "^" regex "$"))
-            (dired-toggle-marks)
-            (dired-do-kill-lines)
-            (setq next-char (read-next filter)))))
-      (dired-change-marks ?\t ?*))))
+            (add-to-invisibility-spec 'sunrise-narrow)
+            (let ((inhibit-read-only t))
+              (goto-char (point-min))
+              (while (not (eobp))
+                (let* ((start (dired-move-to-filename))
+                       (end (and start (dired-move-to-end-of-filename t))))
+                  (when (and start end)
+                    (let ((old (get-text-property start 'invisible)))
+                      (put-text-property
+                       (point-at-bol) (point-at-eol) 'invisible
+                       (if (string-match-p
+                            regex (buffer-substring-no-properties start end))
+                           (cl-set-difference old '(sunrise-narrow))
+                         (cl-union old '(sunrise-narrow)))))))
+                (goto-char (point-at-bol))
+                (forward-line 1)))
+            (setq next-char (read-next filter))))))))
 
 (defun sunrise-recent-files ()
   "Display the history of recent files in Sunrise virtual mode."
