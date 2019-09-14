@@ -4618,28 +4618,83 @@ with advice matching REGEXP."
 ;;; ============================================================================
 ;;; Font-Lock colors & styles:
 
-(defmacro sunrise-rainbow (symbol spec regexp)
+(defmacro sunrise-define-rainbow-face (symbol spec regexp)
   `(progn
-     (defface ,symbol '((t ,spec)) "Sunrise rainbow face" :group 'sunrise-faces)
+     (defface ,symbol
+       '((t ,spec)) "Sunrise rainbow face"
+       :group 'sunrise-faces)
      ,@(mapcar (lambda (m)
                  `(font-lock-add-keywords ',m '((,regexp 1 ',symbol))))
                '(sunrise-mode sunrise-virtual-mode))))
 
-(sunrise-rainbow sunrise-html-face              (:foreground "DarkOliveGreen")        "\\(^[^!].[^d].*\\.x?html?$\\)")
-(sunrise-rainbow sunrise-xml-face               (:foreground "DarkGreen")             "\\(^[^!].[^d].*\\.\\(xml\\|xsd\\|xslt?\\|wsdl\\)$\\)")
-(sunrise-rainbow sunrise-log-face               (:foreground "brown")                 "\\(^[^!].[^d].*\\.log$\\)")
-(sunrise-rainbow sunrise-compressed-face        (:foreground "magenta")               "\\(^[^!].[^d].*\\.\\(zip\\|bz2\\|t?[gx]z\\|[zZ]\\|[jwers]?ar\\|xpi\\|apk\\|xz\\)$\\)")
-(sunrise-rainbow sunrise-packaged-face          (:foreground "DarkMagenta")           "\\(^[^!].[^d].*\\.\\(deb\\|rpm\\)$\\)")
-(sunrise-rainbow sunrise-encrypted-face         (:foreground "DarkOrange1")           "\\(^[^!].[^d].*\\.\\(gpg\\|pgp\\)$\\)")
+(sunrise-define-rainbow-face
+ sunrise-html-face
+ (:foreground "DarkOliveGreen") "\\(^[^!].[^d].*\\.x?html?$\\)")
 
-(sunrise-rainbow sunrise-directory-face         (:inherit dired-directory :bold t)    "\\(^[^!].d.*\\)")
-(sunrise-rainbow sunrise-symlink-face           (:inherit dired-symlink :italic t)    "\\(^[^!].l.*[^/]$\\)")
-(sunrise-rainbow sunrise-symlink-directory-face (:inherit dired-directory :italic t)  "\\(^[^!].l.*/$\\)")
-(sunrise-rainbow sunrise-alt-marked-dir-face    (:foreground "DeepPink" :bold t)      "\\(^[^ *!D].d.*$\\)")
-(sunrise-rainbow sunrise-alt-marked-file-face   (:foreground "DeepPink")              "\\(^[^ *!D].[^d].*$\\)")
-(sunrise-rainbow sunrise-marked-dir-face        (:inherit dired-marked)               "\\(^[*!D].d.*$\\)")
-(sunrise-rainbow sunrise-marked-file-face       (:inherit dired-marked :bold nil)     "\\(^[*!D].[^d].*$\\)")
-(sunrise-rainbow sunrise-broken-link-face       (:inherit dired-warning :italic t)    "\\(^[!].l.*$\\)")
+(sunrise-define-rainbow-face
+ sunrise-xml-face
+ (:foreground "DarkGreen")
+ "\\(^[^!].[^d].*\\.\\(xml\\|xsd\\|xslt?\\|wsdl\\)$\\)")
+
+(sunrise-define-rainbow-face
+ sunrise-log-face
+ (:foreground "brown")
+ "\\(^[^!].[^d].*\\.log$\\)")
+
+(sunrise-define-rainbow-face
+ sunrise-compressed-face
+ (:foreground "magenta")
+ "\\(^[^!].[^d].*\\.\\(zip\\|bz2\\|t?[gx]z\\|[zZ]\\|[jwers]?ar\\|xpi\\|apk\\|xz\\)$\\)")
+
+(sunrise-define-rainbow-face
+ sunrise-packaged-face
+ (:foreground "DarkMagenta")
+ "\\(^[^!].[^d].*\\.\\(deb\\|rpm\\)$\\)")
+
+(sunrise-define-rainbow-face
+ sunrise-encrypted-face
+ (:foreground "DarkOrange1")
+ "\\(^[^!].[^d].*\\.\\(gpg\\|pgp\\)$\\)")
+
+(sunrise-define-rainbow-face
+ sunrise-directory-face
+ (:inherit dired-directory :bold t)
+ "\\(^[^!].d.*\\)")
+
+(sunrise-define-rainbow-face
+ sunrise-symlink-face
+ (:inherit dired-symlink :italic t)
+ "\\(^[^!].l.*[^/]$\\)")
+
+(sunrise-define-rainbow-face
+ sunrise-symlink-directory-face
+ (:inherit dired-directory :italic t)
+ "\\(^[^!].l.*/$\\)")
+
+(sunrise-define-rainbow-face
+ sunrise-alt-marked-dir-face
+ (:foreground "DeepPink" :bold t)
+ "\\(^[^ *!D].d.*$\\)")
+
+(sunrise-define-rainbow-face
+ sunrise-alt-marked-file-face
+ (:foreground "DeepPink")
+ "\\(^[^ *!D].[^d].*$\\)")
+
+(sunrise-define-rainbow-face
+ sunrise-marked-dir-face
+ (:inherit dired-marked)
+ "\\(^[*!D].d.*$\\)")
+
+(sunrise-define-rainbow-face
+ sunrise-marked-file-face
+ (:inherit dired-marked :bold nil)
+ "\\(^[*!D].[^d].*$\\)")
+
+(sunrise-define-rainbow-face
+ sunrise-broken-link-face
+ (:inherit dired-warning :italic t)
+ "\\(^[!].l.*$\\)")
 
 (provide 'sunrise)
 
