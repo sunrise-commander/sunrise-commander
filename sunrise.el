@@ -3755,20 +3755,21 @@ pane."
           (when next-char
             (add-to-invisibility-spec 'sunrise-narrow)
             (let ((inhibit-read-only t))
-              (goto-char (point-min))
-              (while (not (eobp))
-                (let* ((start (dired-move-to-filename))
-                       (end (and start (dired-move-to-end-of-filename t))))
-                  (when (and start end)
-                    (let ((old (get-text-property start 'invisible)))
-                      (put-text-property
-                       (point-at-bol) (point-at-eol) 'invisible
-                       (if (string-match-p
-                            regex (buffer-substring-no-properties start end))
-                           (cl-set-difference old '(sunrise-narrow))
-                         (cl-union old '(sunrise-narrow)))))))
-                (goto-char (point-at-bol))
-                (forward-line 1)))
+              (save-excursion
+                (goto-char (point-min))
+                (while (not (eobp))
+                  (let* ((start (dired-move-to-filename))
+                         (end (and start (dired-move-to-end-of-filename t))))
+                    (when (and start end)
+                      (let ((old (get-text-property start 'invisible)))
+                        (put-text-property
+                         (point-at-bol) (point-at-eol) 'invisible
+                         (if (string-match-p
+                              regex (buffer-substring-no-properties start end))
+                             (cl-set-difference old '(sunrise-narrow))
+                           (cl-union old '(sunrise-narrow)))))))
+                  (goto-char (point-at-bol))
+                  (forward-line 1))))
             (setq next-char (read-next filter))))))))
 
 (defun sunrise-recent-files ()
