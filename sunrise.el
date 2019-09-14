@@ -2339,11 +2339,11 @@ Kills any other buffer opened previously the same way."
            (sunrise-scrollable-viewer (current-buffer)))
        (error (message "%s" (cadr description)))))))
 
-(defun sunrise-sunrise-quit-function ()
+(defun sunrise-quit-function ()
   (setq other-window-scroll-buffer nil))
 
 ;; These clean up after a quick view:
-(add-hook 'sunrise-quit-hook 'sunrise-sunrise-quit-function)
+(add-hook 'sunrise-quit-hook 'sunrise-quit-function)
 (add-hook 'kill-buffer-hook
           (defun sunrise-kill-viewer-function ()
             (if (eq (current-buffer) other-window-scroll-buffer)
