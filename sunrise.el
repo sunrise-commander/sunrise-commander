@@ -3749,7 +3749,7 @@ pane."
   Once narrowed and accepted, you can restore the original contents of the pane
   by pressing g (`revert-buffer')."
   (interactive)
-  (assert sunrise-running)
+  (cl-assert sunrise-running)
   (sunrise-beginning-of-buffer)
   (let ((stack nil) (filter "") (regex "") (next-char nil) (inhibit-quit t))
     (cl-labels ((read-next (f) (read-char (concat "Fuzzy narrow: " f))))
