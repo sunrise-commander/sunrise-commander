@@ -3763,7 +3763,7 @@ pane."
                     (when (and start end)
                       (let ((old (get-text-property start 'invisible)))
                         (put-text-property
-                         (point-at-bol) (point-at-eol) 'invisible
+                         (point-at-bol) (1+ (point-at-eol)) 'invisible
                          (if (string-match-p
                               regex (buffer-substring-no-properties start end))
                              (cl-set-difference old '(sunrise-narrow))
