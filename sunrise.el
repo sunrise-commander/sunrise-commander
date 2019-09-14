@@ -1243,14 +1243,18 @@ the Sunrise Commander."
   "Whether to use traditional commander-style function keys (F5 = copy, etc)"
   :group 'sunrise
   :type 'boolean
-  :set (defun sunrise-set-commander-keys (symbol value)
-         "Setter function for the `sunrise-use-commander-keys' custom option."
-         (if value
-             (mapc (lambda (x)
-                     (define-key sunrise-mode-map (car x) (cdr x))) sunrise-commander-keys)
-           (mapc (lambda (x)
-                   (define-key sunrise-mode-map (car x) nil)) sunrise-commander-keys))
-         (set-default symbol value)))
+  :set 'sunrise-set-commander-keys)
+
+(defun sunrise-set-commander-keys (symbol value)
+  "Setter function for the `sunrise-use-commander-keys' custom option."
+  (if value
+      (mapc (lambda (x)
+              (define-key sunrise-mode-map (car x) (cdr x)))
+            sunrise-commander-keys)
+    (mapc (lambda (x)
+            (define-key sunrise-mode-map (car x) nil))
+          sunrise-commander-keys))
+  (set-default symbol value))
 
 ;;; ============================================================================
 ;;; Initialization and finalization functions:
