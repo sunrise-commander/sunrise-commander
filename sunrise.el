@@ -3404,9 +3404,11 @@ as its first argument."
   (interactive)
   (eval (sunrise-diff-form 'ediff)))
 
+(defun sunrise-ediff-before-setup-windows-function ()
+  (setq sunrise-ediff-on t))
+
 (add-hook 'ediff-before-setup-windows-hook
-          (defun sunrise-ediff-before-setup-windows-function ()
-            (setq sunrise-ediff-on t)))
+          'sunrise-ediff-before-setup-windows-function)
 
 (add-hook 'ediff-quit-hook
           (defun sunrise-ediff-quit-function ()
