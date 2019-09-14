@@ -4188,11 +4188,11 @@ Helper macro for implementing terminal integration in Sunrise."
   (interactive)
   (sunrise-ti (sunrise-change-window)))
 
-(add-hook
- 'kill-buffer-hook
- (defun sunrise-ti-cleanup-openterms ()
-   "Remove the current buffer from the list of open terminals."
-   (setq sunrise-ti-openterms (delete (current-buffer) sunrise-ti-openterms))))
+(defun sunrise-ti-cleanup-openterms ()
+  "Remove the current buffer from the list of open terminals."
+  (setq sunrise-ti-openterms (delete (current-buffer) sunrise-ti-openterms)))
+
+(add-hook 'kill-buffer-hook 'sunrise-ti-cleanup-openterms)
 
 (defun sunrise-ti-revert-buffer ()
   "Refresh the currently active pane."
