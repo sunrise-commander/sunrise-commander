@@ -280,6 +280,18 @@ Should not contain the -D option. See also `sunrise-listing-switches'."
   :group 'sunrise
   :type 'string)
 
+(defun sunrise-set-cursor-follows-mouse (symbol value)
+  "Setter function for the `sunrise-cursor-follows-mouse' custom option."
+  (mapc (lambda (buf)
+          (with-current-buffer buf
+            (when (memq major-mode
+                        '(sunrise-mode
+                          sunrise-tree-mode
+                          sunrise-virtual-mode))
+              (setq track-mouse value))))
+        (buffer-list))
+  (set-default symbol value))
+
 (defcustom sunrise-cursor-follows-mouse t
   "Determines whether the cursor inside the Sunrise panes should
 follow the mouse in graphical environments."
@@ -335,6 +347,12 @@ May be `horizontal', `vertical' or `top'."
   "When non-nil, vertical size of the panes will remain constant."
   :group 'sunrise
   :type 'boolean)
+
+(defun sunrise-set-windows-default-ratio (symbol value)
+  "Setter function for the `sunrise-windows-default-ratio' custom option."
+  (if (and (integerp value) (>= value 0) (<= value 100))
+      (set-default symbol value)
+    (error "Invalid value: %s" value)))
 
 (defcustom sunrise-windows-default-ratio 66
   "Percentage of the total height of the frame to use by default for the Sunrise
@@ -842,24 +860,6 @@ automatically:
   (define-key sunrise-virtual-mode-map "\C-c\C-c" 'sunrise-virtual-dismiss)
   (define-key sunrise-virtual-mode-map "\C-cv"    'sunrise-backup-buffer))
 
-(defun sunrise-set-cursor-follows-mouse (symbol value)
-  "Setter function for the `sunrise-cursor-follows-mouse' custom option."
-  (mapc (lambda (buf)
-          (with-current-buffer buf
-            (when (memq major-mode
-                        '(sunrise-mode
-                          sunrise-tree-mode
-                          sunrise-virtual-mode))
-              (setq track-mouse value))))
-        (buffer-list))
-  (set-default symbol value))
-
-(defun sunrise-set-windows-default-ratio (symbol value)
-  "Setter function for the `sunrise-windows-default-ratio' custom option."
-  (if (and (integerp value) (>= value 0) (<= value 100))
-      (set-default symbol value)
-    (error "Invalid value: %s" value)))
-
 (defmacro sunrise-within (dir form)
   "Evaluate FORM in Sunrise context."
   `(unwind-protect
@@ -1239,12 +1239,6 @@ the Sunrise Commander."
     ([(control prior)] . sunrise-dired-prev-subdir))
   "Traditional commander-style keybindings for the Sunrise Commander.")
 
-(defcustom sunrise-use-commander-keys t
-  "Whether to use traditional commander-style function keys (F5 = copy, etc)"
-  :group 'sunrise
-  :type 'boolean
-  :set 'sunrise-set-use-commander-keys)
-
 (defun sunrise-set-use-commander-keys (symbol value)
   "Setter function for the `sunrise-use-commander-keys' custom option."
   (if value
@@ -1255,6 +1249,12 @@ the Sunrise Commander."
             (define-key sunrise-mode-map (car x) nil))
           sunrise-commander-keys))
   (set-default symbol value))
+
+(defcustom sunrise-use-commander-keys t
+  "Whether to use traditional commander-style function keys (F5 = copy, etc)"
+  :group 'sunrise
+  :type 'boolean
+  :set 'sunrise-set-use-commander-keys)
 
 ;;; ============================================================================
 ;;; Initialization and finalization functions:
