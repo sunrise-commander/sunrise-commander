@@ -2447,16 +2447,17 @@ reverts the buffer."
       (revert-buffer)))
   (message "Sunrise: sorting entries by %s" label))
 
-(defmacro sunrise-defun-sort-by (postfix options)
+(defmacro sunrise-define-sort-by-function (postfix options)
   "Helper macro for defining `sunrise-sort-by-xxx' functions."
   `(defun ,(intern (format "sunrise-sort-by-%s" postfix)) ()
      ,(format "Sorts the contents of the current Sunrise pane by %s." postfix)
      (interactive)
      (sunrise-sort-order ,(upcase postfix) ,options)))
-(sunrise-defun-sort-by "name" "")
-(sunrise-defun-sort-by "extension" "X")
-(sunrise-defun-sort-by "time" "t")
-(sunrise-defun-sort-by "size" "S")
+
+(sunrise-define-sort-by-function "name" "")
+(sunrise-define-sort-by-function "extension" "X")
+(sunrise-define-sort-by-function "time" "t")
+(sunrise-define-sort-by-function "size" "S")
 
 (defun sunrise-sort-by-number (&optional inhibit-label)
   "Sort the contents of the current Sunrise pane numerically.
