@@ -577,13 +577,17 @@ the directory to go to.")
 (defconst sunrise-side-lookup (list '(left . right) '(right . left))
   "Trivial alist used by the Sunrise Commander to lookup its own passive side.")
 
+(defgroup sunrise-faces nil
+  "Faces used by Sunrise Commander"
+  :group 'sunrise)
+
 (defface sunrise-active-path-face
   '((((type tty) (class color) (min-colors 8))
      :background "green" :foreground "yellow" :bold t)
     (((type tty) (class mono)) :inverse-video t)
     (t :background "#ace6ac" :foreground "yellow" :bold t :height 120))
   "Face of the directory path in the active pane."
-  :group 'sunrise)
+  :group 'sunrise-faces)
 
 (defface sunrise-passive-path-face
   '((((type tty) (class color) (min-colors 8) (background dark))
@@ -592,23 +596,23 @@ the directory to go to.")
      :background "white" :foreground "cyan")
     (t :background "white" :foreground "lightgray" :bold t :height 120))
   "Face of the directory path in the passive pane."
-  :group 'sunrise)
+  :group 'sunrise-faces)
 
 (defface sunrise-editing-path-face
   '((t :background "red" :foreground "yellow" :bold t :height 120))
   "Face of the directory path in the active pane while in editable pane mode."
-  :group 'sunrise)
+  :group 'sunrise-faces)
 
 (defface sunrise-highlight-path-face
   '((t :background "yellow" :foreground "#ace6ac" :bold t :height 120))
   "Face of the directory path on mouse hover."
-  :group 'sunrise)
+  :group 'sunrise-faces)
 
 (defface sunrise-clex-hotchar-face
   '((t :foreground "red" :bold t))
   "Face of the hot character (%) in CLEX mode.
 Indicates that a CLEX substitution may be about to happen."
-  :group 'sunrise)
+  :group 'sunrise-faces)
 
 ;;; ============================================================================
 ;;; This is the core of Sunrise: the main idea is to apply `sunrise-mode' only inside
