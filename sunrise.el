@@ -929,7 +929,7 @@ Uses `save-selected-window' internally."
 
 (defun sunrise-assert-other ()
   "Signal an error if we have no other pane."
-  (unless (window-live-p (sunrise-other))
+  (unless (window-live-p (sunrise-other 'window))
     (user-error "No other Sunrise Commander pane")))
 
 (defmacro sunrise-in-other (form)
