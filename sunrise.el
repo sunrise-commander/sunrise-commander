@@ -1071,7 +1071,7 @@ file attributes are preserved. See the function `enriched-mode'."
 (ad-activate 'select-window)
 
 (defadvice other-window
-    (around sunrise-advice-other-window (count &optional all-frames))
+    (around sunrise-advice-other-window (count &optional all-frames interactive))
   "Select the correct Sunrise Commander pane when switching from other windows."
   (if (or (not sunrise-running) sunrise-ediff-on)
       ad-do-it
