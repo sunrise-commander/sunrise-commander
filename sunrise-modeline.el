@@ -126,6 +126,7 @@
 
 (defun sunrise-modeline-select-mark (mark &optional slot)
   "Select the right character for the given MARK in SLOT.
+
 Depends on whether UTF-8 has been enabled in the mode line via
 the variable `sunrise-modeline-use-utf8-marks'."
   (let ((select (if sunrise-modeline-use-utf8-marks #'cdr #'car))
@@ -146,11 +147,13 @@ the variable `sunrise-modeline-use-utf8-marks'."
              (funcall select sunrise-modeline-bkup-mark)
            " ")))))
 
-(defun sunrise-modeline-select-mode (mode)
-  "Assemble the indicators section on the left of the modeline."
-  (concat sunrise-modeline-sep (sunrise-modeline-select-mark mode 0)
-          sunrise-modeline-sep (sunrise-modeline-select-mark mode 1)
-          sunrise-modeline-sep (sunrise-modeline-select-mark mode 2)
+(defun sunrise-modeline-select-mode (mark)
+  "Assemble the indicators section on the left of the modeline.
+
+The MARK argument is as for `sunrise-modeline-select-mark`."
+  (concat sunrise-modeline-sep (sunrise-modeline-select-mark mark 0)
+          sunrise-modeline-sep (sunrise-modeline-select-mark mark 1)
+          sunrise-modeline-sep (sunrise-modeline-select-mark mark 2)
           sunrise-modeline-sep))
 
 (defun sunrise-modeline-setup ()
@@ -170,7 +173,8 @@ On success, sets the mode line format by calling
 
 (defun sunrise-modeline-set (mark)
   "Adjust the current mode line format.
-Uses the given mode indicator and the path to the current
+
+Uses the mode indicator MARK and the path to the current
 directory of the pane. Truncates the path if it is longer than
 the available width of the pane."
   (let ((path (expand-file-name default-directory))
@@ -241,6 +245,7 @@ accordingly."
 (defvar sunrise-modeline)
 
 (defun sunrise-modeline-refresh ()
+  "Refresh the Sunrise Commander navigation modeline."
   (setq sunrise-modeline t)
   (sunrise-modeline-setup))
 
@@ -258,8 +263,9 @@ accordingly."
    (setq mode-line-format (default-value 'mode-line-format))))
 
 (defun sunrise-modeline-toggle (&optional force)
-  ;; FIXME explain the argument
-  "Toggle display of the navigation mode line format."
+  "Toggle display of the navigation mode line format.
+
+Todo: document the FORCE argument."
   (interactive)
   (cond ((and force (< 0 force)) (sunrise-modeline-engage))
         ((and force (> 0 force)) (sunrise-modeline-disengage))
@@ -299,6 +305,7 @@ This is a minor mode that provides a single keybinding:
         (describe-function 'sunrise-modeline))])))
 
 (defun sunrise-modeline-popup-menu ()
+  "Show the Sunrise Modeline popup menu."
   (interactive)
   (popup-menu sunrise-modeline-menu))
 
@@ -321,8 +328,10 @@ This is a minor mode that provides a single keybinding:
       '("Toggle" . sunrise-modeline-toggle))))
 
 (defun sunrise-modeline-start-once ()
-  "Bootstrap the navigation mode line on the first execution of
-the Sunrise Commander, after module installation."
+  "Bootstrap the Sunrise Commander modeline extension.
+
+Run on the first execution of the Sunrise Commander after module
+installation."
   (sunrise-modeline t)
   (sunrise-modeline-menu-init)
   (remove-hook 'sunrise-start-hook 'sunrise-modeline-start-once)
