@@ -87,7 +87,7 @@
           (const dedicated-frames)))
 
 (defcustom sunrise-popviewer-select-viewer-action nil
-  "Alternative function for selecting a viewer window"
+  "Alternative function for selecting a viewer window."
   :group 'sunrise
   :type 'function)
 
@@ -154,10 +154,12 @@
 
 (defun sunrise-popviewer-quick-view (&optional arg)
   "Quickly view the currently selected item.
-On regular files, it opens the file in a separate frame, on
-directories visits the selected directory in the passive pane,
-and on symlinks follows the file the link points to in the
-passive pane."
+
+* Regular files are opened in a separate frame.
+* Directories are visited in the passive pane.
+* Symbolic link targets are visited in the passive pane.
+
+The prefix argument ARG is as for `sunrise-quick-view'."
   (interactive "P")
   (setq
    other-window-scroll-buffer
@@ -231,6 +233,7 @@ passive pane."
     (if sunrise-running (sunrise-setup-windows))))
 
 (defun sunrise-popviewer-unload-function ()
+  "Unload the Sunrise Commander popup viewer extension."
   (sunrise-popviewer-mode -1)
   (sunrise-ad-disable "^sunrise-popviewer-"))
 
