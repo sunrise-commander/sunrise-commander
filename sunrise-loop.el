@@ -158,7 +158,9 @@ killed."
         (run-with-timer sunrise-loop-timeout nil 'sunrise-loop-stop)))
 
 (defun sunrise-loop-stop (&optional interrupt)
-  "Shut down the background Elisp interpreter and clean up after it."
+  "Shut down the background Elisp interpreter and clean up after it.
+
+If INTERRUPT is non-nil, force an immediate shutdown."
   (interactive "p")
   (sunrise-loop-disable-timer)
   (when sunrise-loop-queue
@@ -171,14 +173,16 @@ killed."
     (delete-process sunrise-loop-process)
     (setq sunrise-loop-process nil)))
 
-(defun sunrise-loop-notify (msg)
-  "Notify the user about an event."
+(defun sunrise-loop-notify (string)
+  "Show message STRING to notify the user about an event."
   (if (and window-system sunrise-loop-use-popups)
-      (x-popup-dialog t (list msg '("OK")) t)
-    (message (concat "[[" msg "]]"))))
+      (x-popup-dialog t (list string '("OK")) t)
+    (message (concat "[[" string "]]"))))
 
 (defun sunrise-loop-filter (_process output)
-  "Process filter for the background interpreter."
+  "Process filter for the background interpreter.
+
+OUTPUT is partial output from the interpreter."
   (mapc (lambda (line)
           (cond ((string-match "^\\[\\[\\*\\([^\]\*]+\\)\\*\\]\\]$" line)
                  (sunrise-loop-notify (match-string 1 line)))
@@ -235,7 +239,8 @@ If no such interpreter is currently running, launches a new one."
 
 (defun sunrise-loop-do-copy (&optional arg)
   "Drop-in prefixable replacement for the `sunrise-do-copy' command.
-When invoked with a prefix argument, sets a flag that is used
+
+When invoked with a prefix argument ARG, sets a flag that is used
 later by advice to decide whether to delegate further copy
 operations to the background interpreter."
   (interactive "P")
@@ -246,7 +251,8 @@ operations to the background interpreter."
 
 (defun sunrise-loop-do-clone (&optional arg)
   "Drop-in prefixable replacement for the `sunrise-do-clone' command.
-When invoked with a prefix argument, sets a flag that is used
+
+When invoked with a prefix argument ARG, sets a flag that is used
 later by advice to decide whether to delegate further copy
 operations to the background interpreter."
   (interactive "P")
@@ -256,8 +262,9 @@ operations to the background interpreter."
     (call-interactively 'sunrise-do-clone)))
 
 (defun sunrise-loop-do-rename (&optional arg)
-  "Drop-in  prefixable  replacement  for  the `sunrise-do-rename' command.
-When invoked with a prefix argument, sets a flag that is used
+  "Drop-in prefixable replacement for the `sunrise-do-rename' command.
+
+When invoked with a prefix argument ARG, sets a flag that is used
 later by advice to decide whether to delegate further rename
 operations to the background interpreter."
   (interactive "P")
@@ -296,8 +303,7 @@ operations to the background interpreter."
             (file-creator operation fn-list name-constructor
                           &optional marker-char)
             activate)
-  "Delegate to the background interpreter all copy and rename operations
-triggered by `dired-do-copy' inside a loop scope."
+  "Delegate `dired-do-copy' ops in a loop to background interpreter."
   (if sunrise-loop-scope
       (with-no-warnings
         (sunrise-loop-enqueue
@@ -316,8 +322,7 @@ triggered by `dired-do-copy' inside a loop scope."
              progress
              &optional do-overwrite)
             activate)
-  "Delegate to the background interpreter all copy operations
-triggered by `sunrise-do-copy' inside a loop scope."
+  "Delegate `sunrise-do-copy' ops in a loop to background interpreter."
   (if sunrise-loop-scope
       (sunrise-loop-enqueue
        `(sunrise-clone-files
@@ -328,8 +333,7 @@ triggered by `sunrise-do-copy' inside a loop scope."
     (around sunrise-loop-advice-move-files
             (file-path-list target-dir progress &optional do-overwrite)
             activate)
-  "Delegate to the background interpreter all rename operations
-triggered by `sunrise-do-rename' inside a loop scope."
+  "Delegate `sunrise-do-rename' ops in a loop to background interpreter."
   (if sunrise-loop-scope
       (sunrise-loop-enqueue
        `(sunrise-move-files
@@ -341,6 +345,7 @@ triggered by `sunrise-do-rename' inside a loop scope."
 (define-key sunrise-mode-map "R" 'sunrise-loop-do-rename)
 
 (defun sunrise-loop-unload-function ()
+  "Unload the Sunrise Commander loop extension."
   (sunrise-ad-disable "^sunrise-loop-")
   (define-key sunrise-mode-map "C" 'sunrise-do-copy)
   (define-key sunrise-mode-map "K" 'sunrise-do-clone)
