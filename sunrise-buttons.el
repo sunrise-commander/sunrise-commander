@@ -74,8 +74,7 @@
   "Function to use to execute button commands, or nil to do the default.")
 
 (defvar sunrise-buttons-list
-  '(
-    ("GotoDir([F2,]j,/)" 'sunrise-goto-dir
+  '(("GotoDir([F2,]j,/)" 'sunrise-goto-dir
      "Go to any directory in active pane")
     ("View([F3,]v,o)"    'sunrise-quick-view
      "View selected file or directory in this window")
@@ -175,8 +174,7 @@
     ("More...(h)"        'sunrise-describe-mode
      "More commands and keybindings")
     ("Quit([F10,]q)"     'sunrise-quit
-     "Dismiss Sunrise Commander")
-    )
+     "Dismiss Sunrise Commander"))
   "Sunrise button definitions.")
 
 (defun sunrise-buttons-click ()
@@ -219,8 +217,7 @@
           [double-drag-mouse-1] [double-drag-mouse-2] [double-drag-mouse-3]
           [triple-drag-mouse-1] [triple-drag-mouse-2] [triple-drag-mouse-3]
           [double-down-mouse-1] [double-down-mouse-2] [double-down-mouse-3]
-          [triple-down-mouse-1] [triple-down-mouse-2] [triple-down-mouse-3]
-          )))
+          [triple-down-mouse-1] [triple-down-mouse-2] [triple-down-mouse-3])))
 
 (add-hook 'sunrise-start-hook 'sunrise-buttons-display)
 (add-hook 'sunrise-quit-hook 'sunrise-buttons-sunrise-quit-function)

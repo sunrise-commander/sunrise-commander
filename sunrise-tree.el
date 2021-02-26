@@ -596,9 +596,8 @@ failure, put the point at the top of the pane."
     ([C-return]  . 'sunrise-tree-explode-branch)
     ([C-right]   . 'sunrise-tree-explode-branch)
     ([3 right]   . 'sunrise-tree-explode-branch)
-    ("\C-c\C-m"  . 'sunrise-tree-explode-branch)
-
-    ) "Keybindings installed in `isearch-mode' during a sticky search.")
+    ("\C-c\C-m"  . 'sunrise-tree-explode-branch))
+  "Keybindings installed in `isearch-mode' during a sticky search.")
 
 (defsubst sunrise-tree-isearch-command (binding)
   `(lambda () (interactive) (sunrise-tree-post-isearch ,(cdr binding))))
@@ -999,8 +998,8 @@ buffer (necessary during `desktop-read')."
     (sunrise-toggle-truncate-lines . sunrise-toggle-truncate-lines)
     (dired-create-directory   . sunrise-tree-create-directory)
     (sunrise-history-prev          . sunrise-history-prev)
-    (sunrise-history-next          . sunrise-history-next)
-    ) "Sunrise Buttons-to-Tree commands translation table.")
+    (sunrise-history-next          . sunrise-history-next))
+  "Sunrise Buttons-to-Tree commands translation table.")
 
 (defun sunrise-tree-buttons-command-adapter (command)
   "Execute the given buttons command in the current Sunrise Tree View pane.

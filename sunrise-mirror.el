@@ -130,14 +130,12 @@
   :type 'boolean)
 
 (defcustom sunrise-mirror-pack-commands-alist
-  '(
-    ("\\.\\(?:zip\\|xpi\\|apk\\)$" . "zip -r   %f *")
+  '(("\\.\\(?:zip\\|xpi\\|apk\\)$" . "zip -r   %f *")
     ("\\.[jwesh]ar$"               . "zip -r   %f *")
     ("\\.tar$"                     . "tar cvf  %f *")
     ("\\.\\(?:tar\\.gz\\|tgz\\)$"  . "tar cvzf %f *")
     ("\\.tar\\.bz2$"               . "tar cvjf %f *")
-    ("\\.\\(?:tar\\.xz\\|txz\\)$"  . "tar cvJf %f *")
-    )
+    ("\\.\\(?:tar\\.xz\\|txz\\)$"  . "tar cvJf %f *"))
   "List of shell commands to repack particular archive contents.
 Used when repacking contents from a mirror area into a compressed
 archive of the appropriate type. Use %f as a placeholder for the

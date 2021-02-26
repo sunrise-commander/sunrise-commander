@@ -3378,10 +3378,8 @@ Broken links are *not* considered regular files."
 (defun sunrise-directory-name-proper (file-path)
   "Return the proper name of the directory FILE-PATH, without initial path."
   (if file-path
-      (let (
-            (file-path-1 (substring file-path 0 (- (length file-path) 1)))
-            (lastchar (substring file-path (- (length file-path) 1)))
-            )
+      (let ((file-path-1 (substring file-path 0 (- (length file-path) 1)))
+            (lastchar (substring file-path (- (length file-path) 1))))
         (concat (file-name-nondirectory file-path-1) lastchar))))
 
 ;;; ============================================================================
@@ -3979,8 +3977,8 @@ buffer in the passive pane."
     ("\M-e" . sunrise-end-of-buffer)
     ("\C-v" . scroll-up-command)
     ("\M-v" . (lambda () (interactive) (scroll-up-command '-)))
-    ("\C-g" . (lambda () (interactive) (save-excursion (isearch-abort))))
-    ) "Keybindings installed in `isearch-mode' during a sticky search.")
+    ("\C-g" . (lambda () (interactive) (save-excursion (isearch-abort)))))
+  "Keybindings installed in `isearch-mode' during a sticky search.")
 
 (defun sunrise-sticky-isearch-remap-commands (&optional restore)
   "Remap `isearch-mode-map' commands using `sunrise-sticky-isearch-commands'.
