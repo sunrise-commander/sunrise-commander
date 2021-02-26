@@ -124,7 +124,7 @@
 (ad-activate 'bookmark-relocate)
 
 (defun sunrise-checkpoint-unload-function ()
-  "Unload the Sunrise Checkpoint extension."
+  "Unload the Sunrise Commander checkpoint extension."
   (sunrise-ad-disable "^sunrise-checkpoint-"))
 
 (provide 'sunrise-checkpoint)
