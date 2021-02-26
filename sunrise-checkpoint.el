@@ -80,10 +80,11 @@
     (handler . sunrise-checkpoint-handler)))
 
 (defun sunrise-checkpoint-handler (&optional bookmark)
-  "Handler for checkpoint bookmarks."
+  "Handler for a checkpoint BOOKMARK."
   (or sunrise-running (sunrise))
   (sunrise-select-window 'left)
-  (let ((dirs (cdr (assq 'sunrise-directories (cdr bookmark)))) (missing))
+  (let ((dirs (cdr (assq 'sunrise-directories (cdr bookmark))))
+        (missing '()))
     (mapc (lambda (x)
             (if (file-directory-p x)
                 (sunrise-save-aspect (dired x) (sunrise-bookmark-jump))
@@ -93,7 +94,7 @@
     (if missing (sunrise-checkpoint-relocate bookmark (reverse missing)))))
 
 (defun sunrise-checkpoint-relocate (bookmark &optional sides)
-  "Handle relocation of checkpoint bookmarks."
+  "Handle relocation of checkpoint BOOKMARK to SIDES."
   (interactive (list (bookmark-completing-read "Bookmark to relocate")))
   (let* ((sides (or sides '(left right)))
          (name (car bookmark))
@@ -115,6 +116,7 @@
 
 (defadvice bookmark-relocate
     (around sunrise-checkpoint-advice-bookmark-relocate (bookmark))
+  "Advice for bookmark relocation."
   (let ((bmk (bookmark-get-bookmark bookmark)))
     (if (assq 'sunrise-directories bmk)
         (sunrise-checkpoint-relocate bmk)
@@ -122,6 +124,7 @@
 (ad-activate 'bookmark-relocate)
 
 (defun sunrise-checkpoint-unload-function ()
+  "Unload the Sunrise Checkpoint extension."
   (sunrise-ad-disable "^sunrise-checkpoint-"))
 
 (provide 'sunrise-checkpoint)
