@@ -7,7 +7,7 @@
 ;; Maintainer: José Alfredo Romero Latouche <escherdragon@gmail.com>
 ;; Created: 20 Aug 2008
 ;; Version: 3
-;; Package-Requires: ((emacs "24.3") (cl-lib "0.5"))
+;; Package-Requires: ((emacs "24.3"))
 ;; Keywords: files, sunrise commander, windows, accessibility, viewer
 ;; URL: https://github.com/sunrise-commander/sunrise-commander
 

@@ -7,7 +7,7 @@
 ;; Maintainer: José Alfredo Romero Latouche <escherdragon@gmail.com>
 ;; Created: 27 Jun 2008
 ;; Version: 3
-;; Package-Requires: ((emacs "24.3") (cl-lib "0.5"))
+;; Package-Requires: ((emacs "24.3"))
 ;; Keywords: files, sunrise commander, background copy rename move
 ;; URL: https://github.com/sunrise-commander/sunrise-commander
 

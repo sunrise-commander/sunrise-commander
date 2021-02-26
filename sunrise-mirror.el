@@ -7,7 +7,7 @@
 ;; Maintainer: José Alfredo Romero Latouche <escherdragon@gmail.com>
 ;; Created: 4 May 2008
 ;; Version: 2
-;; Package-Requires: ((emacs "24.3") (cl-lib "0.5"))
+;; Package-Requires: ((emacs "24.3"))
 ;; Keywords: files, sunrise commander, archives read/write
 ;; URL: https://github.com/sunrise-commander/sunrise-commander
 

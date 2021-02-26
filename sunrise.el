@@ -7,7 +7,7 @@
 ;; Maintainer: José Alfredo Romero Latouche <escherdragon@gmail.com>
 ;; Created: 24 Sep 2007
 ;; Version: 6
-;; Package-Requires: ((emacs "24.3") (cl-lib "0.5"))
+;; Package-Requires: ((emacs "24.3"))
 ;; Keywords: files, dired, midnight commander, norton, orthodox
 ;; URL: https://github.com/sunrise-commander/sunrise-commander
 

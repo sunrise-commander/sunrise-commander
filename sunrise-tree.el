@@ -7,7 +7,7 @@
 ;; Maintainer: José Alfredo Romero Latouche <escherdragon@gmail.com>
 ;; Created: 4 May 2010
 ;; Version: 1
-;; Package-Requires: ((emacs "24.3") (cl-lib "0.5"))
+;; Package-Requires: ((emacs "24.3"))
 ;; Keywords: files, sunrise commander, directories tree navigation
 ;; URL: https://github.com/sunrise-commander/sunrise-commander
 
