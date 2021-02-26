@@ -125,7 +125,7 @@
 (require 'sunrise)
 
 (defcustom sunrise-mirror-keep-backups t
-  "If non-nil, keep backup files when committing changes to read-only archives."
+  "If non-nil, keep backup files committing changes to read-only archives."
   :group 'sunrise
   :type 'boolean)
 
@@ -413,7 +413,7 @@ newly packed archive, otherwise throws an error."
              (replace-regexp-in-string "\\+" "{+}" path)) handler)))
 
 (defun sunrise-mirror-demangle (path)
-  "Transform the given mirror area name into a regular filesystem path.
+  "Transform the given mirror area PATH into a regular filesystem path.
 
 Opposite of `sunrise-mirror-mangle'."
   (concat "/"
@@ -441,9 +441,9 @@ reflection causes deadlocks in FUSE."
     reflected))
 
 (defun sunrise-mirror-files (directory)
-  "Return list of pathnames constituting mirror modifications
+  "Return list of pathnames constituting mirror modifications.
 
-inside overlay DIRECTORY."
+Only pathnames inside the overlay DIRECTORY are considered."
   (if (not (file-directory-p directory))
       (ignore)
     (let ((files (directory-files directory)))
@@ -454,9 +454,12 @@ inside overlay DIRECTORY."
 (defun sunrise-mirror-overlay-redir (dirname &optional force-root)
   "Adjust DIRNAME for use with a mirror filesystem.
 
-Analyses the given directory path and rewrites it (if necessary)
-to play nicely with the mirror fs the given path belongs to. If
-the path is not inside any mirror fs, it is returned unmodified."
+Analyzes the given directory path and rewrites it (if necessary)
+to play nicely with the mirror file system the given path belongs
+to. If the path is not inside a mirror, it is returned
+unmodified.
+
+TODO: Document the FORCE-ROOT argument."
   (if (null sunrise-avfs-root)
       dirname
     (let ((xpdir (expand-file-name dirname))
@@ -501,7 +504,9 @@ inside the archive mapped by the surface of MIRROR1."
 (defun sunrise-mirror-goto-dir (target)
   "Enhance `sunrise-goto-dir' with transparent navigation inside mirror areas.
 
-All calls to `sunrise-goto-dir' are diverted to this function."
+All calls to `sunrise-goto-dir' are diverted to this function.
+
+TARGET is the directory to go to."
   (let* ((here (expand-file-name default-directory))
          (target (expand-file-name (or target ".")))
          (surface-here (sunrise-mirror-surface here))
@@ -532,7 +537,7 @@ All calls to `sunrise-goto-dir' are diverted to this function."
     (sunrise-highlight)))
 
 (defun sunrise-mirror-on-kill-buffer ()
-  "Handle navigation out of a mirror area other than through `sunrise-goto-dir'.
+  "Handle navigation out of a mirror area not via `sunrise-goto-dir'.
 
 This includes e.g. bookmark jumps and pane synchronizations."
   (when (and sunrise-mirror-home (eq major-mode 'sunrise-mode)
@@ -543,7 +548,7 @@ This includes e.g. bookmark jumps and pane synchronizations."
 
 (defadvice sunrise-goto-dir
     (around sunrise-mirror-advice-goto-dir (dir))
-  "Divert all `sunrise-goto-dir' calls to `sunrise-mirror-goto-dir'."
+  "Divert each `sunrise-goto-dir' call to `sunrise-mirror-goto-dir'."
   (if sunrise-mirror-divert-goto-dir
       (sunrise-mirror-goto-dir dir)
     ad-do-it))
@@ -555,8 +560,7 @@ This includes e.g. bookmark jumps and pane synchronizations."
              clone-op
              progress
              &optional do-overwrite))
-  "Redirect all `sunrise-copy' operations to the right path under the
-overlay directory."
+  "Redirect `sunrise-copy' operations to the overlay directory."
   (if (null sunrise-mirror-home)
       ad-do-it
     (let ((orig target-dir))
@@ -568,8 +572,7 @@ overlay directory."
 
 (defadvice make-directory
     (around sunrise-mirror-advice-make-directory (dirname &optional parents))
-  "Redirect directory creation operations to the right path under
-the overlay directory."
+  "Redirect make directory operations to the overlay directory."
   (setq dirname (sunrise-mirror-overlay-redir dirname))
   (setq parents t)
   ad-do-it)
@@ -591,16 +594,19 @@ to the right path under the overlay directory."
       ad-do-it)))
 
 (defun sunrise-mirror-toggle-read-only ()
-  "Toggle the read-only flag in all buffers opened inside a mirror area,
-so they are always writeable by default."
+  "Adjust the read-only flag in mirror buffers.
+
+Make buffers opened inside a mirror area writable by default."
   (if sunrise-mirror-home
       (let* ((orig (buffer-file-name))
              (target (sunrise-mirror-overlay-redir orig)))
         (if (> (length target) (length orig))
             (setq buffer-read-only nil)))))
+
 (add-hook 'find-file-hook 'sunrise-mirror-toggle-read-only)
 
 (defun sunrise-mirror-unload-function ()
+  "Unload the Sunrise Commander mirror extension."
   (sunrise-ad-disable "^sunrise-mirror-"))
 
 (provide 'sunrise-mirror)
