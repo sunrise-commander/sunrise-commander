@@ -68,7 +68,7 @@
 (require 'sunrise)
 
 (defvar sunrise-buttons-buffer-name "*Sunrise Buttons*"
-  "Name of the Sunrise buttons buffer")
+  "Name of the Sunrise buttons buffer.")
 
 (defvar sunrise-buttons-command-adapter nil
   "Function to use to execute button commands, or nil to do the default.")
@@ -189,10 +189,12 @@
   (sunrise-select-window sunrise-selected-window))
 
 (defun sunrise-buttons-sunrise-quit-function ()
+  "Sunrise Buttons handler for `sunrise-quit-hook'."
   (let ((buttons (get-buffer sunrise-buttons-buffer-name)))
     (if buttons (bury-buffer buttons))))
 
 (defun sunrise-buttons-kill-buffer-function ()
+  "Sunrise Buttons handler for `kill-buffer-hook'."
   (if (and sunrise-running (eq (current-buffer) other-window-scroll-buffer))
       (sunrise-buttons-display)))
 
@@ -258,12 +260,15 @@ If no buttons buffer exists yet, creates one."
   (goto-char (point-min)))
 
 (defun sunrise-buttons-build (spec mc-keys-on maxlen)
-  "Build and render a new widget in the buttons buffer.
-The first argument is an element of `sunrise-buttons-list' (list
-containing tag, action and hint), the second one is a flag that
-indicates whether mc style keybindings have been activated in
-Sunrise, and the last one is the length of the longest tag in the
-list."
+  "Build and render a new widget in the Sunrise Buttons buffer.
+
+SPEC is an element of `sunrise-buttons-list' (list containing
+tag, action and hint).
+
+MC-KEYS-ON is a flag that indicates whether Midnight Commander
+style keybindings have been activated in Sunrise.
+
+MAXLEN is the length of the longest tag in the list."
   (if (or (null spec)
           (> (+ (current-column) maxlen) (- (window-width) (/ maxlen 2))))
       (sunrise-buttons-eol)
@@ -304,10 +309,10 @@ Centers it if necessary."
     (apply 'max (mapcar lenfun sunrise-buttons-list))))
 
 (defun sunrise-buttons-normalize-tag (tag total-length fill-char)
-  "Lengthen the given tag to TOTAL-LENGTH.
-Works by prepending and appending the appropriate number of fill
-characters, so the text appears approximately centered on its
-button."
+  "Lengthen the given TAG to TOTAL-LENGTH.
+
+Prepends and appends FILL-CHAR until the text appears
+approximately centered on its button."
   (let* ((fill-length (- total-length (length tag)))
          (before (/ fill-length 2))
          (after (- fill-length before)))
