@@ -1351,6 +1351,13 @@ If provided, use SWITCHES instead of `sunrise-listing-switches'."
     (sunrise-display-attributes (point-min) (point-max) sunrise-show-file-attributes)
     (sunrise-this 'buffer)))
 
+(defun sunrise-dired-if-exists (target)
+  "Visit the given TARGET directory in `sunrise-mode'.
+
+If it does not exist, visit the home directory instead."
+  (let ((home (expand-file-name "~")))
+    (sunrise-dired (if (file-directory-p target) target home))))
+
 (defun sunrise-choose-cd-target ()
   "Select a suitable target directory for cd operations."
   (if (and sunrise-running (eq (selected-frame) sunrise-current-frame))
@@ -1406,7 +1413,7 @@ SIDE is one of the symbols left or right."
            (switch-to-buffer ,(sunrise-symbol side 'buffer))
            (setq ,(sunrise-symbol side 'directory) default-directory))
        (let ((sunrise-running t))
-         (sunrise-dired ,(sunrise-symbol side 'directory))))))
+         (sunrise-dired-if-exists ,(sunrise-symbol side 'directory))))))
 
 (defun sunrise-setup-visible-panes ()
   "Set up sunrise on all visible panes."
