@@ -2165,7 +2165,10 @@ This function is called only if the `sunrise-cursor-follows-mouse' custom variab
 
 (defun sunrise-select-window (side)
   "Select/highlight the given Sunrise window (right or left)."
-  (select-window (symbol-value (sunrise-symbol side 'window))))
+  (let ((window (symbol-value (sunrise-symbol side 'window))))
+    (if (window-live-p window)
+        (select-window window)
+        (error "No %s window" side))))
 
 (defun sunrise-viewer-window ()
   "Return an active window that can be used as the viewer."
