@@ -928,6 +928,16 @@ Uses `save-selected-window' internally."
          (unless (kill-buffer dispose)
            (kill-local-variable 'sunrise-current-path-faces))))))
 
+(defun sunrise-running-p ()
+  (not (null sunrise-running)))
+
+(defun sunrise-assert-running ()
+  (unless (sunrise-running-p)
+    (error "The Sunrise Commander is not running")))
+
+(defun sunrise-ensure-running ()
+  (or (sunrise-running-p) (sunrise)))
+
 (defun sunrise-assert-other ()
   "Signal an error if we have no other pane."
   (unless (window-live-p (sunrise-other 'window))
@@ -944,7 +954,7 @@ Helper macro for passive & synchronized navigation."
        (condition-case description
            ,form
          (error (message (cadr description)))))
-     (cond ((not sunrise-running)
+     (cond ((not (sunrise-running-p))
             (sunrise-select-window home))
            (t
             (run-hooks 'sunrise-refresh-hook)
@@ -962,7 +972,7 @@ Helper macro for passive & synchronized navigation."
 
 (defun sunrise-dired-mode ()
   "Set Sunrise mode in every Dired buffer opened in Sunrise (called in a hook)."
-  (if (and sunrise-running
+  (if (and (sunrise-running-p)
            (eq (selected-frame) sunrise-current-frame)
            (sunrise-equal-dirs dired-directory default-directory)
            (not (eq major-mode 'sunrise-mode)))
@@ -978,7 +988,7 @@ Helper macro for passive & synchronized navigation."
 
 (defun sunrise-bookmark-jump ()
   "Handle panes opened from bookmarks in Sunrise."
-  (when (and sunrise-running
+  (when (and (sunrise-running-p)
              (memq (selected-window) (list sunrise-left-window sunrise-right-window)))
     (let ((last-buf (symbol-value (sunrise-symbol sunrise-selected-window 'buffer))))
       (setq dired-omit-mode (with-current-buffer last-buf dired-omit-mode))
@@ -1058,7 +1068,7 @@ file attributes are preserved. See the function `enriched-mode'."
 (defadvice dired-dwim-target-directory
     (around sunrise-advice-dwim-target ())
   "Tweak the target directory guessing mechanism when Sunrise Commander is on."
-  (if (and sunrise-running (eq (selected-frame) sunrise-current-frame))
+  (if (and (sunrise-running-p) (eq (selected-frame) sunrise-current-frame))
       (setq ad-return-value sunrise-other-directory)
     ad-do-it))
 
@@ -1073,7 +1083,7 @@ file attributes are preserved. See the function `enriched-mode'."
 
 (defadvice other-window (around sunrise-advice-other-window)
   "Select the correct Sunrise Commander pane when switching from other windows."
-  (if (or (not sunrise-running) sunrise-ediff-on)
+  (if (or (not (sunrise-running-p)) sunrise-ediff-on)
       ad-do-it
     (let ((from (selected-window))
           (to (next-window)))
@@ -1300,7 +1310,7 @@ If FILENAME is non-nil, it is the basename of a file to focus."
   (interactive)
   (message "Starting Sunrise Commander...")
 
-  (if (not sunrise-running)
+  (if (not (sunrise-running-p))
       (let ((welcome sunrise-start-message))
         (when left-directory
           (setq sunrise-left-directory left-directory))
@@ -1342,7 +1352,9 @@ If provided, use SWITCHES instead of `sunrise-listing-switches'."
          (sunrise-listing-switches (or switches sunrise-listing-switches)))
     (unless (file-readable-p directory)
       (error "%s is not readable!" (sunrise-directory-name-proper directory)))
-    (unless (and sunrise-running (eq (selected-frame) sunrise-current-frame)) (sunrise))
+    (unless (and (sunrise-running-p)
+                 (eq (selected-frame) sunrise-current-frame))
+      (sunrise))
     (sunrise-select-window sunrise-selected-window)
     (if file
         (sunrise-follow-file file)
@@ -1360,7 +1372,7 @@ If it does not exist, visit the home directory instead."
 
 (defun sunrise-choose-cd-target ()
   "Select a suitable target directory for cd operations."
-  (if (and sunrise-running (eq (selected-frame) sunrise-current-frame))
+  (if (and (sunrise-running-p) (eq (selected-frame) sunrise-current-frame))
       sunrise-this-directory
     default-directory))
 
@@ -1372,7 +1384,7 @@ If Sunrise is on, disable it and switch to the buffer currently displayed in the
 viewer window."
   (interactive)
   (cond
-   ((not (and sunrise-running
+   ((not (and (sunrise-running-p)
               (eq (window-frame sunrise-left-window) (selected-frame))))
     (sunrise-dired (or (buffer-file-name) (sunrise-choose-cd-target))))
    (t
@@ -1477,7 +1489,7 @@ Return t if a configuration to restore could be found, nil otherwise."
 
 (defun sunrise-lock-window (_frame)
   "Resize the left Sunrise pane to have the \"right\" size."
-  (when sunrise-running
+  (when (sunrise-running-p)
     (if (not (window-live-p sunrise-left-window))
         (setq sunrise-running nil)
       (let ((sunrise-windows-locked sunrise-windows-locked))
@@ -1601,7 +1613,7 @@ If NORESTORE is nil, restore the Emacs window configuration to
 the state it was in before Sunrise was entered. Otherwise put the
 Emacs window configuration into a default state."
   (interactive)
-  (if (not sunrise-running)
+  (if (not (sunrise-running-p))
       (bury-buffer)
     (let ((buffer-read-only nil))
       (setq sunrise-running nil
@@ -1616,7 +1628,7 @@ Emacs window configuration into a default state."
 
 (add-hook 'delete-frame-functions
           (lambda (frame)
-            (when (and sunrise-running (eq frame sunrise-current-frame))
+            (when (and (sunrise-running-p) (eq frame sunrise-current-frame))
               (sunrise-quit))))
 
 (defun sunrise-save-directories ()
@@ -1738,7 +1750,7 @@ HEIGHT is the height to lock the panes at. Valid values are `min'
 and `max'; given any other value, locks the panes at normal
 position."
   (interactive)
-  (cond ((not sunrise-running)
+  (cond ((not (sunrise-running-p))
          (sunrise))
         ((not (and (window-live-p sunrise-left-window)
                    (or (window-live-p sunrise-right-window)
@@ -1945,7 +1957,7 @@ Very useful inside Sunrise VIRTUAL buffers."
 (defun sunrise-follow-viewer ()
   "Go to the directory of the file displayed in the viewer window."
   (interactive)
-  (when sunrise-running
+  (when (sunrise-running-p)
     (let* ((viewer (sunrise-viewer-window))
            (viewer-buffer (when viewer (window-buffer viewer)))
            (target-dir) (target-file))
@@ -2126,7 +2138,7 @@ For checkpoints to work, add sunrise-checkpoint.el to your `load-path'")))
 
 (defun sunrise-detect-switch ()
   "Detect Sunrise pane switches and update tracking state accordingly."
-  (when (and sunrise-running
+  (when (and (sunrise-running-p)
              (not sunrise-inhibit-switch)
              (eq (selected-window) (sunrise-other 'window)))
     (let ((there sunrise-this-directory))
@@ -2249,7 +2261,7 @@ calls the function `sunrise-setup-windows' and tries once again."
 
 (defun sunrise-split-setup(split-type)
   (setq sunrise-window-split-style split-type)
-  (when sunrise-running
+  (when (sunrise-running-p)
     (when (eq sunrise-window-split-style 'top)
       (sunrise-select-window 'left)
       (delete-window sunrise-right-window)
@@ -2945,7 +2957,7 @@ cl-macs at runtime."
     (intern (concat "sunrise-advice-" (symbol-name fun))) nil t
     `(advice
       lambda ()
-      (if (not sunrise-running)
+      (if (not (sunrise-running-p))
           ad-do-it
         (let ((was-virtual (local-variable-p 'sunrise-virtual-buffer))
               (saved-point (point)))
@@ -3501,7 +3513,7 @@ as its first argument."
 
 (defun sunrise-ediff-quit-function ()
   (setq sunrise-ediff-on nil)
-  (when sunrise-running
+  (when (sunrise-running-p)
     (if (buffer-live-p sunrise-restore-buffer)
         (switch-to-buffer sunrise-restore-buffer))
     (delete-other-windows)
@@ -3839,7 +3851,7 @@ pane."
   Once narrowed and accepted, you can restore the original contents of the pane
   by pressing g (`revert-buffer')."
   (interactive)
-  (cl-assert sunrise-running)
+  (sunrise-assert-running)
   (sunrise-beginning-of-buffer)
   (let ((stack nil) (filter "") (regex "") (next-char nil) (inhibit-quit t))
     (cl-labels ((read-next (f) (read-char (concat "Fuzzy narrow: " f))))
@@ -4232,12 +4244,12 @@ See `sunrise-term' for a description of the arguments."
 (defmacro sunrise-ti (form)
   "Evaluate FORM in the context of the selected pane.
 Helper macro for implementing terminal integration in Sunrise."
-  `(when sunrise-running
+  `(when (sunrise-running-p)
      (sunrise-select-window sunrise-selected-window)
      (hl-line-unhighlight)
      (unwind-protect
          ,form
-       (when sunrise-running
+       (when (sunrise-running-p)
          (sunrise-select-viewer-window)))))
 
 (defun sunrise-ti-previous-line ()
@@ -4357,7 +4369,7 @@ Puts `sunrise-clex-commit' into local `after-change-functions'."
         (setq sunrise-clex-on nil)
         (delete-overlay sunrise-clex-hotchar-overlay))
     (insert-char ?% 1)
-    (when sunrise-running
+    (when (sunrise-running-p)
       (add-hook 'after-change-functions 'sunrise-clex-commit nil t)
       (setq sunrise-clex-on t)
       (setq sunrise-clex-hotchar-overlay (make-overlay (point) (1- (point))))
@@ -4539,7 +4551,7 @@ details."
 Used for desktop support."
   (setq sunrise-left-directory "~/" sunrise-right-directory "~/"
         sunrise-this-directory "~/" sunrise-other-directory "~/")
-  (if sunrise-running (sunrise-quit))
+  (if (sunrise-running-p) (sunrise-quit))
   nil)
 
 (defun sunrise-desktop-after-read-function ()

@@ -196,8 +196,9 @@
 
 (defun sunrise-buttons-kill-buffer-function ()
   "Sunrise Buttons handler for `kill-buffer-hook'."
-  (if (and sunrise-running (eq (current-buffer) other-window-scroll-buffer))
-      (sunrise-buttons-display)))
+  (when (and (sunrise-running-p)
+             (eq (current-buffer) other-window-scroll-buffer))
+    (sunrise-buttons-display)))
 
 (define-derived-mode sunrise-buttons-mode Custom-mode "Sunrise Buttons"
   "Sunrise Commander Buttons panel mode."

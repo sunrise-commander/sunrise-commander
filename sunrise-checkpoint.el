@@ -82,7 +82,7 @@
 
 (defun sunrise-checkpoint-handler (&optional bookmark)
   "Handler for a checkpoint BOOKMARK."
-  (or sunrise-running (sunrise))
+  (sunrise-ensure-running)
   (sunrise-select-window 'left)
   (let ((dirs (cdr (assq 'sunrise-directories (cdr bookmark))))
         (missing '()))

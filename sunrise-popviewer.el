@@ -198,7 +198,7 @@ The prefix argument ARG is as for `sunrise-quick-view'."
 (defadvice sunrise-cd
     (around sunrise-popviewer-advice-cd (&optional norestore))
   "Redefine `sunrise-cd' not to disable Sunrise in PopViewer mode."
-  (if sunrise-running
+  (if (sunrise-running-p)
       (sunrise-popviewer-setup-windows)
     ad-do-it))
 
@@ -231,7 +231,7 @@ The prefix argument ARG is as for `sunrise-quick-view'."
     (define-key sunrise-mode-map [(control tab)] viewerfun)
     (define-key sunrise-mode-map "\\" panelockfun)
     (funcall adfun "^sunrise-popviewer-")
-    (if sunrise-running (sunrise-setup-windows))))
+    (when (sunrise-running-p) (sunrise-setup-windows))))
 
 (defun sunrise-popviewer-unload-function ()
   "Unload the Sunrise Commander popup viewer extension."
