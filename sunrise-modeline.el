@@ -1,6 +1,7 @@
 ;;; sunrise-modeline.el --- Navigable mode line for the Sunrise Commander -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2009-2012 José Alfredo Romero Latouche.
+;; SPDX-License-Identifier: GPL-3.0-or-later
 
 ;; Author: José Alfredo Romero Latouche <escherdragon@gmail.com>
 ;;      Štěpán Němec <stepnem@gmail.com>

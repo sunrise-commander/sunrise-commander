@@ -1,6 +1,7 @@
 ;;; sunrise-w32.el --- Windows-specific utilities for the Sunrise Commander -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2011, 2012 José Alfredo Romero Latouche.
+;; SPDX-License-Identifier: GPL-3.0-or-later
 
 ;; Author: José Alfredo Romero Latouche <escherdragon@gmail.com>
 ;;      Štěpán Němec <stepnem@gmail.com>

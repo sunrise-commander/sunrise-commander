@@ -1,6 +1,7 @@
 ;;; sunrise.el --- The Sunrise Commander: a two-pane file manager -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2007-2015 José Alfredo Romero Latouche.
+;; SPDX-License-Identifier: GPL-3.0-or-later
 
 ;; Author: José Alfredo Romero Latouche <escherdragon@gmail.com>
 ;;      Štěpán Němec <stepnem@gmail.com>
