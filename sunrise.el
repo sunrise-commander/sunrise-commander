@@ -482,9 +482,6 @@ support any options."
 (defvar sunrise-prior-window-configuration nil
   "Window configuration before Sunrise was started.")
 
-(defvar sunrise-running nil
-  "Non-nil when Sunrise Commander is running.")
-
 (defvar sunrise-synchronized nil
   "Non-nil when synchronized navigation is on.")
 
@@ -1030,7 +1027,8 @@ Helper macro for passive & synchronized navigation."
 
 (defun sunrise-dired-mode ()
   "Set Sunrise mode in every Dired buffer opened in Sunrise (called in a hook)."
-  (if (and (sunrise-running-p)
+  (if (and ;; (sunrise-running-p)
+           ;; (eq 'pane (sunrise-classify-buffer (current-buffer)))
            (eq (selected-frame) sunrise-current-frame)
            (sunrise-equal-dirs dired-directory default-directory)
            (not (eq major-mode 'sunrise-mode)))
@@ -1354,51 +1352,50 @@ Set SYMBOL to VALUE whenever the option is set."
 ;;; ============================================================================
 ;;; Initialization and finalization functions:
 
-;;;###autoload
-(defun sunrise (&optional left-directory right-directory filename)
-  "Toggle the Sunrise Commander file manager.
+(defun sunrise-hide ()
+  "Stop Sunrise if it is running.
 
-If LEFT-DIRECTORY is given, the left window will display that
-directory (same for RIGHT-DIRECTORY). Specifying nil for either
-of these values uses the default, ie. $HOME.
+Return non-nil if Sunrise was running and we stopped it."
+  (interactive)
+  (and (sunrise-running-p)
+       (let ((old-frame (window-frame (selected-window))))
+         (sunrise-quit)
+         (message "All life leaps out to greet the light...")
+         (or (eq old-frame (window-frame (selected-window)))
+             (progn (select-frame old-frame) nil)))))
+
+(defun sunrise-show (&optional left-directory right-directory filename)
+  "Ensure the Sunrise Commander is shown with the given directories.
+
+LEFT-DIRECTORY and RIGHT-DIRECTORY say which directory to display
+in the left and right pane, respectively.  Pass nil to keep the
+current directory (in case Sunrise was already running) or go to
+the home directory (in case Sunrise is started afresh).
 
 If FILENAME is non-nil, it is the basename of a file to focus."
   (interactive)
   (message "Starting Sunrise Commander...")
+  (let ((welcome sunrise-start-message))
+    (sunrise-setup-windows left-directory right-directory)
+    (when filename
+      (condition-case err
+          (sunrise-focus-filename (file-name-nondirectory filename))
+        (error (setq welcome (error-message-string err)))))
+    (setq sunrise-this-directory default-directory)
+    (sunrise-highlight)  ; W32Emacs needs this.
+    (hl-line-mode 1)
+    (message "%s" welcome)))
 
-  (if (not (sunrise-running-p))
-      (let ((welcome sunrise-start-message))
-        (when left-directory
-          (setq sunrise-left-directory left-directory))
-        (when right-directory
-          (setq sunrise-right-directory right-directory))
+(defun sunrise-toggle ()
+  "Show or hide the Sunrise Commander."
+  (interactive)
+  (or (sunrise-hide) (sunrise-show)))
 
-        (sunrise-switch-to-nonpane-buffer)
-        (setq sunrise-restore-buffer (current-buffer)
-              sunrise-current-frame (window-frame (selected-window))
-              sunrise-prior-window-configuration (current-window-configuration))
-        (sunrise-setup-windows)
-        (when filename
-          (condition-case description
-              (sunrise-focus-filename (file-name-nondirectory filename))
-            (error (setq welcome (cadr description)))))
-        (setq sunrise-this-directory default-directory)
-        (sunrise-highlight) ;;<-- W32Emacs needs this
-        (hl-line-mode 1)
-        (message "%s" welcome)
-        (setq sunrise-running t))
-    (let ((my-frame (window-frame (selected-window))))
-      (sunrise-quit)
-      (message "All life leaps out to greet the light...")
-      (unless (eq my-frame (window-frame (selected-window)))
-        (select-frame my-frame)
-        (sunrise left-directory right-directory filename)))))
+;;;###autoload
+(defalias 'sunrise 'sunrise-toggle)
 
-(defun sunrise--dired-internal (target switches setup-window-p)
+(defun sunrise--dired-internal (target switches setup-sunrise-p)
   "Helper for `sunrise-dired'."
-  (interactive
-   (list
-    (read-file-name "Visit (file or directory): " nil nil nil)))
   (let* ((target (expand-file-name (or target default-directory)))
          (file (if (file-directory-p target) nil target))
          (directory (if file (file-name-directory target) target))
@@ -1406,11 +1403,11 @@ If FILENAME is non-nil, it is the basename of a file to focus."
          (sunrise-listing-switches (or switches sunrise-listing-switches)))
     (unless (file-readable-p directory)
       (error "%s is not readable!" (sunrise-directory-name-proper directory)))
-    (when setup-window-p
+    (when setup-sunrise-p
       (unless (and (sunrise-running-p)
                    (eq (selected-frame) sunrise-current-frame))
-        (sunrise))
-      (sunrise-select-window sunrise-selected-window))
+        (sunrise)))
+    (sunrise-select-window sunrise-selected-window)
     (if file
         (sunrise-follow-file file)
       (sunrise-goto-dir directory))
@@ -1423,6 +1420,8 @@ If FILENAME is non-nil, it is the basename of a file to focus."
   "Visit the given TARGET (file or directory) in `sunrise-mode'.
 
 If provided, use SWITCHES instead of `sunrise-listing-switches'."
+  (interactive
+   (list (read-file-name "Visit (file or directory): " nil nil nil)))
   (sunrise--dired-internal target switches t))
 
 (defun sunrise-choose-cd-target ()
@@ -1469,14 +1468,14 @@ buffer or window."
 ;;; ============================================================================
 ;;; Window management functions:
 
-(defun sunrise--setup-pane-internal (directory side-buffer)
-  (cond ((buffer-live-p side-buffer)
-         (switch-to-buffer side-buffer)
+(defun sunrise--setup-pane-internal (directory that-side-buffer)
+  (cond ((buffer-live-p that-side-buffer)
+         (switch-to-buffer that-side-buffer)
          default-directory)
         (t
-         (let ((directory (if (file-directory-p directory)
-                              directory
-                            (expand-file-name "~"))))
+         (let* ((home-dir (expand-file-name "~"))
+                (directory (if (file-directory-p directory)
+                               directory home-dir)))
            (sunrise--dired-internal directory nil nil)
            directory))))
 
@@ -1498,8 +1497,18 @@ SIDE is one of the symbols left or right."
     (other-window 1)
     (sunrise-setup-pane right)))
 
-(defun sunrise-setup-windows()
+(defun sunrise-setup-windows (&optional left-directory right-directory)
   "Set up the Sunrise window configuration (two windows in `sunrise-mode')."
+
+  ;; TODO: The left and right directory should not be tracked variables.
+  ;; That's brittle. We should use a function to infer them each time.
+  (when left-directory  (setq sunrise-left-directory  left-directory))
+  (when right-directory (setq sunrise-right-directory right-directory))
+
+  (sunrise-switch-to-nonpane-buffer)
+  (setq sunrise-restore-buffer (current-buffer)
+        sunrise-current-frame (window-frame (selected-window))
+        sunrise-prior-window-configuration (current-window-configuration))
   (run-hooks 'sunrise-init-hook)
   ;;get rid of all windows except one (not any of the panes!)
   (sunrise-select-viewer-window)
@@ -1552,8 +1561,7 @@ Return t if a configuration to restore could be found, nil otherwise."
 (defun sunrise-lock-window (_frame)
   "Resize the left Sunrise pane to have the \"right\" size."
   (when (sunrise-running-p)
-    (if (not (window-live-p sunrise-left-window))
-        (setq sunrise-running nil)
+    (when (window-live-p sunrise-left-window)
       (let ((sunrise-windows-locked sunrise-windows-locked))
         (when (> window-min-height (- (frame-height)
                                       (window-height sunrise-left-window)))
@@ -1678,8 +1686,7 @@ Emacs window configuration into a default state."
   (if (not (sunrise-running-p))
       (bury-buffer)
     (let ((buffer-read-only nil))
-      (setq sunrise-running nil
-            sunrise-current-frame nil)
+      (setq sunrise-current-frame nil)
       (sunrise-save-directories)
       (sunrise-save-panes-width)
       (when (or norestore (not (sunrise-restore-prior-configuration)))
@@ -4566,8 +4573,7 @@ file in the file system."
                                        desktop-buffer-name
                                        desktop-buffer-misc)
   "Restore a Sunrise (normal or VIRTUAL) buffer from its desktop file data."
-  (let* ((sunrise-running t)
-         (misc-data (cdr (assoc 'dirs desktop-buffer-misc)))
+  (let* ((misc-data (cdr (assoc 'dirs desktop-buffer-misc)))
          (is-virtual (assoc 'virtual desktop-buffer-misc))
          (buffer
           (if (not is-virtual)
@@ -4621,15 +4627,12 @@ Used for desktop support."
   nil)
 
 (defun sunrise-desktop-after-read-function ()
-  (unless (assoc 'sunrise-running desktop-globals-to-clear)
-    (add-to-list 'desktop-globals-to-clear
-                 '(sunrise-running . (sunrise-reset-state))))
+  ;; TODO: (desktop-clear) should run (sunrise-reset-state).
   (when (and (buffer-live-p sunrise-left-buffer)
              (get-buffer-window sunrise-left-buffer))
     (sunrise-setup-windows)
     (sunrise-highlight)
-    (setq sunrise-current-frame (window-frame (selected-window))
-          sunrise-running t)))
+    (setq sunrise-current-frame (window-frame (selected-window)))))
 
 ;; This registers the previous functions in the desktop framework:
 (add-to-list 'desktop-buffer-mode-handlers
