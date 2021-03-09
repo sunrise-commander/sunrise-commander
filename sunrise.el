@@ -1394,10 +1394,8 @@ If FILENAME is non-nil, it is the basename of a file to focus."
         (select-frame my-frame)
         (sunrise left-directory right-directory filename)))))
 
-;;;###autoload
-(defun sunrise-dired (&optional target switches)
-  "Visit the given TARGET (file or directory) in `sunrise-mode'.
-If provided, use SWITCHES instead of `sunrise-listing-switches'."
+(defun sunrise--dired-internal (target switches setup-window-p)
+  "Helper for `sunrise-dired'."
   (interactive
    (list
     (read-file-name "Visit (file or directory): " nil nil nil)))
@@ -1408,10 +1406,11 @@ If provided, use SWITCHES instead of `sunrise-listing-switches'."
          (sunrise-listing-switches (or switches sunrise-listing-switches)))
     (unless (file-readable-p directory)
       (error "%s is not readable!" (sunrise-directory-name-proper directory)))
-    (unless (and (sunrise-running-p)
-                 (eq (selected-frame) sunrise-current-frame))
-      (sunrise))
-    (sunrise-select-window sunrise-selected-window)
+    (when setup-window-p
+      (unless (and (sunrise-running-p)
+                   (eq (selected-frame) sunrise-current-frame))
+        (sunrise))
+      (sunrise-select-window sunrise-selected-window))
     (if file
         (sunrise-follow-file file)
       (sunrise-goto-dir directory))
@@ -1419,12 +1418,12 @@ If provided, use SWITCHES instead of `sunrise-listing-switches'."
     (sunrise-display-attributes (point-min) (point-max) sunrise-show-file-attributes)
     (sunrise-this 'buffer)))
 
-(defun sunrise-dired-if-exists (target)
-  "Visit the given TARGET directory in `sunrise-mode'.
+;;;###autoload
+(defun sunrise-dired (&optional target switches)
+  "Visit the given TARGET (file or directory) in `sunrise-mode'.
 
-If it does not exist, visit the home directory instead."
-  (let ((home (expand-file-name "~")))
-    (sunrise-dired (if (file-directory-p target) target home))))
+If provided, use SWITCHES instead of `sunrise-listing-switches'."
+  (sunrise--dired-internal target switches t))
 
 (defun sunrise-choose-cd-target ()
   "Select a suitable target directory for cd operations."
@@ -1470,18 +1469,27 @@ buffer or window."
 ;;; ============================================================================
 ;;; Window management functions:
 
+(defun sunrise--setup-pane-internal (directory side-buffer)
+  (cond ((buffer-live-p side-buffer)
+         (switch-to-buffer side-buffer)
+         default-directory)
+        (t
+         (let ((directory (if (file-directory-p directory)
+                              directory
+                            (expand-file-name "~"))))
+           (sunrise--dired-internal directory nil nil)
+           directory))))
+
 (defmacro sunrise-setup-pane (side)
   "Helper macro for the function `sunrise-setup-windows'.
 
 SIDE is one of the symbols left or right."
   `(let ((sunrise-selected-window ',side))
      (setq ,(sunrise-symbol side 'window) (selected-window))
-     (if (buffer-live-p ,(sunrise-symbol side 'buffer))
-         (progn
-           (switch-to-buffer ,(sunrise-symbol side 'buffer))
-           (setq ,(sunrise-symbol side 'directory) default-directory))
-       (let ((sunrise-running t))
-         (sunrise-dired-if-exists ,(sunrise-symbol side 'directory))))))
+     (setq ,(sunrise-symbol side 'directory)
+           (sunrise--setup-pane-internal
+            ,(sunrise-symbol side 'directory)
+            ,(sunrise-symbol side 'buffer)))))
 
 (defun sunrise-setup-visible-panes ()
   "Set up sunrise on all visible panes."
