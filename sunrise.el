@@ -939,7 +939,7 @@ Uses `save-selected-window' internally."
   (and (eq 'pane (sunrise-classify-window window1))
        (eq 'pane (sunrise-classify-window window2))))
 
-(defun sunrise--analyze-frame (frame)
+(defun sunrise--analyze-frame-or-nil (frame)
   "Return the Sunrise Commander state in FRAME.
 
 Returns nil if Sunrise is not running in FRAME.
@@ -983,6 +983,14 @@ which directories the user is browsing."
                    (window-live-p bot)
                    (list top nil bot))))))))
 
+(defun sunrise--analyze-frame (frame)
+  (or (sunrise--analyze-frame-or-nil frame) (list nil nil nil)))
+
+(defun sunrise--left-window-maybe ()
+  (cl-destructuring-bind (left-window _right-window _viewer-window)
+      (sunrise--analyze-frame (selected-frame))
+    left-window))
+
 (defun sunrise-running-p (&optional frame)
   "Return t if the Sunrise Commander is being displayed in FRAME.
 
@@ -993,7 +1001,7 @@ panes and a viewer pane in the expected layout.
 If the window layout has been wedged such that it partially
 matches the expected Sunrise layout, but other parts don't match,
 this function returns nil."
-  (not (null (sunrise--analyze-frame frame))))
+  (not (null (sunrise--analyze-frame-or-nil frame))))
 
 (defun sunrise-assert-running ()
   (unless (sunrise-running-p)
@@ -1002,14 +1010,18 @@ this function returns nil."
 (defun sunrise-ensure-running ()
   (or (sunrise-running-p) (sunrise)))
 
+(defun sunrise-directory-window-p (window)
+  "Return t if Sunrise is running and WINDOW is one of its directory panes."
+  (and (sunrise-running-p (window-frame window))
+       (eq 'pane (sunrise-classify-window window))))
+
 (defun sunrise-assert-directory-window (&optional interactive-p)
   "Assert the current window and buffer are a directory pane.
 
 If INTERACTIVE-P is non-nil, assume we were called from an
 interactive command and signal a user error. Otherwise assume we
 were called from a subroutine and signal an ordinary error."
-  (unless (and (sunrise-running-p)
-               (eq 'pane (sunrise-classify-window (selected-window))))
+  (unless (sunrise-directory-window-p (selected-window))
     (let ((message "Not in a Sunrise Commander directory pane"))
       (if interactive-p (user-error "%s" message) (error "%s" message)))))
 
@@ -1163,8 +1175,8 @@ file attributes are preserved. See the function `enriched-mode'."
     (let ((from (selected-window))
           (to (next-window)))
       (if (or sunrise-traditional-other-window
-              (not (memq to (list sunrise-left-window sunrise-right-window)))
-              (memq from (list sunrise-left-window sunrise-right-window)))
+              (sunrise-directory-window-p from)
+              (not (sunrise-directory-window-p to)))
           ad-do-it
         (sunrise-select-window sunrise-selected-window))))
   (sunrise-detect-switch))
