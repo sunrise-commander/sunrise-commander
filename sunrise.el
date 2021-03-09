@@ -934,10 +934,54 @@ Uses `save-selected-window' internally."
   "Return 'pane or nil depending on Sunrise Commander type of WINDOW."
   (sunrise-classify-buffer (window-buffer window)))
 
-(defun sunrise-window-panes-p (window1 window2)
+(defun sunrise--directory-windows-p (window1 window2)
   "Return t if WINDOW1 and WINDOW2 are two Sunrise directory panes."
   (and (eq 'pane (sunrise-classify-window window1))
        (eq 'pane (sunrise-classify-window window2))))
+
+(defun sunrise--analyze-frame (frame)
+  "Return the Sunrise Commander state in FRAME.
+
+Returns nil if Sunrise is not running in FRAME.
+
+Otherwise returns a 3-element list:
+(left-window right-window viewer-window)
+
+* left-window is never nil.
+* right-window is nil iif sunrise-window-split-style is 'top.
+* viewer-window is nil if the viewer pane is not shown.
+
+Use `window-buffer' to to get at the buffer of each window, and
+consult `default-directory' in each directory buffer to find out
+which directories the user is browsing."
+  (let ((root (frame-root-window frame)))
+    (cl-ecase sunrise-window-split-style
+      (horizontal
+       (and (= 2 (window-child-count root))
+            (let* ((top (window-top-child root))
+                   (bot (window-next-sibling top)))
+              (and (= 2 (window-child-count top))
+                   (let* ((top-l (window-left-child top))
+                          (top-r (window-right top-l)))
+                     (and (sunrise--directory-windows-p top-l top-r)
+                          (window-live-p bot)
+                          (list top-l top-r bot)))))))
+      (vertical
+       (and (= 3 (window-child-count root))
+            (let* ((top (window-top-child root))
+                   (mid (window-next-sibling top))
+                   (bot (window-next-sibling mid)))
+              (and (sunrise--directory-windows-p top mid)
+                   (window-live-p bot)
+                   (list top mid bot)))))
+      (top
+       (and (= 2 (window-child-count root))
+            (let* ((top (window-top-child root))
+                   (bot (window-next-sibling top)))
+              (and (eq 'pane (sunrise-classify-window
+                              (window-top-child root)))
+                   (window-live-p bot)
+                   (list top nil bot))))))))
 
 (defun sunrise-running-p (&optional frame)
   "Return t if the Sunrise Commander is being displayed in FRAME.
@@ -949,31 +993,7 @@ panes and a viewer pane in the expected layout.
 If the window layout has been wedged such that it partially
 matches the expected Sunrise layout, but other parts don't match,
 this function returns nil."
-  (let ((root (frame-root-window frame)))
-    (cl-ecase sunrise-window-split-style
-      (horizontal
-       (and (= 2 (window-child-count root))
-            (let* ((top (window-top-child root))
-                   (bot (window-next-sibling top)))
-              (and (= 2 (window-child-count top))
-                   (let* ((top-l (window-left-child top))
-                          (top-r (window-right top-l)))
-                     (sunrise-window-panes-p top-l top-r))
-                   (window-live-p bot)))))
-      (vertical
-       (and (= 3 (window-child-count root))
-            (let* ((top (window-top-child root))
-                   (mid (window-next-sibling top))
-                   (bot (window-next-sibling mid)))
-              (and (sunrise-window-panes-p top mid)
-                   (window-live-p bot)))))
-      (top
-       (and (= 2 (window-child-count root))
-            (let* ((top (window-top-child root))
-                   (bot (window-next-sibling top)))
-              (and (eq 'pane (sunrise-classify-window
-                              (window-top-child root)))
-                   (window-live-p bot))))))))
+  (not (null (sunrise--analyze-frame frame))))
 
 (defun sunrise-assert-running ()
   (unless (sunrise-running-p)
