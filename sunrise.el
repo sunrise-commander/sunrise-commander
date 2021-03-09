@@ -2296,7 +2296,7 @@ NOSELECT is passed to `dired-simultaneous-find-file'."
 
 This command should be bound to a mouse EVENT."
   (interactive "e")
-  (mouse-set-point e))
+  (mouse-set-point event))
 
 (defun sunrise-mouse-move-cursor (event)
   "Move the cursor to the mouse EVENT position.
