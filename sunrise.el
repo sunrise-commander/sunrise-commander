@@ -217,7 +217,7 @@
 (require 'tramp)
 
 (defgroup sunrise nil
-  "The Sunrise Commander File Manager."
+  "The Sunrise Commander: a two-pane file manager."
   :group 'files)
 
 (defcustom sunrise-show-file-attributes t
