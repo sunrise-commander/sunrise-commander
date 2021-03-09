@@ -928,8 +928,53 @@ Uses `save-selected-window' internally."
          (unless (kill-buffer dispose)
            (kill-local-variable 'sunrise-current-path-faces))))))
 
-(defun sunrise-running-p ()
-  (not (null sunrise-running)))
+(defun sunrise-classify-buffer (buffer)
+  "Return 'pane or nil depending on Sunrise Commander type of BUFFER."
+  (let ((mode (and buffer (with-current-buffer buffer major-mode))))
+    (if (eq 'sunrise-mode mode) 'pane nil)))
+
+(defun sunrise-window-panes-p (window1 window2)
+  "Return t if WINDOW1 and WINDOW2 are two Sunrise directory panes."
+  (and (eq 'pane (sunrise-classify-buffer (window-buffer window1)))
+       (eq 'pane (sunrise-classify-buffer (window-buffer window2)))))
+
+(defun sunrise-running-p (&optional frame)
+  "Return t if the Sunrise Commander is being displayed in FRAME.
+
+FRAME defaults to the selected frame.  The window layout in FRAME
+is analyzed to find out whether it contains the Sunrise directory
+panes and a viewer pane in the expected layout.
+
+If the window layout has been wedged such that it partially
+matches the expected Sunrise layout, but other parts don't match,
+this function returns nil."
+  (let ((root (frame-root-window frame)))
+    (current-window-configuration frame)
+    (cl-ecase sunrise-window-split-style
+      (horizontal
+       (and (= 2 (window-child-count root))
+            (let* ((top (window-top-child root))
+                   (bot (window-next-sibling top)))
+              (and (= 2 (window-child-count top))
+                   (let* ((top-l (window-left-child top))
+                          (top-r (window-right top-l)))
+                     (sunrise-window-panes-p top-l top-r))
+                   (window-live-p bot)))))
+      (vertical
+       (and (= 3 (window-child-count root))
+            (let* ((top (window-top-child root))
+                   (mid (window-next-sibling top))
+                   (bot (window-next-sibling mid)))
+              (and (sunrise-window-panes-p top mid)
+                   (window-live-p bot)))))
+      (top
+       (and (= 2 (window-child-count root))
+            (let* ((top (window-top-child root))
+                   (bot (window-next-sibling top)))
+              (and (eq 'pane (sunrise-classify-buffer
+                              (window-buffer
+                               (window-top-child root))))
+                   (window-live-p bot))))))))
 
 (defun sunrise-assert-running ()
   (unless (sunrise-running-p)
