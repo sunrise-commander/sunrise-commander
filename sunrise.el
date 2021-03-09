@@ -939,7 +939,7 @@ Uses `save-selected-window' internally."
 Returns nil if Sunrise is not running in FRAME.
 
 Otherwise returns a 3-element list:
-(left-window right-window viewer-window)
+\(left-window right-window viewer-window)
 
 * left-window is never nil.
 * right-window is nil iif sunrise-window-split-style is 'top.
@@ -978,14 +978,17 @@ which directories the user is browsing."
                    (list top nil bot))))))))
 
 (defun sunrise--analyze-frame (&optional frame)
+  "Helper to analyze Sunrise windows in FRAME."
   (or (sunrise--analyze-frame-or-nil frame) (list nil nil nil)))
 
 (defun sunrise--left-window-maybe (&optional frame)
+  "Helper to get Sunrise left pane in FRAME."
   (cl-destructuring-bind (left-window _right-window _viewer-window)
       (sunrise--analyze-frame frame)
     left-window))
 
 (defun sunrise--right-window-maybe (&optional frame)
+  "Helper to get Sunrise right pane in FRAME."
   (cl-destructuring-bind (_left-window right-window _viewer-window)
       (sunrise--analyze-frame frame)
     right-window))
@@ -1003,10 +1006,12 @@ this function returns nil."
   (not (null (sunrise--analyze-frame-or-nil frame))))
 
 (defun sunrise-assert-running ()
+  "Helper to raise an error unless Sunrise is running."
   (unless (sunrise-running-p)
     (error "The Sunrise Commander is not running")))
 
 (defun sunrise-ensure-running ()
+  "Helper to start sunrise if it is not running."
   (or (sunrise-running-p) (sunrise)))
 
 (defun sunrise-directory-window-p (window)
@@ -1425,7 +1430,10 @@ If FILENAME is non-nil, it is the basename of a file to focus."
 (defalias 'sunrise 'sunrise-toggle)
 
 (defun sunrise--dired-internal (target switches setup-sunrise-p)
-  "Helper for `sunrise-dired'."
+  "Helper for `sunrise-dired'.
+
+TARGET is the directory to go to. SWITCHES are for `ls'.
+SETUP-SUNRISE-P says whether to start Sunrise if it's not running."
   (let* ((target (expand-file-name (or target default-directory)))
          (file (if (file-directory-p target) nil target))
          (directory (if file (file-name-directory target) target))
@@ -1502,6 +1510,7 @@ buffer or window."
 ;;; Window management functions:
 
 (defun sunrise--setup-pane-internal (directory that-side-buffer)
+  "Helper function for `sunrise-setup-windows'."
   (cond ((buffer-live-p that-side-buffer)
          (switch-to-buffer that-side-buffer)
          default-directory)
@@ -1513,7 +1522,7 @@ buffer or window."
            directory))))
 
 (defmacro sunrise-setup-pane (side)
-  "Helper macro for the function `sunrise-setup-windows'.
+  "Helper macro for `sunrise-setup-windows'.
 
 SIDE is one of the symbols left or right."
   `(let ((sunrise-selected-window ',side))
@@ -1531,7 +1540,9 @@ SIDE is one of the symbols left or right."
     (sunrise-setup-pane right)))
 
 (defun sunrise-setup-windows (&optional left-directory right-directory)
-  "Set up the Sunrise window configuration (two windows in `sunrise-mode')."
+  "Set up the Sunrise window configuration (two windows in `sunrise-mode').
+
+LEFT-DIRECTORY and RIGHT-DIRECTORY, if non-nil, are the directories to show."
 
   ;; TODO: The left and right directory should not be tracked variables.
   ;; That's brittle. We should use a function to infer them each time.
@@ -1775,7 +1786,9 @@ Emacs window configuration into a default state."
           (- (frame-width) (window-width) window-min-width)))))
 
 (defun sunrise--enlarge-pane (left-p)
-  "Enlarge (or shrink, if REVERSE is t) the left pane by 5 columns."
+  "Enlarge a pane by 5 columns.
+
+If LEFT-P is non-nil, act on the left pane; otherwise the right pane."
   (cl-destructuring-bind (left-window right-window _viewer-window)
       (sunrise--analyze-frame)
     (when (and left-window right-window)
@@ -1813,8 +1826,8 @@ SIZE is one of the symbols max, min or t."
 
 MIN/MAX is the minimum or maximum window height.
 SIGN is 1 to shrink, -1 to grow.
-(CALC-DELTA min/max) is called to get the delta.
-(RESIZE-P min/max ratio) says whether to keep resizing."
+\(CALC-DELTA min/max) is called to get the delta.
+\(RESIZE-P min/max ratio) says whether to keep resizing."
   (cl-destructuring-bind (left-window right-window _viewer-window)
       (sunrise--analyze-frame)
     (when (and left-window right-window)
@@ -1868,11 +1881,13 @@ position."
       (setq sunrise-windows-locked nil))))
 
 (defun sunrise-max-lock-panes ()
+  "Lock panes at maximum width."
   (interactive)
   (sunrise-save-panes-width)
   (sunrise-lock-panes 'max))
 
 (defun sunrise-min-lock-panes ()
+  "Lock panes at minimum width."
   (interactive)
   (sunrise-save-panes-width)
   (sunrise-lock-panes 'min))
@@ -1891,7 +1906,10 @@ feature."
 
 (defun sunrise-advertised-find-file (&optional filename)
   "Handle accesses to file system objects through the user interface.
-Includes cases when the user presses return, f or clicks on the path line."
+
+Includes cases when the user presses return, `f', or clicks on the path line.
+
+FILENAME is the filename to visit."
   (interactive)
   (unless filename
     (if (eq 1 (line-number-at-pos)) ;; <- Click or Enter on path line.
@@ -1908,7 +1926,9 @@ Includes cases when the user presses return, f or clicks on the path line."
       (error "Sunrise: nonexistent target"))))
 
 (defun sunrise-advertised-execute-file (&optional prefix)
-  "Execute the currently selected file in a new subprocess."
+  "Execute the currently selected file in a new subprocess.
+
+When PREFIX is given, read arguments from the minibuffer."
   (interactive "P")
   (let ((path (dired-get-filename nil t)) (label) (args))
     (if path
@@ -1927,15 +1947,19 @@ Includes cases when the user presses return, f or clicks on the path line."
 
 (defun sunrise-find-file (filename &optional wildcards)
   "Determine the proper way of handling an object in the file system.
+
 FILENAME can be either a regular file, a regular directory, a
-Sunrise VIRTUAL directory, or a virtual directory served by
-AVFS."
+Sunrise VIRTUAL directory, or a virtual directory served by AVFS.
+WILDCARDS is passed to `sunrise-find-regular-file'."
   (interactive (find-file-read-args "Find file or directory: " nil))
-  (cond ((file-directory-p filename) (sunrise-find-regular-directory filename))
+  (cond ((file-directory-p filename)
+         (sunrise-find-regular-directory filename))
         ((and (sunrise-avfs-directory-p filename) (sunrise-avfs-dir filename))
          (sunrise-find-regular-directory (sunrise-avfs-dir filename)))
-        ((sunrise-virtual-directory-p filename) (sunrise-find-virtual-directory filename))
-        (t (sunrise-find-regular-file filename wildcards))))
+        ((sunrise-virtual-directory-p filename)
+         (sunrise-find-virtual-directory filename))
+        (t
+         (sunrise-find-regular-file filename wildcards))))
 
 (defun sunrise-virtual-directory-p (filename)
   "Tell whether FILENAME is the path to a Sunrise VIRTUAL directory."
@@ -1953,7 +1977,7 @@ AVFS."
                                                 'string-match)))))))
 
 (defun sunrise-find-regular-directory (directory)
-  "Visit the given regular directory in the active pane."
+  "Visit the given regular DIRECTORY in the active pane."
   (setq directory (file-name-as-directory directory))
   (let ((parent (expand-file-name "../")))
     (if (and (not (sunrise-equal-dirs parent default-directory))
@@ -1962,7 +1986,7 @@ AVFS."
       (sunrise-goto-dir directory))))
 
 (defun sunrise-find-virtual-directory (sunrise-virtual-dir)
-  "Visit the given Sunrise VIRTUAL directory in the active pane."
+  "Visit the given SUNRISE-VIRTUAL-DIR in the active pane."
   (sunrise-save-aspect
    (sunrise-alternate-buffer (find-file sunrise-virtual-dir)))
   (sunrise-history-push sunrise-virtual-dir)
@@ -1979,7 +2003,7 @@ AVFS."
     (error (message "%s" (cadr description)))))
 
 (defun sunrise-visit-buffer-in-current-frame (buffer)
-  "Deactivate Sunrise and display the given buffer in the current frame."
+  "Deactivate Sunrise and display BUFFER in the current frame."
   (sunrise-save-panes-width)
   (sunrise-quit)
   (set-window-configuration sunrise-prior-window-configuration)
@@ -1995,7 +2019,7 @@ Returns nil if AVFS cannot manage this kind of file."
     (if (file-attributes vdir) vdir nil)))
 
 (defun sunrise-goto-dir (dir)
-  "Change the current directory in the active pane to the given one."
+  "Change the current directory in the active pane to DIR."
   (interactive "DChange directory (file or pattern): ")
   (if sunrise-goto-dir-function
       (funcall sunrise-goto-dir-function dir)
@@ -2028,7 +2052,10 @@ Returns nil if AVFS cannot manage this kind of file."
 
 (defun sunrise-follow-file (&optional target-path)
   "Go to the same directory where the selected file is.
-Very useful inside Sunrise VIRTUAL buffers."
+
+Very useful inside Sunrise VIRTUAL buffers.
+
+If TARGET-PATH is non-nil, find the file in that directory."
   (interactive)
   (unless target-path
     (setq target-path (dired-get-filename nil t)))
@@ -2107,7 +2134,7 @@ visited in order, from longest path to shortest."
       (message "Sunrise: sorry, no suitable projections found"))))
 
 (defun sunrise-history-push (element)
-  "Push a new path into the history stack of the current pane."
+  "Push a new path ELEMENT into the history stack of the current pane."
   (let ((type (sunrise-history-entry-type element)))
     (when type
       (let* ((pane (assoc sunrise-selected-window sunrise-history-registry))
@@ -2141,10 +2168,13 @@ visited in order, from longest path to shortest."
 
 (defun sunrise-history-move (step)
   "Traverse the history of the active pane in a stack-like fashion.
+
 This function re-arranges the history list of the current pane so as to make it
 simulate a stack of directories, from which one can 'pop' the current directory
 and 'push' it back, keeping the most recently visited entries always near the
-top of the stack."
+top of the stack.
+
+Proceed by STEP entries at once (can be negative)."
   (let* ((side (assoc sunrise-selected-window sunrise-history-stack))
          (depth (cadr side)) (goal) (target-dir))
     (when (> 0 (* step depth))
@@ -2199,8 +2229,10 @@ nil if the argument is not a valid history entry."
 
 (defun sunrise-require-checkpoint-extension (&optional noerror)
   "Bootstrap code for checkpoint support.
+
 Just tries to require the appropriate checkpoints extension
-depending on the version of bookmark.el being used."
+depending on the version of `bookmark.el' being used. If NOERROR
+is non-nil, return nil in case the extension is not found."
   (require 'bookmark nil t)
   (or (not (featurep 'sunrise))
       (require 'sunrise-checkpoint nil t)
@@ -2209,7 +2241,9 @@ depending on the version of bookmark.el being used."
 For checkpoints to work, add sunrise-checkpoint.el to your `load-path'")))
 
 (defmacro sunrise-define-checkpoint-command (function-name)
+  "Helper to define the checkpoint command FUNCTION-NAME."
   `(defun ,function-name (&optional arg)
+     "Sunrise checkpoint command."
      (interactive)
      (sunrise-require-checkpoint-extension)
      (if (commandp #',function-name)
@@ -2223,7 +2257,9 @@ For checkpoints to work, add sunrise-checkpoint.el to your `load-path'")))
 ;;;###autoload (autoload 'sunrise-checkpoint-handler "sunrise" "" t)
 
 (defun sunrise-do-find-marked-files (&optional noselect)
-  "Sunrise replacement for `dired-do-find-marked-files'."
+  "Sunrise replacement for `dired-do-find-marked-files'.
+
+NOSELECT is passed to `dired-simultaneous-find-file'."
   (interactive "P")
   (let* ((files (delq nil (mapcar (lambda (x)
                                     (and (file-regular-p x) x))
@@ -2237,7 +2273,7 @@ For checkpoints to work, add sunrise-checkpoint.el to your `load-path'")))
 ;;; Graphical interface interaction functions:
 
 (defun sunrise-detect-switch ()
-  "Detect Sunrise pane switches and update tracking state accordingly."
+  "Detect Sunrise pane switching and update tracking state accordingly."
   (when (and (sunrise-running-p)
              (not sunrise-inhibit-switch)
              (eq (selected-window) (sunrise-other 'window)))
@@ -2255,15 +2291,18 @@ For checkpoints to work, add sunrise-checkpoint.el to your `load-path'")))
   (sunrise-select-window (sunrise-other))
   (setq sunrise-selected-window-width nil))
 
-(defun sunrise-mouse-change-window (e)
-  "Change to the Sunrise pane clicked in by the mouse."
+(defun sunrise-mouse-change-window (event)
+  "Change to the Sunrise pane clicked in by the mouse.
+
+This command should be bound to a mouse EVENT."
   (interactive "e")
   (mouse-set-point e))
 
 (defun sunrise-mouse-move-cursor (event)
-  "Move the cursor to the current mouse position.
-This function is called only if the `sunrise-cursor-follows-mouse' custom variable
-\(which see) has not been set to nil."
+  "Move the cursor to the mouse EVENT position.
+
+This function is called only if the `sunrise-cursor-follows-mouse'
+custom variable (which see) has not been set to nil."
   (interactive "e")
   (if (< sunrise-mouse-events-count sunrise-mouse-events-threshold)
       (setq sunrise-mouse-events-count (1+ sunrise-mouse-events-count))
@@ -2276,7 +2315,7 @@ This function is called only if the `sunrise-cursor-follows-mouse' custom variab
           (goto-char mouse-pos))))))
 
 (defun sunrise-select-window (side)
-  "Select/highlight the given Sunrise window (right or left)."
+  "Select/highlight the SIDE Sunrise window (right or left)."
   (let ((window (symbol-value (sunrise-symbol side 'window))))
     (if (window-live-p window)
         (select-window window)
@@ -2358,6 +2397,7 @@ calls the function `sunrise-setup-windows' and tries once again."
                 (sunrise-in-other (revert-buffer)))))
 
 (defun sunrise-split-setup (split-type)
+  "Change the Sunrise split type to SPLIT-TYPE."
   (setq sunrise-window-split-style split-type)
   (cl-destructuring-bind (left-window right-window _viewer-window)
       (sunrise--analyze-frame)
@@ -2426,7 +2466,9 @@ to that in the other one."
         (browse-url url)))))
 
 (defun sunrise-browse-file (&optional file)
-  "Display the selected file in the default web browser."
+  "Display FILE in the default web browser.
+
+FILE defaults to the selected file."
   (interactive)
   (unless (featurep 'browse-url)
     (error "ERROR: Feature browse-url not available!"))
@@ -2469,10 +2511,12 @@ If the buffer is non-virtual the backup buffer is killed."
 
 (defun sunrise-kill-pane-buffer ()
   "Kill the buffer currently displayed in the active pane, or quit Sunrise.
-Custom variable `sunrise-kill-unused-buffers' controls whether unused buffers are
-killed automatically by Sunrise when the user navigates away from the directory
-they contain. When this flag is set, all requests to kill the current buffer are
-managed by just calling `sunrise-quit'."
+
+Custom variable `sunrise-kill-unused-buffers' controls whether
+unused buffers are killed automatically by Sunrise when the user
+navigates away from the directory they contain. When this flag is
+set, all requests to kill the current buffer are managed by just
+calling `sunrise-quit'."
   (interactive)
   (cond (sunrise-kill-unused-buffers
          (sunrise-quit))
@@ -2484,11 +2528,15 @@ managed by just calling `sunrise-quit'."
 
 (defun sunrise-quick-view (&optional arg)
   "Quickly view the currently selected item.
-On regular files, opens the file in quick-view mode (see `sunrise-quick-view-file'
-for more details), on directories, visits the selected directory in the passive
-pane, and on symlinks follows the file the link points to in the passive pane.
-With optional argument kills the last quickly viewed file without opening a new
-buffer."
+
+On regular files, opens the file in quick-view mode (see
+`sunrise-quick-view-file' for more details), on directories,
+visits the selected directory in the passive pane, and on
+symlinks follows the file the link points to in the passive pane.
+With optional argument kills the last quickly viewed file without
+opening a new buffer.
+
+Prefix argument ARG kills the quick view buffer instead."
   (interactive "P")
   (if arg
       (sunrise-quick-view-kill)
