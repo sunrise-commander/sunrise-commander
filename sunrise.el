@@ -497,9 +497,6 @@ support any options."
 (defvar sunrise-left-buffer nil
   "Dired buffer for the left window.")
 
-(defvar sunrise-left-window nil
-  "The left window of Dired.")
-
 (defvar sunrise-right-directory "~/"
   "Dired directory for the right window. See variable `dired-directory'.")
 
@@ -939,7 +936,7 @@ Uses `save-selected-window' internally."
   (and (eq 'pane (sunrise-classify-window window1))
        (eq 'pane (sunrise-classify-window window2))))
 
-(defun sunrise--analyze-frame-or-nil (frame)
+(defun sunrise--analyze-frame-or-nil (&optional frame)
   "Return the Sunrise Commander state in FRAME.
 
 Returns nil if Sunrise is not running in FRAME.
@@ -983,13 +980,18 @@ which directories the user is browsing."
                    (window-live-p bot)
                    (list top nil bot))))))))
 
-(defun sunrise--analyze-frame (frame)
+(defun sunrise--analyze-frame (&optional frame)
   (or (sunrise--analyze-frame-or-nil frame) (list nil nil nil)))
 
-(defun sunrise--left-window-maybe ()
+(defun sunrise--left-window-maybe (&optional frame)
   (cl-destructuring-bind (left-window _right-window _viewer-window)
-      (sunrise--analyze-frame (selected-frame))
+      (sunrise--analyze-frame frame)
     left-window))
+
+(defun sunrise--right-window-maybe (&optional frame)
+  (cl-destructuring-bind (_left-window right-window _viewer-window)
+      (sunrise--analyze-frame frame)
+    right-window))
 
 (defun sunrise-running-p (&optional frame)
   "Return t if the Sunrise Commander is being displayed in FRAME.
@@ -1594,25 +1596,24 @@ Return t if a configuration to restore could be found, nil otherwise."
 
 (defun sunrise-lock-window (_frame)
   "Resize the left Sunrise pane to have the \"right\" size."
-  (when (sunrise-running-p)
-    (when (window-live-p sunrise-left-window)
-      (let ((sunrise-windows-locked sunrise-windows-locked))
-        (when (> window-min-height (- (frame-height)
-                                      (window-height sunrise-left-window)))
-          (setq sunrise-windows-locked nil))
-        (and sunrise-windows-locked
-             (not sunrise-ediff-on)
-             (not (eq sunrise-window-split-style 'vertical))
-             (window-live-p sunrise-left-window)
-             (sunrise-save-selected-window
-              (select-window sunrise-left-window)
-              (let* ((sunrise-panes-height (or sunrise-panes-height (window-height)))
-                     (my-delta (- sunrise-panes-height (window-height))))
-                (enlarge-window my-delta))
-              (scroll-right)
-              (when (window-live-p sunrise-right-window)
-                (select-window sunrise-right-window)
-                (scroll-right))))))))
+  (let ((left-window (sunrise--left-window-maybe)))
+    (let ((sunrise-windows-locked sunrise-windows-locked))  ; TODO: What?
+      (when (> window-min-height (- (frame-height)
+                                    (window-height left-window)))
+        (setq sunrise-windows-locked nil))
+      (and sunrise-windows-locked
+           (not sunrise-ediff-on)
+           (not (eq sunrise-window-split-style 'vertical))
+           (window-live-p left-window)
+           (sunrise-save-selected-window
+            (select-window left-window)
+            (let* ((sunrise-panes-height (or sunrise-panes-height (window-height)))
+                   (my-delta (- sunrise-panes-height (window-height))))
+              (enlarge-window my-delta))
+            (scroll-right)
+            (when (window-live-p sunrise-right-window)
+              (select-window sunrise-right-window)
+              (scroll-right)))))))
 
 ;; This keeps the size of the Sunrise panes constant:
 (add-hook 'window-size-change-functions 'sunrise-lock-window)
@@ -1736,18 +1737,19 @@ Emacs window configuration into a default state."
 
 (defun sunrise-save-directories ()
   "Save current directories in the panes to use them at the next startup."
-  (save-current-buffer
-    (when (window-live-p sunrise-left-window)
-      (set-buffer (window-buffer sunrise-left-window))
-      (when (memq major-mode '(sunrise-mode sunrise-tree-mode))
-        (setq sunrise-left-directory default-directory)
-        (setq sunrise-left-buffer (current-buffer))))
-
-    (when (window-live-p sunrise-right-window)
-      (set-buffer (window-buffer sunrise-right-window))
-      (when (memq major-mode '(sunrise-mode sunrise-tree-mode))
-        (setq sunrise-right-directory default-directory)
-        (setq sunrise-right-buffer (current-buffer))))))
+  (cl-destructuring-bind (left-window right-window _viewer-window)
+      (sunrise--analyze-frame)
+    (save-current-buffer
+      (when left-window
+        (set-buffer (window-buffer left-window))
+        (when (memq major-mode '(sunrise-mode sunrise-tree-mode))
+          (setq sunrise-left-directory default-directory)
+          (setq sunrise-left-buffer (current-buffer))))
+      (when right-window
+        (set-buffer (window-buffer right-window))
+        (when (memq major-mode '(sunrise-mode sunrise-tree-mode))
+          (setq sunrise-right-directory default-directory)
+          (setq sunrise-right-buffer (current-buffer)))))))
 
 (defun sunrise-bury-panes ()
   "Send both pane buffers to the end of the `buffer-list'."
@@ -1759,12 +1761,13 @@ Emacs window configuration into a default state."
   "Save the width of the panes to use them at the next startup."
   (unless sunrise-selected-window-width
     (setq sunrise-selected-window-width
-          (if (and (window-live-p sunrise-left-window)
-                   (window-live-p sunrise-right-window))
-              (window-width
-               (symbol-value
-                (sunrise-symbol sunrise-selected-window 'window)))
-            t))))
+          (cl-destructuring-bind (left-window right-window _viewer-window)
+              (sunrise--analyze-frame)
+            (if (and left-window right-window)
+                (window-width
+                 (symbol-value
+                  (sunrise-symbol sunrise-selected-window 'window)))
+              t)))))
 
 (defun sunrise-restore-panes-width ()
   "Restore the last registered pane width."
@@ -1774,29 +1777,29 @@ Emacs window configuration into a default state."
      (min (- sunrise-selected-window-width (window-width))
           (- (frame-width) (window-width) window-min-width)))))
 
-(defun sunrise-resize-panes (&optional reverse)
+(defun sunrise--enlarge-pane (left-p)
   "Enlarge (or shrink, if REVERSE is t) the left pane by 5 columns."
-  (when (and (window-live-p sunrise-left-window)
-             (window-live-p sunrise-right-window))
-    (let ((direction (or (and reverse -1) 1)))
-      (sunrise-save-selected-window
-       (select-window sunrise-left-window)
-       (enlarge-window-horizontally (* 5 direction))))
-    (setq sunrise-selected-window-width nil)))
+  (cl-destructuring-bind (left-window right-window _viewer-window)
+      (sunrise--analyze-frame)
+    (when (and left-window right-window)
+      (let* ((window (if left-p left-window right-window))
+             (direction (if left-p 1 -1)))
+        (when (< (1+ window-min-width) (window-width window))
+          (sunrise-save-selected-window
+           (select-window left-window)
+           (enlarge-window-horizontally (* 5 direction)))
+          (setq sunrise-selected-window-width nil)
+          (sunrise-save-panes-width))))))
 
 (defun sunrise-enlarge-left-pane ()
   "Enlarge the left pane by 5 columns."
   (interactive)
-  (when (< (1+ window-min-width) (window-width sunrise-right-window))
-    (sunrise-resize-panes)
-    (sunrise-save-panes-width)))
+  (sunrise--enlarge-pane t))
 
 (defun sunrise-enlarge-right-pane ()
   "Enlarge the right pane by 5 columns."
   (interactive)
-  (when (< (1+ window-min-width) (window-width sunrise-left-window))
-    (sunrise-resize-panes t)
-    (sunrise-save-panes-width)))
+  (sunrise--enlarge-pane nil))
 
 (defun sunrise-get-panes-size (&optional size)
   "Tell what the maximal, minimal and normal pane sizes should be.
@@ -1808,43 +1811,44 @@ SIZE is one of the symbols max, min or t."
       (min (min (1+ window-min-height) 5))
       (t  (/ (* sunrise-windows-default-ratio (frame-height)) 100)))))
 
+(defun sunrise--resize-panes (min/max sign calc-delta resize-p)
+  "Helper to grow or shrink a Sunrise pane.
+
+MIN/MAX is the minimum or maximum window height.
+SIGN is 1 to shrink, -1 to grow.
+(CALC-DELTA min/max) is called to get the delta.
+(RESIZE-P min/max ratio) says whether to keep resizing."
+  (cl-destructuring-bind (left-window right-window _viewer-window)
+      (sunrise--analyze-frame)
+    (when (and left-window right-window)
+      (sunrise-save-selected-window
+       (let ((sunrise-windows-locked nil) (ratio 1) delta)
+         (when (eq sunrise-window-split-style 'vertical)
+           (select-window right-window)
+           (setq ratio 2)
+           (setq delta (funcall calc-delta min/max))
+           (when (funcall resize-p min/max ratio)
+             (shrink-window (* sign (if (> delta 2) 2 1)))))
+         (select-window left-window)
+         (when (funcall resize-p min/max ratio)
+           (shrink-window (* sign 1)))
+         (setq sunrise-panes-height (* ratio (window-height))))))))
+
 (defun sunrise-enlarge-panes ()
   "Enlarge both panes vertically."
   (interactive)
-  (let ((sunrise-windows-locked nil)
-        (max (sunrise-get-panes-size 'max))
-        (ratio 1)
-        delta)
-    (sunrise-save-selected-window
-     (when (eq sunrise-window-split-style 'vertical)
-       (select-window sunrise-right-window)
-       (setq ratio 2)
-       (setq delta (- max (window-height)))
-       (when (> (/ max ratio) (window-height))
-         (shrink-window (if (< 2 delta) -2 -1))))
-     (select-window sunrise-left-window)
-     (when (> (/ max ratio) (window-height))
-       (shrink-window -1))
-     (setq sunrise-panes-height (* (window-height) ratio)))))
+  (sunrise--resize-panes
+   (sunrise-get-panes-size 'max) -1
+   (lambda (max) (- max (window-height)))
+   (lambda (max ratio) (> (/ max ratio) (window-height)))))
 
 (defun sunrise-shrink-panes ()
   "Shink both panes vertically."
   (interactive)
-  (let ((sunrise-windows-locked nil)
-        (min (sunrise-get-panes-size 'min))
-        (ratio 1)
-        delta)
-    (sunrise-save-selected-window
-     (when (eq sunrise-window-split-style 'vertical)
-       (select-window sunrise-right-window)
-       (setq ratio 2)
-       (setq delta (- (window-height) min))
-       (when (< min (window-height))
-         (shrink-window (if (< 2 delta) 2 1))))
-     (select-window sunrise-left-window)
-     (when  (< min (window-height))
-       (shrink-window 1))
-     (setq sunrise-panes-height (* (window-height) ratio)))))
+  (sunrise--resize-panes
+   (sunrise-get-panes-size 'min) 1
+   (lambda (min) (- (window-height) min))
+   (lambda (min _ratio) (< min (window-height)))))
 
 (defun sunrise-lock-panes (&optional height)
   "Resize and lock the panes at some vertical position.
@@ -1853,24 +1857,18 @@ HEIGHT is the height to lock the panes at. Valid values are `min'
 and `max'; given any other value, locks the panes at normal
 position."
   (interactive)
-  (cond ((not (sunrise-running-p))
-         (sunrise))
-        ((not (and (window-live-p sunrise-left-window)
-                   (or (window-live-p sunrise-right-window)
-                       (eq sunrise-window-split-style 'top))))
-         (sunrise-setup-windows))
-        (t
-         (setq sunrise-panes-height (sunrise-get-panes-size height))
-         (let ((locked sunrise-windows-locked))
-           (setq sunrise-windows-locked t)
-           (cond (height
-                  (shrink-window 1))
-                 (t
-                  (setq sunrise-selected-window-width t)
-                  (balance-windows)))
-           (unless locked
-             (sit-for 0.1)
-             (setq sunrise-windows-locked nil))))))
+  (sunrise-assert-running)
+  (setq sunrise-panes-height (sunrise-get-panes-size height))
+  (let ((locked sunrise-windows-locked))
+    (setq sunrise-windows-locked t)
+    (cond (height
+           (shrink-window 1))
+          (t
+           (setq sunrise-selected-window-width t)
+           (balance-windows)))
+    (unless locked
+      (sit-for 0.1)
+      (setq sunrise-windows-locked nil))))
 
 (defun sunrise-max-lock-panes ()
   (interactive)
@@ -2290,11 +2288,11 @@ This function is called only if the `sunrise-cursor-follows-mouse' custom variab
 (defun sunrise-viewer-window ()
   "Return an active window that can be used as the viewer."
   (if (or (memq major-mode '(sunrise-mode sunrise-virtual-mode sunrise-tree-mode))
-          (memq (current-buffer) (list sunrise-left-buffer sunrise-right-buffer)))
+          (sunrise-directory-window-p (selected-window)))
       (let ((current-window (selected-window)) (target-window))
         (dotimes (_times 2)
           (setq current-window (next-window current-window))
-          (unless (memq current-window (list sunrise-left-window sunrise-right-window))
+          (unless (sunrise-directory-window-p current-window)
             (setq target-window current-window)))
         target-window)
     (selected-window)))
