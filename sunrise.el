@@ -4419,6 +4419,7 @@ Helper macro for implementing command line expansion in Sunrise."
 
 (defun sunrise-clex-start ()
   "Start a new CLEX operation.
+
 Puts `sunrise-clex-commit' into local `after-change-functions'."
   (interactive)
   (if sunrise-clex-on
@@ -4436,6 +4437,7 @@ Puts `sunrise-clex-commit' into local `after-change-functions'."
 
 (defun sunrise-clex-commit (&optional _beg _end _range)
   "Commit the current CLEX operation (if any).
+
 This function is added to the local `after-change-functions' list
 by `sunrise-clex-start'."
   (interactive)
@@ -4526,6 +4528,7 @@ by `sunrise-clex-start'."
 
 (defun sunrise-pure-virtual-p (&optional buffer)
   "Return t if BUFFER (or the current buffer if nil) is purely virtual.
+
 Purely virtual means it is not attached to any directory or any
 file in the file system."
   (with-current-buffer (if (bufferp buffer) buffer (current-buffer))
@@ -4591,6 +4594,7 @@ file in the file system."
 
 (defun sunrise-desktop-sort (buffer side desktop-buffer-misc)
   "Restore the sorting order in BUFFER to be displayed in SIDE.
+
 Use the data in DESKTOP-BUFFER-MISC to obtain all pertinent
 details."
   (with-current-buffer buffer
@@ -4605,6 +4609,7 @@ details."
 
 (defun sunrise-reset-state ()
   "Reset some environment variables that control the Sunrise behavior.
+
 Used for desktop support."
   (setq sunrise-left-directory "~/" sunrise-right-directory "~/"
         sunrise-this-directory "~/" sunrise-other-directory "~/")
@@ -4645,6 +4650,7 @@ Used for desktop support."
 
 (defun sunrise-keep-buffer (&optional side)
   "Keep the currently displayed buffer in SIDE (left or right) window.
+
 Keeps it there even if it does not belong to the panel's history
 ring. If SIDE is nil, use the value of `sunrise-selected-window'
 instead. Useful for maintaining the contents of the pane during
@@ -4655,6 +4661,7 @@ layout switching."
 
 (defun sunrise-scrollable-viewer (buffer)
   "Set the `other-window-scroll-buffer' variable to BUFFER.
+
 Doing so allows to scroll the given buffer directly from the active pane."
   (setq other-window-scroll-buffer buffer)
   (if buffer
@@ -4708,8 +4715,9 @@ Jj-ump, q-uit, m-ark, u-nmark, h-elp"))
     found))
 
 (defun sunrise-get-marked-files ()
-  "Return current pane's *explicitly* selected entries, or nil if
-no entries have been explicitly selected."
+  "Return current pane's *explicitly* selected entries.
+
+Or nil if no entries have been explicitly selected."
   (let ((marked))
     (condition-case err
         (setq marked (dired-get-marked-files t nil nil t))
@@ -4720,16 +4728,19 @@ no entries have been explicitly selected."
       marked)))
 
 (defun sunrise-quote-marked ()
-  "Return current pane's explicitly selected entries quoted and
-space-separated as a string, or nil if no entries have been
-explicitly selected."
+  "Return current pane's explicitly selected entries.
+
+Return a string of space-separated, quoted entries.  Return nil if
+no entries have been explicitly selected."
   (let ((marked (sunrise-get-marked-files)))
     (when marked
       (format "\"%s\"" (mapconcat 'identity marked "\" \"")))))
 
 (defun sunrise-fix-listing-switches()
-  "Work around a bug in Dired that makes `dired-move-to-filename' misbehave
-when any of the options -p or -F is used with ls."
+  "Work around a bug in Dired.
+
+The bug makes `dired-move-to-filename' misbehave when the `ls'
+option `-p' or `-F' is in use."
   (mapc (lambda (sym)
           (let ((val (replace-regexp-in-string "\\(?:^\\| \\)-[pF]*\\(?: \\|$\\)" " " (symbol-value sym))))
             (while (string-match "\\(?:^\\| \\)-[^- ]*[pF]" val)
@@ -4763,6 +4774,7 @@ when any of the options -p or -F is used with ls."
 
 (defun sunrise-ad-enable (regexp &optional function)
   "Put all or FUNCTION-specific advice matching REGEXP into effect.
+
 If provided, only update FUNCTION itself, otherwise all functions
 with advice matching REGEXP."
   (cond ((not function)
@@ -4774,6 +4786,7 @@ with advice matching REGEXP."
 
 (defun sunrise-ad-disable (regexp &optional function)
   "Stop all FUNCTION-specific advice matching REGEXP from taking effect.
+
 If provided, only update FUNCTION itself, otherwise all functions
 with advice matching REGEXP."
   (cond ((not function)
