@@ -985,11 +985,16 @@ this function returns nil."
 (defun sunrise-ensure-running ()
   (or (sunrise-running-p) (sunrise)))
 
-(defun sunrise-assert-pane ()
-  "Assert the current window and buffer are a directory pane."
+(defun sunrise-assert-directory-window (&optional interactive-p)
+  "Assert the current window and buffer are a directory pane.
+
+If INTERACTIVE-P is non-nil, assume we were called from an
+interactive command and signal a user error. Otherwise assume we
+were called from a subroutine and signal an ordinary error."
   (unless (and (sunrise-running-p)
                (eq 'pane (sunrise-classify-window (selected-window))))
-    (user-error "Not in a Sunrise Commander directory pane")))
+    (let ((message "Not in a Sunrise Commander directory pane"))
+      (if interactive-p (user-error "%s" message) (error "%s" message)))))
 
 (defun sunrise-assert-other ()
   "Signal an error if we have no other pane."
@@ -2974,7 +2979,7 @@ specifiers are: d (decimal), x (hex) or o (octal)."
 (defun sunrise-editable-pane ()
   "Put the current pane in File Names Editing mode (`wdired-mode')."
   (interactive)
-  (sunrise-assert-pane)
+  (sunrise-assert-directory-window t)
   (sunrise-graphical-highlight 'sunrise-editing-path-face)
   (let* ((was-virtual (eq major-mode 'sunrise-virtual-mode))
          (major-mode 'dired-mode))
@@ -3903,7 +3908,7 @@ pane."
   Once narrowed and accepted, you can restore the original contents of the pane
   by pressing g (`revert-buffer')."
   (interactive)
-  (sunrise-assert-running)
+  (sunrise-assert-directory-window t)
   (sunrise-beginning-of-buffer)
   (let ((stack nil) (filter "") (regex "") (next-char nil) (inhibit-quit t))
     (cl-labels ((read-next (f) (read-char (concat "Fuzzy narrow: " f))))
