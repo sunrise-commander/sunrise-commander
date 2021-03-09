@@ -985,6 +985,12 @@ this function returns nil."
 (defun sunrise-ensure-running ()
   (or (sunrise-running-p) (sunrise)))
 
+(defun sunrise-assert-pane ()
+  "Assert the current window and buffer are a directory pane."
+  (unless (and (sunrise-running-p)
+               (eq 'pane (sunrise-classify-window (selected-window))))
+    (user-error "Not in a Sunrise Commander directory pane")))
+
 (defun sunrise-assert-other ()
   "Signal an error if we have no other pane."
   (unless (window-live-p (sunrise-other 'window))
