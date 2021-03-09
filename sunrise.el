@@ -1214,8 +1214,6 @@ E.g. from `find-dired'."
 (define-key sunrise-mode-map "\M-l"        'sunrise-toggle-truncate-lines)
 (define-key sunrise-mode-map "s"           'sunrise-interactive-sort)
 (define-key sunrise-mode-map "r"           'sunrise-reverse-pane)
-(define-key sunrise-mode-map "\C-e"        'sunrise-scroll-up)
-(define-key sunrise-mode-map "\C-y"        'sunrise-scroll-down)
 (define-key sunrise-mode-map " "           'sunrise-scroll-quick-view)
 (define-key sunrise-mode-map "\M- "        'sunrise-scroll-quick-view-down)
 (define-key sunrise-mode-map [?\S- ]       'sunrise-scroll-quick-view-down)
