@@ -2976,6 +2976,7 @@ specifiers are: d (decimal), x (hex) or o (octal)."
 (defun sunrise-editable-pane ()
   "Put the current pane in File Names Editing mode (`wdired-mode')."
   (interactive)
+  (sunrise-assert-pane)
   (sunrise-graphical-highlight 'sunrise-editing-path-face)
   (let* ((was-virtual (eq major-mode 'sunrise-virtual-mode))
          (major-mode 'dired-mode))
