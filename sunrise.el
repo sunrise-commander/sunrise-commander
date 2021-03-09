@@ -1463,19 +1463,22 @@ If provided, use SWITCHES instead of `sunrise-listing-switches'."
 
 ;;;###autoload
 (defun sunrise-cd ()
-  "Toggle the Sunrise Commander FM keeping the current file in focus.
-If Sunrise is off, enable it and focus the file displayed in the current buffer.
-If Sunrise is on, disable it and switch to the buffer currently displayed in the
-viewer window."
+  "Toggle (show/hide) Sunrise Commander, keeping the current file in focus.
+
+If Sunrise is hidden, show it and focus the file visited in the
+current buffer.
+
+If Sunrise is shown, hide it and switch to the buffer currently
+displayed in the viewer window."
   (interactive)
-  (cond
-   ((not (and (sunrise-running-p)
-              (eq (window-frame sunrise-left-window) (selected-frame))))
-    (sunrise-dired (or (buffer-file-name) (sunrise-choose-cd-target))))
-   (t
-    (sunrise-quit t)
-    (message
-     "Hast thou a charm to stay the morning-star in his steep course?"))))
+  (let ((left-window (sunrise--left-window-maybe)))
+    (cond
+     ((and left-window (eq (window-frame left-window) (selected-frame)))
+      (sunrise-quit t)
+      (message
+       "Hast thou a charm to stay the morning-star in his steep course?"))
+     (t
+      (sunrise-dired (or (buffer-file-name) (sunrise-choose-cd-target)))))))
 
 (defun sunrise-this (&optional type)
   "Return object of type TYPE corresponding to the active side of the manager.
