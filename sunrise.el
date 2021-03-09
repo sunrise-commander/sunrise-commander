@@ -1516,12 +1516,10 @@ SIDE is one of the symbols left or right."
     (setq sunrise-panes-height (* 2 window-min-height)))
   (split-window (selected-window) sunrise-panes-height)
 
-  (cl-case sunrise-window-split-style
+  (cl-ecase sunrise-window-split-style
     (horizontal (split-window-horizontally))
     (vertical   (split-window-vertically))
-    (top        (ignore))
-    (t (error "Unrecognised `sunrise-window-split-style' value: %s"
-              sunrise-window-split-style)))
+    (top        (ignore)))
 
   (sunrise-setup-visible-panes)
 
@@ -2315,13 +2313,11 @@ calls the function `sunrise-setup-windows' and tries once again."
 (defun sunrise-split-toggle()
   "Change Sunrise window layout from horizontal to vertical to top and so on."
   (interactive)
-  (cl-case sunrise-window-split-style
+  (cl-ecase sunrise-window-split-style
     (horizontal (sunrise-split-setup 'vertical))
-    (vertical (sunrise-split-setup 'top))
-    (top (progn
-           (sunrise-split-setup 'horizontal)
-           (sunrise-in-other (revert-buffer))))
-    (t (sunrise-split-setup 'horizontal))))
+    (vertical   (sunrise-split-setup 'top))
+    (top        (sunrise-split-setup 'horizontal)
+                (sunrise-in-other (revert-buffer)))))
 
 (defun sunrise-split-setup(split-type)
   (setq sunrise-window-split-style split-type)
