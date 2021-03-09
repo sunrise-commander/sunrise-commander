@@ -1970,12 +1970,14 @@ Returns nil if AVFS cannot manage this kind of file."
   (interactive "DChange directory (file or pattern): ")
   (if sunrise-goto-dir-function
       (funcall sunrise-goto-dir-function dir)
-    (unless (and (eq major-mode 'sunrise-mode) (sunrise-equal-dirs dir default-directory))
+    (unless (and (eq major-mode 'sunrise-mode)
+                 (sunrise-equal-dirs dir default-directory))
       (when (and sunrise-avfs-root
                  (null (posix-string-match "#" dir)))
         (setq dir
               (replace-regexp-in-string
-               (directory-file-name (expand-file-name sunrise-avfs-root)) "" dir)))
+               (directory-file-name (expand-file-name sunrise-avfs-root))
+               "" dir)))
       (sunrise-save-aspect
        (sunrise-within dir (sunrise-alternate-buffer (dired dir))))
       (sunrise-history-push default-directory)
