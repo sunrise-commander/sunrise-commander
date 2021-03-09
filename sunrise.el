@@ -503,9 +503,6 @@ support any options."
 (defvar sunrise-right-buffer nil
   "Dired buffer for the right window.")
 
-(defvar sunrise-right-window nil
-  "The right window of Dired.")
-
 (defvar sunrise-current-frame nil
   "The frame Sunrise is active on (if any).")
 
@@ -1056,7 +1053,7 @@ Helper macro for passive & synchronized navigation."
 
 (eval-and-compile
   (defun sunrise-symbol (side type)
-    "Synthesize Sunrise symbols (`sunrise-left-buffer', `sunrise-right-window', etc.)."
+    "Synthesize Sunrise symbols (`sunrise-left-buffer', etc.)."
     (intern (concat "sunrise-" (symbol-name side) "-" (symbol-name type)))))
 
 (defun sunrise-dired-mode ()
@@ -1596,23 +1593,23 @@ Return t if a configuration to restore could be found, nil otherwise."
 
 (defun sunrise-lock-window (_frame)
   "Resize the left Sunrise pane to have the \"right\" size."
-  (let ((left-window (sunrise--left-window-maybe)))
-    (let ((sunrise-windows-locked sunrise-windows-locked))  ; TODO: What?
-      (when (> window-min-height (- (frame-height)
-                                    (window-height left-window)))
-        (setq sunrise-windows-locked nil))
-      (and sunrise-windows-locked
-           (not sunrise-ediff-on)
-           (not (eq sunrise-window-split-style 'vertical))
-           (window-live-p left-window)
-           (sunrise-save-selected-window
-            (select-window left-window)
-            (let* ((sunrise-panes-height (or sunrise-panes-height (window-height)))
-                   (my-delta (- sunrise-panes-height (window-height))))
-              (enlarge-window my-delta))
-            (scroll-right)
-            (when (window-live-p sunrise-right-window)
-              (select-window sunrise-right-window)
+  (cl-destructuring-bind (left-window right-window _viewer-window)
+      (sunrise--analyze-frame)
+    (when (and left-window right-window)
+      (let ((sunrise-windows-locked sunrise-windows-locked))  ; TODO: What?
+        (when (> window-min-height (- (frame-height)
+                                      (window-height left-window)))
+          (setq sunrise-windows-locked nil))
+        (and sunrise-windows-locked
+             (not sunrise-ediff-on)
+             (not (eq sunrise-window-split-style 'vertical))
+             (sunrise-save-selected-window
+              (select-window left-window)
+              (let ((sunrise-panes-height
+                     (or sunrise-panes-height (window-height))))
+                (enlarge-window (- sunrise-panes-height (window-height))))
+              (scroll-right)
+              (select-window right-window)
               (scroll-right)))))))
 
 ;; This keeps the size of the Sunrise panes constant:
@@ -2360,33 +2357,41 @@ calls the function `sunrise-setup-windows' and tries once again."
     (top        (sunrise-split-setup 'horizontal)
                 (sunrise-in-other (revert-buffer)))))
 
-(defun sunrise-split-setup(split-type)
+(defun sunrise-split-setup (split-type)
   (setq sunrise-window-split-style split-type)
-  (when (sunrise-running-p)
-    (when (eq sunrise-window-split-style 'top)
-      (sunrise-select-window 'left)
-      (delete-window sunrise-right-window)
-      (setq sunrise-panes-height (window-height)))
-    (sunrise-setup-windows))
-  (message "Sunrise: split style changed to \"%s\"" (symbol-name split-type)))
+  (cl-destructuring-bind (left-window right-window _viewer-window)
+      (sunrise--analyze-frame)
+    (when left-window
+      (when (eq sunrise-window-split-style 'top)
+        (sunrise-select-window 'left)
+        (delete-window right-window)
+        (setq sunrise-panes-height (window-height)))
+      (sunrise-setup-windows))
+    (message "Sunrise: split style changed to \"%s\"" split-type)))
 
 (defun sunrise-transpose-panes ()
   "Change the order of the panes."
   (interactive)
-  (unless (eq sunrise-left-buffer sunrise-right-buffer)
-    (mapc (lambda (x)
-            (let ((left (sunrise-symbol 'left x)) (right (sunrise-symbol 'right x)) (tmp))
-              (setq tmp (symbol-value left))
-              (set left (symbol-value right))
-              (set right tmp)))
-          '(directory buffer window))
-    (let ((tmp sunrise-this-directory))
-      (setq sunrise-this-directory sunrise-other-directory
-            sunrise-other-directory tmp))
-    (let ((here sunrise-selected-window))
-      (select-window sunrise-right-window)
-      (sunrise-setup-visible-panes)
-      (sunrise-select-window here))))
+  (cl-destructuring-bind (left-window right-window _viewer-window)
+      (sunrise--analyze-frame)
+    (let ((left-buffer  (window-buffer left-window))
+          (right-buffer (window-buffer right-window)))
+      (unless (eq left-buffer right-buffer)
+        (mapc (lambda (x)
+                (let ((left  (sunrise-symbol 'left x))
+                      (right (sunrise-symbol 'right x))
+                      (tmp   nil))
+                  (setq tmp (symbol-value left))
+                  (set left (symbol-value right))
+                  (set right tmp)))
+              '(directory buffer))
+        (let ((tmp sunrise-this-directory))
+          (setq sunrise-this-directory sunrise-other-directory)
+          (setq sunrise-other-directory tmp))
+        (let ((here sunrise-selected-window))
+          (select-window right-window)
+          (sunrise-setup-visible-panes)
+          (sunrise-select-window here))))))
 
 (defun sunrise-synchronize-panes (&optional reverse)
   "Change the directory in the other pane to that in the current one.
