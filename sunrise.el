@@ -1064,17 +1064,16 @@ Helper macro for passive & synchronized navigation."
 
 (defun sunrise-bookmark-jump ()
   "Handle panes opened from bookmarks in Sunrise."
-  (when (and (sunrise-running-p)
-             (memq (selected-window) (list sunrise-left-window sunrise-right-window)))
-    (let ((last-buf (symbol-value (sunrise-symbol sunrise-selected-window 'buffer))))
-      (setq dired-omit-mode (with-current-buffer last-buf dired-omit-mode))
-      (setq sunrise-this-directory default-directory)
-      (if (sunrise-equal-dirs sunrise-this-directory sunrise-other-directory)
-          (sunrise-synchronize-panes t)
-        (revert-buffer))
-      (sunrise-keep-buffer)
-      (unless (memq last-buf (list (current-buffer) (sunrise-other 'buffer)))
-        (kill-buffer last-buf)))))
+  (sunrise-assert-directory-window)
+  (let ((last-buf (symbol-value (sunrise-symbol sunrise-selected-window 'buffer))))
+    (setq dired-omit-mode (with-current-buffer last-buf dired-omit-mode))
+    (setq sunrise-this-directory default-directory)
+    (if (sunrise-equal-dirs sunrise-this-directory sunrise-other-directory)
+        (sunrise-synchronize-panes t)
+      (revert-buffer))
+    (sunrise-keep-buffer)
+    (unless (memq last-buf (list (current-buffer) (sunrise-other 'buffer)))
+      (kill-buffer last-buf))))
 
 (add-hook 'bookmark-after-jump-hook 'sunrise-bookmark-jump)
 
