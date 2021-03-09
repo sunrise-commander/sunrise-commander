@@ -949,7 +949,6 @@ If the window layout has been wedged such that it partially
 matches the expected Sunrise layout, but other parts don't match,
 this function returns nil."
   (let ((root (frame-root-window frame)))
-    (current-window-configuration frame)
     (cl-ecase sunrise-window-split-style
       (horizontal
        (and (= 2 (window-child-count root))
