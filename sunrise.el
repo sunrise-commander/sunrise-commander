@@ -933,10 +933,14 @@ Uses `save-selected-window' internally."
   (let ((mode (and buffer (with-current-buffer buffer major-mode))))
     (if (eq 'sunrise-mode mode) 'pane nil)))
 
+(defun sunrise-classify-window (window)
+  "Return 'pane or nil depending on Sunrise Commander type of WINDOW."
+  (sunrise-classify-buffer (window-buffer window)))
+
 (defun sunrise-window-panes-p (window1 window2)
   "Return t if WINDOW1 and WINDOW2 are two Sunrise directory panes."
-  (and (eq 'pane (sunrise-classify-buffer (window-buffer window1)))
-       (eq 'pane (sunrise-classify-buffer (window-buffer window2)))))
+  (and (eq 'pane (sunrise-classify-window window1))
+       (eq 'pane (sunrise-classify-window window2))))
 
 (defun sunrise-running-p (&optional frame)
   "Return t if the Sunrise Commander is being displayed in FRAME.
@@ -970,9 +974,8 @@ this function returns nil."
        (and (= 2 (window-child-count root))
             (let* ((top (window-top-child root))
                    (bot (window-next-sibling top)))
-              (and (eq 'pane (sunrise-classify-buffer
-                              (window-buffer
-                               (window-top-child root))))
+              (and (eq 'pane (sunrise-classify-window
+                              (window-top-child root)))
                    (window-live-p bot))))))))
 
 (defun sunrise-assert-running ()
