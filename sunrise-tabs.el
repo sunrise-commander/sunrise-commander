@@ -114,8 +114,9 @@
   :type 'integer)
 
 (defcustom sunrise-tabs-truncation-style 'right
-  "On which side should we truncate the tag a of new tab if it
-happens to be longer than `sunrise-tabs-max-tabsize`."
+  "On which side should we truncate the tag of a new tab.
+
+Tags longer than `sunrise-tabs-max-tabsize' are truncated."
   :group 'sunrise
   :type '(choice
           (const :tag "Truncate from the right" right)
@@ -201,8 +202,11 @@ If a tab for the current buffer already exists, invoke `sunrise-tabs-rename'."
 
 (defun sunrise-tabs-remove (&optional tab-buffer side)
   "Remove the tab to which TAB-BUFFER is assigned in the active pane.
+
 If TAB-BUFFER is nil, removes the tab to which the current buffer
-is assigned, if any."
+is assigned, if any.
+
+SIDE is 'left or 'right."
   (interactive "P")
   (let* ((side (or side sunrise-selected-window))
          (tab-name (if (integerp tab-buffer)
@@ -225,8 +229,11 @@ is assigned, if any."
 
 (defun sunrise-tabs-kill (&optional name side)
   "Remove the tab named NAME from the active pane and kill its buffer.
+
 The buffer is not killed when currently visible or assigned to
-another tab."
+another tab.
+
+SIDE is 'left or 'right."
   (interactive)
   (let ((to-kill (or (and name (get-buffer name)) (current-buffer)))
         (side (or side sunrise-selected-window)))
@@ -267,7 +274,9 @@ The direction depends on the value of BACK."
         (sunrise-tabs-switch-to-buffer (car stack))))))
 
 (defun sunrise-tabs-switch-to-buffer (to-buffer)
-  "Change context of the active Sunrise pane when switching buffers."
+  "Change context of the active Sunrise pane when switching buffers.
+
+TO-BUFFER is the target buffer."
   (let ((from-buffer (current-buffer))
         (sunrise-current-path-faces
          (with-current-buffer to-buffer sunrise-current-path-faces)))
@@ -314,6 +323,7 @@ removes the tab."
         (kill-buffer to-kill)))))
 
 (defun sunrise-tabs-rename (&optional new-name)
+  "Rename the current Sunrise tab to NEW-NAME."
   (interactive "sRename current tab to: ")
   (let* ((key (buffer-name))
          (cache (assq sunrise-selected-window sunrise-tabs-labels-cache))
@@ -322,7 +332,7 @@ removes the tab."
         (sunrise-tabs-redefine-label key new-name))))
 
 (defun sunrise-tabs-transpose ()
-  "Swap the sets of tabs from one pane to the other."
+  "Swap tabsets from one pane to the other."
   (interactive)
   (cl-labels ((flip (side) (setcar side (cdr (assq (car side)
                                                    sunrise-side-lookup)))))
@@ -393,7 +403,7 @@ TAG allows to provide a pretty name to label the tab."
       (sunrise-tabs-propertize-tag tag 'sunrise-tabs-inactive-face keymap))))
 
 (defun sunrise-tabs-truncate (tag)
-  "Truncate and add an ellipsis mark to the given tag if necessary."
+  "Truncate and add an ellipsis mark to the given TAG if necessary."
   (if (>= sunrise-tabs-max-tabsize (length tag))
       tag
     (cl-case sunrise-tabs-truncation-style
@@ -415,7 +425,7 @@ argument ALIAS allows to provide a pretty name to label the tab."
     label))
 
 (defun sunrise-tabs-trim-label (label)
-  "Remove all properties and trailing whitespace from the given string."
+  "Remove all properties and trailing whitespace from LABEL."
   (replace-regexp-in-string "^\\s-+\\|\\s-+$"
                             ""
                             (substring-no-properties label)))
@@ -465,12 +475,15 @@ nil = inactive, t = active. Creates new labels when needed."
     nil))
 
 (defsubst sunrise-tabs-empty-p (line)
+  ""
   (or (null line) (string= "" line)))
 
 (defsubst sunrise-tabs-empty-mask (line)
+  ""
   (or (and (null line) "") line))
 
 (defsubst sunrise-tabs-empty-null (line)
+  ""
   (if (sunrise-tabs-empty-p line) nil line))
 
 (defun sunrise-tabs-nonempty-p (line-list)
