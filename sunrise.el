@@ -1526,7 +1526,6 @@ buffer or window."
 
 SIDE is one of the symbols left or right."
   `(let ((sunrise-selected-window ',side))
-     (setq ,(sunrise-symbol side 'window) (selected-window))
      (setq ,(sunrise-symbol side 'directory)
            (sunrise--setup-pane-internal
             ,(sunrise-symbol side 'directory)
