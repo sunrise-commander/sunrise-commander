@@ -198,11 +198,8 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl-lib)
-  (require 'recentf))
-
 (require 'advice)
+(require 'cl-lib)
 (require 'desktop)
 (require 'dired)
 (require 'dired-aux)
@@ -212,6 +209,7 @@
 (require 'find-dired)
 (require 'font-lock)
 (require 'hl-line)
+(require 'recentf)
 (require 'sort)
 (require 'term)
 (require 'tramp)
