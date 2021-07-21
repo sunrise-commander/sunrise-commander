@@ -1505,14 +1505,14 @@ buffer or window."
           (t 'a))))
 
 (defun sunrise-other-side ()
-  (ecase (sunrise-this-side)
+  (cl-ecase (sunrise-this-side)
     (a 'b)
     (b 'a)))
 
 (defun sunrise-other-window ()
   (cl-destructuring-bind (a-window b-window _view-window)
       (sunrise--analyze-frame)
-    (ecase (sunrise-other-side)
+    (cl-ecase (sunrise-other-side)
       (a a-window)
       (b b-window))))
 
@@ -1838,7 +1838,7 @@ Emacs window configuration into a default state."
               (sunrise--analyze-frame)
             (if (and a-window b-window)
                 (window-width
-                 (ecase sunrise-selected-window
+                 (cl-ecase sunrise-selected-window
                    (a a-window)
                    (b b-window)))
               t)))))
@@ -2400,7 +2400,7 @@ custom variable (which see) has not been set to nil."
   "Select/highlight the SIDE Sunrise window (right or left)."
   (cl-destructuring-bind (a-window b-window _view-window)
       (sunrise--analyze-frame)
-    (let ((window (ecase side
+    (let ((window (cl-ecase side
                     (a a-window)
                     (b b-window))))
       (if (window-live-p window)
@@ -4838,7 +4838,7 @@ layout switching."
   (cl-destructuring-bind (a-window b-window _viewer-window)
       (sunrise--analyze-frame)
     (let* ((side (or side sunrise-selected-window))
-           (window (ecase side
+           (window (cl-ecase side
                      (a a-window)
                      (b b-window))))
       (set (sunrise-symbol side 'buffer) (window-buffer window)))))
