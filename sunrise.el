@@ -940,7 +940,7 @@ Otherwise returns a 3-element list:
 \(left-window right-window viewer-window)
 
 * left-window is never nil.
-* right-window is nil iif `sunrise-window-split-style' is 'top.
+* right-window is nil if `sunrise-window-split-style' is 'top.
 * viewer-window is nil if the viewer pane is not shown.
 
 Use `window-buffer' to to get at the buffer of each window, and
@@ -2083,7 +2083,8 @@ WILDCARDS is passed to `sunrise-find-regular-file'."
   "Deactivate Sunrise and display BUFFER in the current frame."
   (sunrise-save-panes-width)
   (sunrise-quit)
-  (set-window-configuration sunrise-prior-window-configuration)
+  (when sunrise-prior-window-configuration
+    (set-window-configuration sunrise-prior-window-configuration))
   (switch-to-buffer buffer))
 
 (defun sunrise-avfs-dir (filename)
