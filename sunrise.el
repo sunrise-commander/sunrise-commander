@@ -980,6 +980,7 @@ which directories the user is browsing."
 
 (defun sunrise--analyze-frame (&optional frame)
   "Helper to analyze Sunrise windows in FRAME."
+  (interactive)
   (or (sunrise--analyze-frame-or-nil frame) (list nil nil nil)))
 
 (defun sunrise--left-window-maybe (&optional frame)
@@ -1390,40 +1391,49 @@ Set SYMBOL to VALUE whenever the option is set."
 
 (defun sunrise-show (&optional left-directory right-directory filename)
   "Ensure the Sunrise Commander is shown with the given directories.
-
 LEFT-DIRECTORY and RIGHT-DIRECTORY say which directory to display
 in the left and right pane, respectively.  Pass nil to keep the
 current directory (in case Sunrise was already running) or go to
 the home directory (in case Sunrise is started afresh).
-
 If FILENAME is non-nil, it is the basename of a file to focus."
   (interactive)
   (message "Starting Sunrise Commander...")
-  (setq sunrise-prior-window-configuration (current-window-configuration))
-  (if (and sunrise-last-window-configuration (not (and left-directory right-directory filename)))
-      (progn
-        (set-window-configuration sunrise-last-window-configuration))
-    (progn
-      (let ((msg nil))
-        (when (or filename
-                  (sunrise-ensure-windows
-                   (selected-frame)
-                   left-directory
-                   right-directory))
-          (setq msg sunrise-start-message))
-        (when filename
-          (condition-case err
-              (sunrise-focus-filename (file-name-nondirectory filename))
-            (error (setq msg (error-message-string err)))))
-        (setq sunrise-this-directory default-directory)
-        (sunrise-highlight)             ; W32Emacs needs this.
-        (hl-line-mode 1)
-        (message "%s" msg)))))
+  (if sunrise-last-window-configuration
+      (set-window-configuration sunrise-last-window-configuration))
+  (let ((msg nil))
+    (when (or filename
+              (sunrise-ensure-windows
+               (selected-frame)
+               left-directory
+               right-directory))
+      (setq msg sunrise-start-message))
+    (when filename
+      (condition-case err
+          (sunrise-focus-filename (file-name-nondirectory filename))
+        (error (setq msg (error-message-string err)))))
+    (setq sunrise-this-directory default-directory)
+    (sunrise-highlight)                 ; W32Emacs needs this.
+    (hl-line-mode 1)
+    (message "%s" msg)))
 
 (defun sunrise-toggle ()
   "Show or hide the Sunrise Commander."
   (interactive)
-  (or (sunrise-quit) (sunrise-show)))
+  (or (sunrise-quit) (sunrise-setup t)))
+
+(defun sunrise-setup-windows ()
+  (interactive)
+  (sunrise-save-directories)
+  (sunrise-bury-panes)
+  (sunrise-setup nil))
+
+(defun sunrise-setup (save-window-configuration)
+  (if save-window-configuration
+      (setq sunrise-prior-window-configuration (current-window-configuration)))
+  (cond ((eq sunrise-selected-window 'a)
+         (sunrise-show sunrise-this-directory sunrise-other-directory))
+        ((eq sunrise-selected-window 'b)
+         (sunrise-show sunrise-other-directory sunrise-this-directory))))
 
 ;;;###autoload
 (defalias 'sunrise 'sunrise-toggle)
@@ -2505,8 +2515,8 @@ calls the function `sunrise-setup-windows' and tries once again."
       (when (eq sunrise-window-split-style 'top)
         (sunrise-select-window 'a)
         (delete-window b-window)
-        (setq sunrise-panes-height (window-height)))
-      (sunrise-setup-windows))
+        (setq sunrise-panes-height (window-height))))
+    (sunrise-setup-windows)
     (message "Sunrise: split style changed to \"%s\"" split-type)))
 
 (defun sunrise-transpose-panes ()
