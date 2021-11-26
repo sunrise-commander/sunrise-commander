@@ -2103,7 +2103,8 @@ WILDCARDS is passed to `sunrise-find-regular-file'."
   "Deactivate Sunrise and display BUFFER in the current frame."
   (sunrise-save-panes-width)
   (sunrise-quit)
-  (sunrise-restore-prior-configuration)
+  (when sunrise-prior-window-configuration
+    (sunrise-restore-prior-configuration))
   (switch-to-buffer buffer))
 
 (defun sunrise-avfs-dir (filename)
