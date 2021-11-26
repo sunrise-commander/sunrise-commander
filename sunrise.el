@@ -1412,7 +1412,7 @@ If FILENAME is non-nil, it is the basename of a file to focus."
           (sunrise-focus-filename (file-name-nondirectory filename))
         (error (setq msg (error-message-string err)))))
     (setq sunrise-this-directory default-directory)
-    (sunrise-highlight)                 ; W32Emacs needs this.
+    (sunrise-highlight)  ; W32Emacs needs this.
     (hl-line-mode 1)
     (message "%s" msg)))
 
@@ -1815,11 +1815,9 @@ Emacs window configuration into a default state."
               (setq sunrise-last-window-configuration (current-window-configuration))
               (sunrise-save-directories)
               (sunrise-save-panes-width)
-              (if (or norestore (not (sunrise-restore-prior-configuration)))
-                  (progn
-                    (sunrise-select-viewer-window)
-                    (delete-other-windows))
-                (set-window-configuration sunrise-prior-window-configuration))
+              (when (or norestore (not (sunrise-restore-prior-configuration)))
+                (sunrise-select-viewer-window)
+                (delete-other-windows))
               (sunrise-bury-panes)
               (message "All life leaps out to greet the light...")
               (run-hooks 'sunrise-quit-hook)
