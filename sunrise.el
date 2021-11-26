@@ -1427,9 +1427,10 @@ If FILENAME is non-nil, it is the basename of a file to focus."
   (sunrise-bury-panes)
   (sunrise-setup nil))
 
-(defun sunrise-setup (save-window-configuration)
-  (if save-window-configuration
-      (setq sunrise-prior-window-configuration (current-window-configuration)))
+(defun sunrise-setup (first-time)
+  (when first-time
+    (run-hooks 'sunrise-init-hook)
+    (setq sunrise-prior-window-configuration (current-window-configuration)))
   (cond ((eq sunrise-selected-window 'a)
          (sunrise-show sunrise-this-directory sunrise-other-directory))
         ((eq sunrise-selected-window 'b)
