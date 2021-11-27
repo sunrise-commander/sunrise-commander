@@ -1389,9 +1389,9 @@ Set SYMBOL to VALUE whenever the option is set."
 ;;; ============================================================================
 ;;; Initialization and finalization functions:
 
-(defun sunrise-show (&optional left-directory right-directory filename)
+(defun sunrise-show (&optional a b filename)
   "Ensure the Sunrise Commander is shown with the given directories.
-LEFT-DIRECTORY and RIGHT-DIRECTORY say which directory to display
+A and B say which directory to display
 in the left and right pane, respectively.  Pass nil to keep the
 current directory (in case Sunrise was already running) or go to
 the home directory (in case Sunrise is started afresh).
@@ -1402,10 +1402,7 @@ If FILENAME is non-nil, it is the basename of a file to focus."
       (set-window-configuration sunrise-last-window-configuration))
   (let ((msg nil))
     (when (or filename
-              (sunrise-ensure-windows
-               (selected-frame)
-               left-directory
-               right-directory))
+              (sunrise-ensure-windows (selected-frame) a b))
       (setq msg sunrise-start-message))
     (when filename
       (condition-case err
