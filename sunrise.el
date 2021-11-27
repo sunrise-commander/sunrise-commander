@@ -480,6 +480,9 @@ support any options."
 (defvar sunrise-prior-window-configuration nil
   "Window configuration before Sunrise was started.")
 
+(defvar sunrise-last-window-configuration nil
+  "Window configuration before Sunrise was quit.")
+
 (defvar sunrise-synchronized nil
   "Non-nil when synchronized navigation is on.")
 
@@ -977,6 +980,7 @@ which directories the user is browsing."
 
 (defun sunrise--analyze-frame (&optional frame)
   "Helper to analyze Sunrise windows in FRAME."
+  (interactive)
   (or (sunrise--analyze-frame-or-nil frame) (list nil nil nil)))
 
 (defun sunrise--left-window-maybe (&optional frame)
@@ -1385,23 +1389,20 @@ Set SYMBOL to VALUE whenever the option is set."
 ;;; ============================================================================
 ;;; Initialization and finalization functions:
 
-(defun sunrise-show (&optional left-directory right-directory filename)
+(defun sunrise-show (&optional a b filename)
   "Ensure the Sunrise Commander is shown with the given directories.
-
-LEFT-DIRECTORY and RIGHT-DIRECTORY say which directory to display
+A and B say which directory to display
 in the left and right pane, respectively.  Pass nil to keep the
 current directory (in case Sunrise was already running) or go to
 the home directory (in case Sunrise is started afresh).
-
 If FILENAME is non-nil, it is the basename of a file to focus."
   (interactive)
   (message "Starting Sunrise Commander...")
+  (if sunrise-last-window-configuration
+      (set-window-configuration sunrise-last-window-configuration))
   (let ((msg nil))
     (when (or filename
-              (sunrise-ensure-windows
-               (selected-frame)
-               left-directory
-               right-directory))
+              (sunrise-ensure-windows (selected-frame) a b))
       (setq msg sunrise-start-message))
     (when filename
       (condition-case err
@@ -1415,7 +1416,22 @@ If FILENAME is non-nil, it is the basename of a file to focus."
 (defun sunrise-toggle ()
   "Show or hide the Sunrise Commander."
   (interactive)
-  (or (sunrise-quit) (sunrise-show)))
+  (or (sunrise-quit) (sunrise-setup t)))
+
+(defun sunrise-setup-windows ()
+  (interactive)
+  (sunrise-save-directories)
+  (sunrise-bury-panes)
+  (sunrise-setup nil))
+
+(defun sunrise-setup (first-time)
+  (when first-time
+    (run-hooks 'sunrise-init-hook)
+    (setq sunrise-prior-window-configuration (current-window-configuration)))
+  (cond ((eq sunrise-selected-window 'a)
+         (sunrise-show sunrise-this-directory sunrise-other-directory))
+        ((eq sunrise-selected-window 'b)
+         (sunrise-show sunrise-other-directory sunrise-this-directory))))
 
 ;;;###autoload
 (defalias 'sunrise 'sunrise-toggle)
@@ -1793,6 +1809,7 @@ Emacs window configuration into a default state."
   (interactive)
   (and (sunrise-running-p)
        (progn (setq sunrise-current-frame nil)
+              (setq sunrise-last-window-configuration (current-window-configuration))
               (sunrise-save-directories)
               (sunrise-save-panes-width)
               (when (or norestore (not (sunrise-restore-prior-configuration)))
@@ -2084,7 +2101,7 @@ WILDCARDS is passed to `sunrise-find-regular-file'."
   (sunrise-save-panes-width)
   (sunrise-quit)
   (when sunrise-prior-window-configuration
-    (set-window-configuration sunrise-prior-window-configuration))
+    (sunrise-restore-prior-configuration))
   (switch-to-buffer buffer))
 
 (defun sunrise-avfs-dir (filename)
@@ -2363,7 +2380,7 @@ NOSELECT is passed to `dired-simultaneous-find-file'."
     (let ((there sunrise-this-directory))
       (setq sunrise-selected-window (sunrise-other-side)
             sunrise-selected-window-width nil
-            sunrise-this-directory default-directory
+            sunrise-this-directory sunrise-other-directory
             sunrise-other-directory there)
       (sunrise-save-panes-width)
       (sunrise-highlight))))
@@ -2371,6 +2388,9 @@ NOSELECT is passed to `dired-simultaneous-find-file'."
 (defun sunrise-change-window()
   "Change to the other Sunrise pane."
   (interactive)
+  (let ((this sunrise-this-directory))
+    (setq sunrise-this-directory sunrise-other-directory)
+    (setq sunrise-other-directory this))
   (sunrise-select-window (sunrise-other-side))
   (setq sunrise-selected-window-width nil))
 
@@ -2492,8 +2512,8 @@ calls the function `sunrise-setup-windows' and tries once again."
       (when (eq sunrise-window-split-style 'top)
         (sunrise-select-window 'a)
         (delete-window b-window)
-        (setq sunrise-panes-height (window-height)))
-      (sunrise-setup-windows))
+        (setq sunrise-panes-height (window-height))))
+    (sunrise-setup-windows)
     (message "Sunrise: split style changed to \"%s\"" split-type)))
 
 (defun sunrise-transpose-panes ()
@@ -2512,12 +2532,11 @@ calls the function `sunrise-setup-windows' and tries once again."
                   (set left (symbol-value right))
                   (set right tmp)))
               '(directory buffer))
-        (let ((tmp sunrise-this-directory))
+        (let ((this sunrise-this-directory))
           (setq sunrise-this-directory sunrise-other-directory)
-          (setq sunrise-other-directory tmp))
+          (setq sunrise-other-directory this))
         (let ((here sunrise-selected-window))
           (select-window right-window)
-          (sunrise-setup-visible-panes)
           (sunrise-select-window here))))))
 
 (defun sunrise-synchronize-panes (&optional reverse)
@@ -3239,7 +3258,7 @@ cl-macs at runtime."
 (defun sunrise-do-symlink ()
   "Symlink selected files or directories from one pane to the other."
   (interactive)
-  (if (sunrise-equal-dirs default-directory sunrise-other-directory)
+  (if (sunrise-equal-dirs sunrise-this-directory sunrise-other-directory)
       (dired-do-symlink)
     (sunrise-link #'make-symbolic-link "Symlink" dired-keep-marker-symlink)))
 
@@ -3247,7 +3266,7 @@ cl-macs at runtime."
   "Symlink selected files or directories from one pane to the other relatively.
 See `dired-make-relative-symlink'."
   (interactive)
-  (if (sunrise-equal-dirs default-directory sunrise-other-directory)
+  (if (sunrise-equal-dirs sunrise-this-directory sunrise-other-directory)
       (dired-do-relsymlink)
     (sunrise-link #'dired-make-relative-symlink
                   "RelSymLink"
@@ -3265,7 +3284,7 @@ See `dired-make-relative-symlink'."
   (interactive)
   (when (sunrise-virtual-target)
     (error "Cannot move files to a VIRTUAL buffer, try (C)opying instead"))
-  (if (sunrise-equal-dirs default-directory sunrise-other-directory)
+  (if (sunrise-equal-dirs sunrise-this-directory sunrise-other-directory)
       (dired-do-rename)
     (let ((marked (dired-get-marked-files)))
       (when (sunrise-ask "Move" sunrise-other-directory marked #'y-or-n-p)
@@ -3329,7 +3348,7 @@ See `dired-make-relative-symlink'."
 
   (when (sunrise-virtual-target)
     (error "Cannot clone into a VIRTUAL buffer, try (C)opying instead"))
-  (when (sunrise-equal-dirs default-directory sunrise-other-directory)
+  (when (sunrise-equal-dirs sunrise-this-directory sunrise-other-directory)
     (error "Cannot clone inside one single directory, please select a\
  different one in the passive pane"))
 
@@ -3773,7 +3792,7 @@ as its first argument."
   (let ((this (sunrise-pop-mark)) (other nil))
     (unless this
       (setq this (car (dired-get-marked-files t))))
-    (if (sunrise-equal-dirs default-directory sunrise-other-directory)
+    (if (sunrise-equal-dirs sunrise-this-directory sunrise-other-directory)
         (setq other (sunrise-pop-mark))
       (progn
         (sunrise-change-window)
