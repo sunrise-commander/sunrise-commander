@@ -1412,6 +1412,7 @@ If FILENAME is non-nil, it is the basename of a file to focus."
     (hl-line-mode 1)
     (message "%s" msg)))
 
+;;;###autoload
 (defun sunrise-toggle ()
   "Show or hide the Sunrise Commander."
   (interactive)
